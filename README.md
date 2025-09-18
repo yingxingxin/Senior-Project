@@ -9,6 +9,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com)
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com)
 - **React**: 19.1.0
+- **Database**: PostgreSQL (Neon) with Drizzle ORM
 
 ## Project Setup
 
@@ -29,6 +30,16 @@ This project has been configured with:
 - **lucide-react**: SVG icon library ([Browse icons](https://lucide.dev/icons))
 - **class-variance-authority**: Helps create component variations (e.g., button sizes/colors)
 - **clsx & tailwind-merge**: Tools for managing CSS classes in components
+
+### Database (Drizzle ORM + Neon PostgreSQL)
+- **Drizzle ORM**: Type-safe database queries with full TypeScript support
+- **Neon**: Serverless PostgreSQL
+- Database schema is defined in `src/db/schema.ts`
+
+#### Database Commands
+- `npm run db:generate` - Generate migrations after schema changes
+- `npm run db:push` - Push schema changes to database
+- `npm run db:studio` - Open Drizzle Studio to view/edit data
 
 ## Getting Started
 

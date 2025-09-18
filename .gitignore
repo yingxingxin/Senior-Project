@@ -30,8 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (todo: uncomment after everyone has the connection string in their .env file)
+# .env*
 
 # vercel
 .vercel
@@ -40,5 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-*storybook.log
-storybook-static
+CLAUDE.md
