@@ -4,7 +4,7 @@
  * when querying and manipulating data in our application.
  */
 
-import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey, timestamp } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -13,6 +13,14 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).unique().notNull(),
   password: varchar('password', { length: 255 }).notNull(),
   assistantId: integer('assistant_id').references(() => assistants.assistantId),
+});
+
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.userId),
+  token: varchar('token', { length: 255 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
 });
 
 export const assistants = pgTable('assistants', {

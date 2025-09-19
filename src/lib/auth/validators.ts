@@ -40,3 +40,22 @@ export function validateSignup(input: SignupInput): string[] {
 
   return errors;
 }
+
+// Validate password reset - checks password strength and confirmation match
+export function validatePasswordReset(password: string, confirmPassword: string): string[] {
+  const errors: string[] = [];
+
+  if (!password) {
+    errors.push("Password is required");
+  } else if (password.length < MIN_PASSWORD_LENGTH) {
+    errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+  }
+
+  if (!confirmPassword) {
+    errors.push("Please confirm your password");
+  } else if (password !== confirmPassword) {
+    errors.push("Passwords do not match");
+  }
+
+  return errors;
+}

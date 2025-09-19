@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
+    "@react-email/components": "^0.5.3",
+    "@react-email/render": "^1.2.3",
     "@tailwindcss/postcss": "^4",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -27,6 +29,7 @@
     "postgres": "^3.4.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "resend": "^6.1.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7"
   },
