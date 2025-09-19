@@ -15,6 +15,13 @@
       "when": 1758249134447,
       "tag": "0001_quiet_domino",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758294470240,
+      "tag": "0002_cool_nightmare",
+      "breakpoints": true
     }
   ]
 }

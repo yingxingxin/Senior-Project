@@ -1,15 +1,16 @@
 // app/api/auth/signup/route.ts
 import { NextResponse, NextRequest } from 'next/server'
-import { db, users } from '@/src/db'
+import { db, users, authTokens } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import {
   validateSignup,
-  createAuthToken,
-  applyAuthCookie,
   type SignupInput,
+  type SignupResponse,
   type AuthResponse,
 } from '@/lib/auth'
+import { sendVerificationEmail } from '@/lib/auth/email'
 
 /**
  * POST /api/auth/signup
@@ -17,10 +18,10 @@ import {
  * Flow:
  * 1) Parse + validate request body.
  * 2) Normalize email and check if it already exists.
- * 3) Encrypt password and create user.
- * 4) Create a short-lived login token and set it as an httpOnly cookie.
- * 5) Return a minimal user object.
- */
+ * 3) Create user with isEmailVerified = false.
+ * 4) Generate verification token and store in authTokens.
+ * 5) Send verification email to the user.
+*/
 export async function POST(request: NextRequest) {
   try {
     if (!request.headers.get('content-type')?.includes('application/json')) {
@@ -34,16 +35,14 @@ export async function POST(request: NextRequest) {
     const payload = (body ?? {}) as Record<string, unknown>
     const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : ''
     const password = typeof payload.password === 'string' ? payload.password : ''
-    const confirmEmailRaw = payload.confirmEmail ?? payload.email
-    const confirmEmail = typeof confirmEmailRaw === 'string'
-      ? confirmEmailRaw.trim().toLowerCase()
-      : ''
+    const confirmEmail = typeof payload.confirmEmail === 'string' ? payload.confirmEmail.trim().toLowerCase() : email
     const confirmPassword = typeof payload.confirmPassword === 'string' ? payload.confirmPassword : ''
+    const username = typeof payload.username === 'string' ? payload.username : email.split('@')[0]
 
     const formData: SignupInput = { email, password, confirmEmail, confirmPassword }
     const errors = validateSignup(formData)
     if (errors.length > 0) {
-      return NextResponse.json<AuthResponse>({ ok: false, errors }, { status: 400 })
+      return NextResponse.json<SignupResponse>({ ok: false, errors }, { status: 400 })
     }
 
     // Check for an existing account
@@ -54,48 +53,48 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (existing) {
-      return NextResponse.json<AuthResponse>(
+      return NextResponse.json<SignupResponse>(
         { ok: false, errors: ['Email already registered'] },
         { status: 409 }
       )
     }
 
-    // Create the user
+    // Create the user with isEmailVerified = false
     const SALT_ROUNDS = 10
     const passwordHash = await bcrypt.hash(formData.password, SALT_ROUNDS)
-    const username = formData.email.split('@')[0] // default username is the first part of the email
 
-    // Insert the user into the database
-    // Returns the user data we inserted
-    const [newUser] = await db
-      .insert(users)
-      .values({ email: formData.email, password: passwordHash, username })
-      .returning({
-        userId: users.userId,
-        email: users.email,
-        username: users.username,
-      })
+    const [newUser] = await db.insert(users).values({
+      email: formData.email,
+      username,
+      password: passwordHash,
+      isEmailVerified: false,
+    }).returning({ userId: users.userId })
 
-    // Create a login token and set it as an httpOnly cookie
-    // The token is used to authenticate the user on subsequent requests
-    const token = await createAuthToken({ userId: newUser.userId, email: newUser.email })
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    const res = NextResponse.json<AuthResponse>(
+    // Store verification token
+    await db.insert(authTokens).values({
+      userId: newUser.userId,
+      token: verificationToken,
+      tokenType: 'email_verification',
+      expiresAt,
+    })
+
+    try {
+      await sendVerificationEmail(formData.email, verificationToken)
+    } catch (error) {
+      console.error('Signup verification email error:', error)
+    }
+
+    return NextResponse.json<SignupResponse>(
       {
         ok: true,
-        user: {
-          id: newUser.userId,
-          email: newUser.email,
-          username: newUser.username,
-        },
+        message: 'Verification email sent. Please check your inbox.',
       },
       { status: 201 }
     )
-
-    // Set the JWT token in a cookie
-    applyAuthCookie(res, token)
-
-    return res
   } catch (err: unknown) {
     // Handle possible unique-constraint race (insert after check)
     const code = typeof err === 'object' && err && 'code' in err
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
     const status = isUniqueViolation ? 409 : 500
 
     console.error('Signup error:', err instanceof Error ? err.message : String(err))
-    return NextResponse.json<AuthResponse>(
+    return NextResponse.json<SignupResponse>(
       { ok: false, errors: [message] },
       { status }
     )

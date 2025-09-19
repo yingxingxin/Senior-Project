@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
         email: users.email,
         username: users.username,
         passwordHash: users.password, // stored bcrypt encrypted password
+        isEmailVerified: users.isEmailVerified,
       })
       .from(users)
       .where(eq(users.email, formData.email))
@@ -58,6 +59,14 @@ export async function POST(request: NextRequest) {
     // Compare bcrypt encrypted password
     const isPasswordValid = await bcrypt.compare(formData.password, userByEmail.passwordHash)
     if (!isPasswordValid) return invalidCreds // given password does not match the stored hash
+
+    // Check if email is verified
+    if (!userByEmail.isEmailVerified) {
+      return NextResponse.json<AuthResponse>(
+        { ok: false, errors: ['Please verify your email before logging in. Check your inbox for the verification link.'] },
+        { status: 403 }
+      )
+    }
 
     // User is valid here, create a token and set it as an httpOnly cookie
     const token = await createAuthToken({ userId: userByEmail.id, email: userByEmail.email })

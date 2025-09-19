@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/src/db'
-import { users, passwordResetTokens } from '@/src/db/schema'
-import { eq, lt } from 'drizzle-orm'
+import { users, authTokens } from '@/src/db/schema'
+import { eq, lt, and } from 'drizzle-orm'
 import crypto from 'crypto'
 import { sendPasswordResetEmail } from '@/lib/auth/email'
 import { PASSWORD_RESET_EXPIRY } from '@/lib/auth/constants'
@@ -35,8 +35,13 @@ export async function POST(request: Request) {
 
     // Opportunistically clean up expired tokens
     await db
-      .delete(passwordResetTokens)
-      .where(lt(passwordResetTokens.expiresAt, new Date()))
+      .delete(authTokens)
+      .where(
+        and(
+          eq(authTokens.tokenType, 'password_reset'),
+          lt(authTokens.expiresAt, new Date())
+        )
+      )
 
     // Generate secure random token
     const resetToken = crypto.randomBytes(32).toString('hex')
@@ -46,9 +51,10 @@ export async function POST(request: Request) {
     const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY)
 
     // Store token in database
-    await db.insert(passwordResetTokens).values({
+    await db.insert(authTokens).values({
       userId: foundUser.userId,
       token: resetToken,
+      tokenType: 'password_reset',
       expiresAt,
     })
 

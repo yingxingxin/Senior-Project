@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/src/db'
-import { users, passwordResetTokens } from '@/src/db/schema'
+import { users, authTokens } from '@/src/db/schema'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import { validatePasswordReset } from '@/lib/auth'
@@ -28,12 +28,13 @@ export async function POST(request: Request) {
     // Find valid token
     const resetToken = await db
       .select()
-      .from(passwordResetTokens)
+      .from(authTokens)
       .where(
         and(
-          eq(passwordResetTokens.token, token),
-          isNull(passwordResetTokens.usedAt),
-          gt(passwordResetTokens.expiresAt, new Date())
+          eq(authTokens.token, token),
+          eq(authTokens.tokenType, 'password_reset'),
+          isNull(authTokens.usedAt),
+          gt(authTokens.expiresAt, new Date())
         )
       )
       .limit(1)
@@ -56,15 +57,22 @@ export async function POST(request: Request) {
       .set({ password: hashedPassword })
       .where(eq(users.userId, tokenData.userId))
 
-    // Delete the used token
+    // Mark token as used
     await db
-      .delete(passwordResetTokens)
-      .where(eq(passwordResetTokens.id, tokenData.id))
+      .update(authTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(authTokens.id, tokenData.id))
 
-    // Delete all other reset tokens for this user (security measure)
+    // Delete all other password reset tokens for this user (security measure)
     await db
-      .delete(passwordResetTokens)
-      .where(eq(passwordResetTokens.userId, tokenData.userId))
+      .delete(authTokens)
+      .where(
+        and(
+          eq(authTokens.userId, tokenData.userId),
+          eq(authTokens.tokenType, 'password_reset'),
+          isNull(authTokens.usedAt)
+        )
+      )
 
     return NextResponse.json({
       message: 'Password reset successful'

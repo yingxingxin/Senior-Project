@@ -4,21 +4,28 @@
  * when querying and manipulating data in our application.
  */
 
-import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
+// Token type enum for different authentication token purposes
+export const tokenTypeEnum = pgEnum('token_type', ['password_reset', 'email_verification']);
 
 export const users = pgTable('users', {
   userId: serial('user_id').primaryKey(),
   username: varchar('username', { length: 100 }).notNull(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   password: varchar('password', { length: 255 }).notNull(),
+  isEmailVerified: boolean('is_email_verified').notNull().default(false),
+  emailVerifiedAt: timestamp('email_verified_at'),
   assistantId: integer('assistant_id').references(() => assistants.assistantId),
 });
 
-export const passwordResetTokens = pgTable('password_reset_tokens', {
+// Generic auth tokens table for password resets, email verification, etc.
+export const authTokens = pgTable('auth_tokens', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.userId),
   token: varchar('token', { length: 255 }).notNull().unique(),
+  tokenType: tokenTypeEnum('token_type').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   usedAt: timestamp('used_at'),
 });
@@ -133,10 +140,18 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.userId],
     references: [studyModes.userId],
   }),
+  authTokens: many(authTokens),
   userPlaysMusic: many(userPlaysMusic),
   userTakesQuiz: many(userTakesQuiz),
   userParticipatesLeaderboard: many(userParticipatesLeaderboard),
   userTracksProgress: many(userTracksProgress),
+}));
+
+export const authTokensRelations = relations(authTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [authTokens.userId],
+    references: [users.userId],
+  }),
 }));
 
 export const assistantsRelations = relations(assistants, ({ many }) => ({

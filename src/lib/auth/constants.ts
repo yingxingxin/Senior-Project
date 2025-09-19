@@ -32,3 +32,4 @@ export const EMAIL_FROM_NAME = 'Sprite.exe';
 
 // Email token expiry times
 export const PASSWORD_RESET_EXPIRY = 60 * 60 * 1000; // 1 hour
+export const EMAIL_VERIFICATION_EXPIRY = 60 * 60 * 24 * 1000; // 24 hours

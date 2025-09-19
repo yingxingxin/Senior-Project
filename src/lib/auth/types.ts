@@ -11,6 +11,11 @@ export type AuthResponse =
   | { ok: true; user: UserPublic }
   | { ok: false; errors: string[] };
 
+// Signup response signals whether the verification email was queued successfully.
+export type SignupResponse =
+  | { ok: true; message: string }
+  | { ok: false; errors: string[] };
+
 // Login inputs we expect from the client.
 export type LoginInput = {
   email: string;

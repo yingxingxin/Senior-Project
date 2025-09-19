@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { UserPlus } from "lucide-react"
+import { UserPlus, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { validateSignup, type SignupInput } from "@/lib/auth"
@@ -20,6 +20,8 @@ export default function SignupForm() {
   })
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
 
   const handleInputChange = (field: keyof SignupInput, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -50,7 +52,9 @@ export default function SignupForm() {
       const data = await response.json()
 
       if (data?.ok) {
-        router.push("/home")
+        // Show success message instead of immediately redirecting
+        setSuccessMessage(data.message || "Account created successfully! Please check your email to verify your account.")
+        setIsSuccess(true)
       } else {
         const fallback = "Failed to create account. Please try again."
         setErrors(Array.isArray(data?.errors) ? data.errors : [fallback])
@@ -63,6 +67,45 @@ export default function SignupForm() {
   }
 
   const displayErrors = errors
+
+  // Show success message after signup
+  if (isSuccess) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center space-y-4">
+          <CheckCircle className="size-16 text-green-400" aria-hidden />
+          <h2 className="text-2xl font-semibold text-green-400">Check Your Email!</h2>
+        </div>
+
+        <div className="p-4 bg-green-900/20 border border-green-500/50 rounded text-green-300 text-sm space-y-2">
+          <p className="font-medium">{successMessage}</p>
+          <p className="text-green-300/80">
+            We sent a verification link to <span className="font-medium">{formData.email}</span>
+          </p>
+        </div>
+
+        <div className="space-y-3 text-sm text-gray-400">
+          <p>Didn&apos;t receive the email? Check your spam folder.</p>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            onClick={() => router.push("/login")}
+            className="w-full"
+          >
+            Go to Login
+          </Button>
+          <Button
+            onClick={() => router.push("/")}
+            className="w-full"
+            variant="outline"
+          >
+            Go to Home
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
