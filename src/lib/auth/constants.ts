@@ -24,3 +24,11 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Keep a low minimum for class demos; raise to 10+ for real apps.
 export const MIN_PASSWORD_LENGTH = 6;
+
+// Constants related to sending emails with resend
+// Email configuration
+export const EMAIL_FROM = 'onboarding@resend.dev'; // TODO: Change to verified domain in production
+export const EMAIL_FROM_NAME = 'Sprite.exe';
+
+// Email token expiry times
+export const PASSWORD_RESET_EXPIRY = 60 * 60 * 1000; // 1 hour
