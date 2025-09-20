@@ -13,7 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
  * @param resetToken - The unique token to give the user to reset their password
  */
 export async function sendPasswordResetEmail(toEmail: string, resetToken: string) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/forgot-password/${resetToken}`
 
   try {
     await resend.emails.send({

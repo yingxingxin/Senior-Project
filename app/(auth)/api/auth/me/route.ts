@@ -3,9 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { db, users } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import {
-  getSessionFromRequest,
+  AUTH_COOKIE,
+  verifyAuthToken,
   authResponseSchema,
   type AuthResponse,
+  type TokenPayload,
 } from '@/lib/auth'
 
 /**
@@ -26,7 +28,16 @@ import {
  * - We never return sensitive fields (password hash, etc).
  */
 export async function GET(request: NextRequest) {
-  const session = await getSessionFromRequest(request)
+  const token = request.cookies.get(AUTH_COOKIE)?.value
+  let session: TokenPayload | null = null
+
+  if (token) {
+    try {
+      session = await verifyAuthToken(token)
+    } catch {
+      session = null
+    }
+  }
 
   if (!session) {
     return NextResponse.json<AuthResponse>(

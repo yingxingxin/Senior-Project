@@ -7,7 +7,8 @@ import { z } from 'zod'
 
 import {
   createAuthToken,
-  applyAuthCookie,
+  AUTH_COOKIE,
+  COOKIE_OPTIONS,
   loginSchema,
   authResponseSchema,
   type LoginInput,
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Set the JWT token in a cookie
-    applyAuthCookie(res, token)
+    res.cookies.set(AUTH_COOKIE, token, COOKIE_OPTIONS)
 
     return res
   } catch (err) {

@@ -1,6 +1,6 @@
 // app/api/auth/logout/route.ts
 import { NextResponse } from 'next/server'
-import { removeAuthCookie } from '@/lib/auth'
+import { AUTH_COOKIE, COOKIE_OPTIONS } from '@/lib/auth'
 
 /**
  * POST /api/auth/logout
@@ -14,7 +14,7 @@ import { removeAuthCookie } from '@/lib/auth'
  * - No DB access or external calls.
  *
  * Security:
- * - `removeAuthCookie` issues a Set-Cookie with maxAge=0 and the same
+ * - The handler issues a Set-Cookie with maxAge=0 and the same
  *   attributes used when the cookie was set (httpOnly, sameSite, path, etc.).
  * - Response body contains no sensitive data.
  */
@@ -26,7 +26,7 @@ export async function POST() {
   )
 
   // Expire the auth cookie on this response so the browser drops the session.
-  removeAuthCookie(response)
+  response.cookies.set(AUTH_COOKIE, '', { ...COOKIE_OPTIONS, maxAge: 0 })
 
   // Return the response along with Set-Cookie.
   return response

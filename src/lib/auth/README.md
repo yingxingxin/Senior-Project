@@ -5,7 +5,6 @@ Server and client share one small surface for authentication. This folder provid
 * A stable set of response schemas derived from Zod.
 * Stateless tokens (JWT via `jose`) stored in an httpOnly cookie.
 * Shared Zod schemas you can run on both client and server.
-* Tiny helpers to read/apply/remove the cookie and extract a session.
 
 
 ## Modules and responsibilities
@@ -32,14 +31,9 @@ Server and client share one small surface for authentication. This folder provid
   * `verifyAuthToken(token): Promise<TokenPayload>` — verifies signature, issuer, audience, exp.
     Payloads are minimal to avoid exposing PII
 
-* `session.ts`
-  Cookie + session helpers:
-
-  * `readAuthCookie(req): string | undefined`
-  * `applyAuthCookie(res, token): void`
-  * `removeAuthCookie(res): void`
-  * `getSessionFromRequest(req): Promise<TokenPayload | null>`
-    API routes call this to turn a request into a verified session (or null).
+* Route handlers
+  Cookie handling happens inside the relevant API routes using `AUTH_COOKIE`,
+  `COOKIE_OPTIONS`, and `verifyAuthToken`.
 
 ## HTTP contracts (what routes send/receive)
 
@@ -88,11 +82,11 @@ All routes return `AuthResponse`.
 ```
 Client form (`loginSchema.safeParse`) -> POST /api/auth/login
   -> Route validates again -> fetch user -> bcrypt.compare
-  -> signToken({ userId, email }) -> applyAuthCookie(res, token)
+  -> signToken({ userId, email }) -> res.cookies.set(AUTH_COOKIE, token, COOKIE_OPTIONS)
   -> 200 { ok: true, user }
 ```
 
-`/api/auth/me` uses `getSessionFromRequest(req)` to read and verify the cookie, then loads the user by `session.userId`.
+`/api/auth/me` reads the cookie directly (`request.cookies.get(AUTH_COOKIE)`), verifies it with `verifyAuthToken`, and then loads the user by the embedded `userId`.
 
 ## TODO: Middleware (gating page access)
 
