@@ -4,7 +4,11 @@ import { users, authTokens } from '@/src/db/schema'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import { resetPasswordRouteSchema } from '@/lib/auth'
+import {
+  resetPasswordRouteSchema,
+  formResponseSchema,
+  type FormResponse,
+} from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,12 +17,14 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       const { formErrors, fieldErrors } = z.flattenError(validation.error)
       const errors = [
-        ...formErrors,
-        ...Object.values(fieldErrors).flat(),
+        ...formErrors.map((message) => ({ field: 'root', message })),
+        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+          messages.map((message) => ({ field, message })),
+        ),
       ]
 
-      return NextResponse.json(
-        { error: errors[0] ?? 'Failed to reset password' }, // Return first error for simplicity
+      return NextResponse.json<FormResponse>(
+        formResponseSchema.parse({ ok: false, errors }),
         { status: 400 }
       )
     }
@@ -40,8 +46,11 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (resetToken.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid or expired reset token' },
+      return NextResponse.json<FormResponse>(
+        formResponseSchema.parse({
+          ok: false,
+          errors: [{ field: 'root', message: 'Invalid or expired reset token' }],
+        }),
         { status: 400 }
       )
     }
@@ -74,13 +83,19 @@ export async function POST(request: NextRequest) {
         )
       )
 
-    return NextResponse.json({
-      message: 'Password reset successful'
-    })
+    return NextResponse.json<FormResponse>(
+      formResponseSchema.parse({
+        ok: true,
+        message: 'Password reset successful',
+      })
+    )
   } catch (error) {
     console.error('Reset password error:', error)
-    return NextResponse.json(
-      { error: 'Failed to reset password' },
+    return NextResponse.json<FormResponse>(
+      formResponseSchema.parse({
+        ok: false,
+        errors: [{ field: 'root', message: 'Failed to reset password' }],
+      }),
       { status: 500 }
     )
   }

@@ -86,7 +86,12 @@ export async function POST(request: NextRequest) {
     const { formErrors, fieldErrors } = z.flattenError(result.error);
     return NextResponse.json({
       ok: false,
-      errors: [...formErrors, ...Object.values(fieldErrors).flat()],
+      errors: [
+        ...formErrors.map((message) => ({ field: "root", message })),
+        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+          messages.map((message) => ({ field, message })),
+        ),
+      ],
     }, { status: 400 });
   }
 
@@ -229,7 +234,12 @@ export const apiResponseSchema = z.discriminatedUnion('ok', [
   }),
   z.object({
     ok: z.literal(false),
-    errors: z.array(z.string()).min(1),
+    errors: z.array(
+      z.object({
+        field: z.string().min(1),
+        message: z.string().min(1),
+      })
+    ).min(1),
   }),
 ]);
 ```
@@ -242,8 +252,10 @@ Convert Zod errors to arrays for UI display:
 ```typescript
 const { formErrors, fieldErrors } = z.flattenError(result.error);
 const allErrors = [
-  ...formErrors,
-  ...Object.values(fieldErrors).flat()
+  ...formErrors.map((message) => ({ field: 'root', message })),
+  ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+    messages.map((message) => ({ field, message })),
+  ),
 ];
 ```
 

@@ -109,7 +109,12 @@ export const userPublicSchema = z.object({
   username: z.string(),
 });
 
-export const authResponseSchema = z.discriminatedUnion('ok', [
+const authErrorSchema = z.object({
+  field: z.string().min(1),
+  message: z.string().min(1),
+});
+
+export const authResponseSchema = z.discriminatedUnion("ok", [
   z.object({
     ok: z.literal(true),
     user: userPublicSchema,
@@ -117,7 +122,24 @@ export const authResponseSchema = z.discriminatedUnion('ok', [
   }),
   z.object({
     ok: z.literal(false),
-    errors: z.array(z.string()).min(1),
+    message: z.string().optional(),
+    errors: z.array(authErrorSchema).min(1),
+  }),
+]);
+
+/**
+ * TODO: add better notes
+ * - not all routes need to return a user object; see `/api/auth/me`, `/api/auth/verify-email`, `/api/auth/forgot-password`
+ */
+export const formResponseSchema = z.discriminatedUnion("ok", [
+  z.object({
+    ok: z.literal(true),
+    message: z.string().optional(),
+  }),
+  z.object({
+    ok: z.literal(false),
+    message: z.string().optional(),
+    errors: z.array(authErrorSchema).min(1),
   }),
 ]);
 
@@ -126,4 +148,6 @@ export type SignupInput = z.infer<typeof signupSchema>;
 export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
 export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
 export type UserPublic = z.infer<typeof userPublicSchema>;
+export type AuthError = z.infer<typeof authErrorSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+export type FormResponse = z.infer<typeof formResponseSchema>;

@@ -49,8 +49,8 @@ All routes return `AuthResponse`.
   Responses:
 
   * `200 { ok: true, user }` and sets the auth cookie.
-  * `400 { ok: false, errors: [...] }` when validation fails.
-  * `401 { ok: false, errors: ["Invalid email or password"] }` for invalid credentials.
+  * `400 { ok: false, errors: [{ field, message }] }` when validation fails.
+  * `401 { ok: false, errors: [{ field: "root", message: "Invalid email or password" }] }` for invalid credentials.
 
 * `POST /api/auth/signup`
   Request:
@@ -62,15 +62,15 @@ All routes return `AuthResponse`.
   Responses:
 
   * `201 { ok: true, user, message }` (message describes verification email dispatch).
-  * `400 { ok: false, errors: [...] }` when validation fails.
-  * `409 { ok: false, errors: ["Email already registered"] }` when unique check fails.
+  * `400 { ok: false, errors: [{ field, message }] }` when validation fails.
+  * `409 { ok: false, errors: [{ field: "email", message: "Email already registered" }] }` when unique check fails.
 
 * `GET /api/auth/me`
   Responses:
 
   * `200 { ok: true, user }` when the cookie is present and valid.
-  * `401 { ok: false, errors: ["Not authenticated"] }` when no/invalid cookie.
-  * `404 { ok: false, errors: ["User not found"] }` if the DB row no longer exists.
+  * `401 { ok: false, errors: [{ field: "root", message: "Not authenticated" }] }` when no/invalid cookie.
+  * `404 { ok: false, errors: [{ field: "root", message: "User not found" }] }` if the DB row no longer exists.
 
 * `POST /api/auth/logout`
   Response:

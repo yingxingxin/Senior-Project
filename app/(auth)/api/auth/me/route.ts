@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
 
   if (!session) {
     return NextResponse.json<AuthResponse>(
-      authResponseSchema.parse({ ok: false, errors: ['Not authenticated'] }),
+      authResponseSchema.parse({
+        ok: false,
+        errors: [{ field: 'root', message: 'Not authenticated' }],
+      }),
       { status: 401, headers: { 'cache-control': 'no-store' } }
     )
   }
@@ -61,7 +64,10 @@ export async function GET(request: NextRequest) {
     // If the user is not found, return a 404 error
     if (!user) {
       return NextResponse.json<AuthResponse>(
-        authResponseSchema.parse({ ok: false, errors: ['User not found'] }),
+        authResponseSchema.parse({
+          ok: false,
+          errors: [{ field: 'root', message: 'User not found' }],
+        }),
         { status: 404, headers: { 'cache-control': 'no-store' } }
       )
     }
@@ -85,7 +91,10 @@ export async function GET(request: NextRequest) {
     )
     // return a 500 error
     return NextResponse.json<AuthResponse>(
-      authResponseSchema.parse({ ok: false, errors: ['Failed to load profile'] }),
+      authResponseSchema.parse({
+        ok: false,
+        errors: [{ field: 'root', message: 'Failed to load profile' }],
+      }),
       { status: 500, headers: { 'cache-control': 'no-store' } }
     )
   }

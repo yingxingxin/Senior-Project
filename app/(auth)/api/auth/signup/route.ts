@@ -33,10 +33,16 @@ export async function POST(request: NextRequest) {
     const validation = signupRouteSchema.safeParse(await request.json())
 
     if (!validation.success) {
-      const errors = z.flattenError(validation.error)
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const errors = [
+        ...formErrors.map((message) => ({ field: 'root', message })),
+        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+          messages.map((message) => ({ field, message }))
+        ),
+      ]
 
       return NextResponse.json<AuthResponse>(
-        authResponseSchema.parse({ ok: false, errors: errors }),
+        authResponseSchema.parse({ ok: false, errors }),
         { status: 400 }
       )
     }
@@ -56,7 +62,10 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return NextResponse.json<AuthResponse>(
-        authResponseSchema.parse({ ok: false, errors: ['Email already registered'] }),
+        authResponseSchema.parse({
+          ok: false,
+          errors: [{ field: 'email', message: 'Email already registered' }],
+        }),
         { status: 409 }
       )
     }
@@ -115,7 +124,15 @@ export async function POST(request: NextRequest) {
 
     console.error('Signup error:', err instanceof Error ? err.message : String(err))
     return NextResponse.json<AuthResponse>(
-      authResponseSchema.parse({ ok: false, errors: [message] }),
+      authResponseSchema.parse({
+        ok: false,
+        errors: [
+          {
+            field: isUniqueViolation ? 'email' : 'root',
+            message,
+          },
+        ],
+      }),
       { status }
     )
   }

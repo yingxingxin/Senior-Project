@@ -33,12 +33,17 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       const { formErrors, fieldErrors } = z.flattenError(validation.error)
       const errors = [
-        ...formErrors,
-        ...Object.values(fieldErrors).flat(),
+        ...formErrors.map((message) => ({ field: 'root', message })),
+        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+          messages.map((message) => ({ field, message }))
+        ),
       ]
 
       return NextResponse.json<AuthResponse>(
-        authResponseSchema.parse({ ok: false, errors }),
+        authResponseSchema.parse({
+          ok: false,
+          errors,
+        }),
         { status: 400 }
       )
     }
@@ -47,7 +52,15 @@ export async function POST(request: NextRequest) {
 
     // Generic error to use if email or password is invalid
     const invalidCreds = NextResponse.json<AuthResponse>(
-      authResponseSchema.parse({ ok: false, errors: ['Invalid email or password'] }),
+      authResponseSchema.parse({
+        ok: false,
+        errors: [
+          {
+            field: 'root',
+            message: 'Invalid email or password',
+          },
+        ],
+      }),
       { status: 401 }
     )
 
@@ -75,7 +88,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json<AuthResponse>(
         authResponseSchema.parse({
           ok: false,
-          errors: ['Please verify your email before logging in. Check your inbox for the verification link.'],
+          errors: [
+            {
+              field: 'root',
+              message:
+                'Please verify your email before logging in. Check your inbox for the verification link.',
+            },
+          ],
         }),
         { status: 403 }
       )
@@ -104,7 +123,12 @@ export async function POST(request: NextRequest) {
     // Avoid logging sensitive data.
     console.error('Login error:', err instanceof Error ? err.message : String(err))
     return NextResponse.json<AuthResponse>(
-      authResponseSchema.parse({ ok: false, errors: ['Failed to sign in. Please try again.'] }),
+      authResponseSchema.parse({
+        ok: false,
+        errors: [
+          { field: 'root', message: 'Failed to sign in. Please try again.' },
+        ],
+      }),
       { status: 500 }
     )
   }

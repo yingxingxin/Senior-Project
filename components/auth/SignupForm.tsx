@@ -1,114 +1,153 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import { useRef } from "react"
 import { useRouter } from "next/navigation"
 import { UserPlus, CheckCircle } from "lucide-react"
-import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { signupSchema, type SignupInput } from "@/lib/auth"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { AuthResponse, authResponseSchema, signupSchema, type SignupInput } from "@/lib/auth"
 
-// Client component - only handles form interactivity and state
-// Structure and static content are in the page component
 export default function SignupForm() {
   const router = useRouter()
-  const [formData, setFormData] = useState<SignupInput>({
-    email: "",
-    confirmEmail: "",
-    password: "",
-    confirmPassword: "",
+
+  const form = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: "",
+      confirmEmail: "",
+      password: "",
+      confirmPassword: "",
+    },
+    mode: "onSubmit",
   })
-  const [errors, setErrors] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
 
-  const handleInputChange = (field: keyof SignupInput, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear errors when user starts typing
-    if (errors.length > 0) {
-      setErrors([])
-    }
-  }
+  const { handleSubmit, control, setError, formState, getValues, reset } = form
+  const { isSubmitting, isSubmitSuccessful, errors } = formState
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  // Keep server success message without extra state
+  const successMsgRef = useRef<string>("")
 
-    const validation = signupSchema.safeParse(formData)
-    if (!validation.success) {
-      const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const flattenedErrors = [
-        ...formErrors,
-        ...Object.values(fieldErrors).flat(),
-      ]
-      setErrors(flattenedErrors)
-      setIsSubmitting(false)
-      return
-    }
-
-    const payload = validation.data
-
+  const onSubmit = handleSubmit(async (values: SignupInput) => {
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(values),
       })
-
-      const data = await response.json()
-
-      if (data?.ok) {
-        // Show success message instead of immediately redirecting
-        setSuccessMessage(data.message || "Account created successfully! Please check your email to verify your account.")
-        setIsSuccess(true)
-      } else {
-        const fallback = "Failed to create account. Please try again."
-        setErrors(Array.isArray(data?.errors) ? data.errors : [fallback])
+  
+      // robust parse: handle empty body, bad JSON, and validate shape
+      const raw = await res.text()
+      let data: AuthResponse
+      try {
+        data = authResponseSchema.parse(raw ? JSON.parse(raw) : {})
+      } catch {
+        setError("root", {
+          type: "server",
+          message: "Unexpected server response. Please try again.",
+        })
+        return
       }
-    } catch {
-      setErrors(["Failed to create account. Please try again."])
-    } finally {
-      setIsSubmitting(false)
+  
+      if (!res.ok || !data.ok) {
+        if (!data.ok) {
+          let rootMessage = data.message ?? ""
+          let hadField = false
+
+          for (const { field, message } of data.errors) {
+            if (field === "root") {
+              rootMessage = message
+            } else if (field in values) {
+              setError(field as keyof SignupInput, {
+                type: "server",
+                message,
+              })
+              hadField = true
+            } else {
+              rootMessage = message
+            }
+          }
+
+          if (!hadField || rootMessage) {
+            setError("root", {
+              type: "server",
+              message:
+                rootMessage ||
+                "Failed to create account. Please try again.",
+            })
+          }
+        } else {
+          setError("root", {
+            type: "server",
+            message: data.message || "Failed to create account. Please try again.",
+          })
+        }
+
+        return
+      }
+  
+      successMsgRef.current =
+        data.message ||
+        "Verification email sent. Please check your inbox."
+  
+      // optional: clear sensitive fields, keep email for the success UI
+      reset(
+        { ...getValues(), password: "", confirmPassword: "" },
+        { keepValues: true }
+      )
+    } catch (err) {
+      if ((err as { name?: string })?.name !== "AbortError") {
+        setError("root", {
+          type: "server",
+          message: "Network error. Please try again.",
+        })
+      }
     }
-  }
+    })
 
-  const displayErrors = errors
-
-  // Show success message after signup
-  if (isSuccess) {
+  if (isSubmitSuccessful) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" aria-live="polite">
         <div className="flex flex-col items-center space-y-4">
-          <CheckCircle className="size-16 text-green-400" aria-hidden />
-          <h2 className="text-2xl font-semibold text-green-400">Check Your Email!</h2>
+          <CheckCircle className="size-16 text-[var(--auth-success-text)]" aria-hidden />
+          <h2 className="text-2xl font-semibold text-[var(--auth-success-text)]">
+            Check Your Email!
+          </h2>
         </div>
 
-        <div className="p-4 bg-green-900/20 border border-green-500/50 rounded text-green-300 text-sm space-y-2">
-          <p className="font-medium">{successMessage}</p>
-          <p className="text-green-300/80">
-            We sent a verification link to <span className="font-medium">{formData.email}</span>
+        <div className="p-4 bg-[var(--auth-success-bg)] border border-[var(--auth-success-border)] rounded text-[var(--auth-success-text)] text-sm space-y-2">
+          <p className="font-medium">{successMsgRef.current}</p>
+          <p className="opacity-80">
+            We sent a verification link to{" "}
+            <span className="font-medium">{getValues("email")}</span>
           </p>
         </div>
 
-        <div className="space-y-3 text-sm text-gray-400">
+        <div className="space-y-3 text-sm text-[var(--auth-secondary)]">
           <p>Didn&apos;t receive the email? Check your spam folder.</p>
         </div>
 
         <div className="space-y-3">
           <Button
             onClick={() => router.push("/login")}
-            className="w-full"
+            className="w-full bg-[var(--auth-button)] hover:bg-[var(--auth-button-hover)]"
           >
             Go to Login
           </Button>
-          <Button
-            onClick={() => router.push("/")}
-            className="w-full"
-            variant="outline"
-          >
+          <Button onClick={() => router.push("/")} className="w-full" variant="outline">
             Go to Home
           </Button>
         </div>
@@ -118,86 +157,107 @@ export default function SignupForm() {
 
   return (
     <>
-      {/* Error display */}
-      {displayErrors.length > 0 && (
-        <div className="p-3 bg-red-900/20 border border-red-500/50 rounded text-red-400 text-sm">
-          {displayErrors.map((error, index) => (
-            <div key={index}>• {error}</div>
-          ))}
+      {errors.root?.message && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="p-3 bg-[var(--auth-error-bg)] border border-[var(--auth-error-border)] rounded text-[var(--auth-error-text)] text-sm"
+        >
+          • {errors.root.message}
         </div>
       )}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1 text-gray-300">
-            Email
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            autoComplete="email"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-        </div>
+      <Form {...form}>
+        <form onSubmit={onSubmit} noValidate className="space-y-4" aria-busy={isSubmitting}>
+          <fieldset disabled={isSubmitting} className="space-y-4">
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <label htmlFor="confirmEmail" className="block text-sm font-medium mb-1 text-gray-300">
-            Confirm Email
-          </label>
-          <Input
-            id="confirmEmail"
-            type="email"
-            value={formData.confirmEmail}
-            onChange={(e) => handleInputChange("confirmEmail", e.target.value)}
-            autoComplete="email"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-        </div>
+            <FormField
+              control={control}
+              name="confirmEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Confirm Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1 text-gray-300">
-            Password
-          </label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleInputChange("password", e.target.value)}
-            autoComplete="new-password"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-        </div>
+            <FormField
+              control={control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1 text-gray-300">
-            Confirm Password
-          </label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-            autoComplete="new-password"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-        </div>
+            <FormField
+              control={control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="new-password"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                </FormItem>
+              )}
+            />
+          </fieldset>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          <UserPlus aria-hidden className="size-4" />
-          <span>{isSubmitting ? "Creating account..." : "Sign Up"}</span>
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            className="w-full bg-[var(--auth-button)] hover:bg-[var(--auth-button-hover)]"
+            disabled={isSubmitting}
+            aria-disabled={isSubmitting}
+          >
+            <UserPlus aria-hidden className="size-4" />
+            <span>{isSubmitting ? "Creating account..." : "Sign Up"}</span>
+          </Button>
+        </form>
+      </Form>
     </>
   )
 }

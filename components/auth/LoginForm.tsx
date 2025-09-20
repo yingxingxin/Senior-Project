@@ -1,137 +1,179 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { LogIn } from "lucide-react"
-import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { loginSchema, type LoginInput } from "@/lib/auth"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import {
+  loginSchema,
+  authResponseSchema,
+  type AuthResponse,
+  type LoginInput,
+} from "@/lib/auth"
 
-// Client component - only handles form interactivity and state
-// Structure and static content are in the page component
 export default function LoginForm() {
   const router = useRouter()
-  const [formData, setFormData] = useState<LoginInput>({
-    email: "",
-    password: "",
+
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+    mode: "onSubmit",
   })
-  const [errors, setErrors] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleInputChange = (field: keyof LoginInput, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear errors when user starts typing
-    if (errors.length > 0) {
-      setErrors([])
-    }
-  }
+  const { handleSubmit, control, setError, formState } = form
+  const { isSubmitting, errors } = formState
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    const validation = loginSchema.safeParse(formData)
-    if (!validation.success) {
-      const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const flattenedErrors = [
-        ...formErrors,
-        ...Object.values(fieldErrors).flat(),
-      ]
-      setErrors(flattenedErrors)
-      setIsSubmitting(false)
-      return
-    }
-
-    const payload = validation.data
-
+  const onSubmit = handleSubmit(async (values) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
       })
 
-      const data = await response.json()
-
-      if (data?.ok) {
-        router.push("/home")
-      } else {
-        const fallback = "Invalid email or password"
-        setErrors(Array.isArray(data?.errors) ? data.errors : [fallback])
+      const raw = await res.text()
+      let data: AuthResponse
+      try {
+        data = authResponseSchema.parse(raw ? JSON.parse(raw) : {})
+      } catch {
+        setError("root", {
+          type: "server",
+          message: "Unexpected server response. Please try again.",
+        })
+        return
       }
-    } catch {
-      setErrors(["Failed to sign in. Please try again."])
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
-  const displayErrors = errors
+      if (!res.ok || !data.ok) {
+        if (!data.ok) {
+          let rootMessage = data.message ?? ""
+          let hadField = false
+
+          for (const { field, message } of data.errors) {
+            if (field === "root") {
+              rootMessage = message
+            } else if (field in values) {
+              setError(field as keyof LoginInput, {
+                type: "server",
+                message,
+              })
+              hadField = true
+            }
+          }
+
+          if (!hadField || rootMessage) {
+            setError("root", {
+              type: "server",
+              message:
+                rootMessage ||
+                "Invalid email or password",
+            })
+          }
+        } else {
+          setError("root", {
+            type: "server",
+            message: data.message || "Failed to sign in. Please try again.",
+          })
+        }
+
+        return
+      }
+
+      router.push("/home")
+    } catch {
+      setError("root", {
+        type: "server",
+        message: "Network error. Please try again.",
+      })
+    }
+  })
 
   return (
     <>
-      {/* Error display */}
-      {displayErrors.length > 0 && (
-        <div className="p-3 bg-red-900/20 border border-red-500/50 rounded text-red-400 text-sm">
-          {displayErrors.map((error, index) => (
-            <div key={index}>• {error}</div>
-          ))}
+      {/* Root-level server error */}
+      {errors.root?.message && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="p-3 bg-[var(--auth-error-bg)] border border-[var(--auth-error-border)] rounded text-[var(--auth-error-text)] text-sm"
+        >
+          • {errors.root.message}
         </div>
       )}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1 text-gray-300">
-            Email
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            autoComplete="email"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-        </div>
+      <Form {...form}>
+        <form onSubmit={onSubmit} noValidate className="space-y-4" aria-busy={isSubmitting}>
+          {/* Disable all fields while submitting */}
+          <fieldset disabled={isSubmitting} className="space-y-4">
+            <FormField
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                </FormItem>
+              )}
+            />
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1 text-gray-300">
-            Password
-          </label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleInputChange("password", e.target.value)}
-            autoComplete="current-password"
-            className="bg-gray-800 border-gray-700 text-white"
-            required
-          />
-          <div className="mt-2 text-right">
-            <Link
-              href="/forgot-password"
-              className="text-sm text-blue-400 hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-        </div>
+            <FormField
+              control={control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[var(--auth-label)]">Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-[var(--auth-error-text)]" />
+                  <div className="mt-2 text-right">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-[var(--auth-link)] hover:text-[var(--auth-link-hover)]"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </fieldset>
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          <LogIn aria-hidden className="size-4" />
-          <span>{isSubmitting ? "Signing in..." : "Sign In"}</span>
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            className="w-full bg-[var(--auth-button)] hover:bg-[var(--auth-button-hover)]"
+            disabled={isSubmitting}
+            aria-disabled={isSubmitting}
+          >
+            <LogIn aria-hidden className="size-4" />
+            <span>{isSubmitting ? "Signing in..." : "Sign In"}</span>
+          </Button>
+        </form>
+      </Form>
     </>
   )
 }

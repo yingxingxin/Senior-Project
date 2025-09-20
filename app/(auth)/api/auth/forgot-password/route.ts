@@ -4,14 +4,14 @@ import { users, authTokens } from '@/src/db/schema'
 import { eq, lt, and } from 'drizzle-orm'
 import crypto from 'crypto'
 import { z } from 'zod'
+
+import {
+  passwordResetRequestSchema,
+  formResponseSchema,
+  type FormResponse,
+} from '@/lib/auth'
 import { sendPasswordResetEmail } from '@/lib/auth/email'
 import { PASSWORD_RESET_EXPIRY } from '@/lib/auth/constants'
-import { emailField } from '@/src/lib/auth/schemas'
-
-// The api
-const passwordResetRequestSchema = z.object({
-  email: emailField,
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,13 +19,15 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const flattenedErrors = [
-        ...formErrors,
-        ...Object.values(fieldErrors).flat(),
+      const errors = [
+        ...formErrors.map((message) => ({ field: 'root', message })),
+        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
+          messages.map((message) => ({ field, message }))
+        ),
       ]
 
-      return NextResponse.json(
-        { error: flattenedErrors[0] ?? 'Invalid request' },
+      return NextResponse.json<FormResponse>(
+        formResponseSchema.parse({ ok: false, errors }),
         { status: 400 }
       )
     }
@@ -41,9 +43,12 @@ export async function POST(request: NextRequest) {
 
     // Always return success even if user doesn't exist (security best practice)
     if (user.length === 0) {
-      return NextResponse.json({
-        message: 'If an account exists, reset instructions have been sent'
-      })
+      return NextResponse.json<FormResponse>(
+        formResponseSchema.parse({
+          ok: true,
+          message: 'If an account exists, reset instructions have been sent',
+        })
+      )
     }
 
     const foundUser = user[0]
@@ -76,13 +81,19 @@ export async function POST(request: NextRequest) {
     // Send password reset email
     await sendPasswordResetEmail(email, resetToken)
 
-    return NextResponse.json({
-      message: 'If an account exists, reset instructions have been sent'
-    })
+    return NextResponse.json<FormResponse>(
+      formResponseSchema.parse({
+        ok: true,
+        message: 'If an account exists, reset instructions have been sent',
+      })
+    )
   } catch (error) {
     console.error('Forgot password error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process password reset request' },
+    return NextResponse.json<FormResponse>(
+      formResponseSchema.parse({
+        ok: false,
+        errors: [{ field: 'root', message: 'Failed to process password reset request' }],
+      }),
       { status: 500 }
     )
   }
