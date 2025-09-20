@@ -10,6 +10,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com)
 - **React**: 19.1.0
 - **Database**: PostgreSQL (Neon) with Drizzle ORM
+- **Validation**: [Zod](https://zod.dev) for runtime validation and type inference
+- **Authentication**: JWT-based auth with httpOnly cookies
 
 ## Project Setup
 

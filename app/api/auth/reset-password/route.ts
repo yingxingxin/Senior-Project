@@ -1,29 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/src/db'
 import { users, authTokens } from '@/src/db/schema'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import { validatePasswordReset } from '@/lib/auth'
+import { z } from 'zod'
+import { resetPasswordRouteSchema } from '@/lib/auth'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { token, password, confirmPassword } = await request.json()
+    const validation = resetPasswordRouteSchema.safeParse(await request.json())
 
-    if (!token) {
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const errors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+
       return NextResponse.json(
-        { error: 'Reset token is required' },
+        { error: errors[0] ?? 'Failed to reset password' }, // Return first error for simplicity
         { status: 400 }
       )
     }
 
-    // Validate password using standardized validation
-    const validationErrors = validatePasswordReset(password, confirmPassword)
-    if (validationErrors.length > 0) {
-      return NextResponse.json(
-        { error: validationErrors[0] }, // Return first error for simplicity
-        { status: 400 }
-      )
-    }
+    const { token, password } = validation.data
 
     // Find valid token
     const resetToken = await db

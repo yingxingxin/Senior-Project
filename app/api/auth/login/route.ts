@@ -3,10 +3,13 @@ import { NextResponse, NextRequest } from 'next/server'
 import { db, users } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
+import { z } from 'zod'
+
 import {
-  validateLogin,
   createAuthToken,
   applyAuthCookie,
+  loginSchema,
+  authResponseSchema,
   type LoginInput,
   type AuthResponse,
 } from '@/lib/auth'
@@ -24,20 +27,26 @@ import {
 export async function POST(request: NextRequest) {
   try {
     // Validate the request body
-    const body = await request.json()
-    const payload = (body ?? {}) as Record<string, unknown>
-    const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : ''
-    const password = typeof payload.password === 'string' ? payload.password : ''
-    const formData: LoginInput = { email, password }
+    const validation = loginSchema.safeParse(await request.json())
 
-    const errors = validateLogin(formData)
-    if (errors.length > 0) {
-      return NextResponse.json<AuthResponse>({ ok: false, errors }, { status: 400 })
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const errors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+
+      return NextResponse.json<AuthResponse>(
+        authResponseSchema.parse({ ok: false, errors }),
+        { status: 400 }
+      )
     }
+
+    const formData: LoginInput = validation.data
 
     // Generic error to use if email or password is invalid
     const invalidCreds = NextResponse.json<AuthResponse>(
-      { ok: false, errors: ['Invalid email or password'] },
+      authResponseSchema.parse({ ok: false, errors: ['Invalid email or password'] }),
       { status: 401 }
     )
 
@@ -63,7 +72,10 @@ export async function POST(request: NextRequest) {
     // Check if email is verified
     if (!userByEmail.isEmailVerified) {
       return NextResponse.json<AuthResponse>(
-        { ok: false, errors: ['Please verify your email before logging in. Check your inbox for the verification link.'] },
+        authResponseSchema.parse({
+          ok: false,
+          errors: ['Please verify your email before logging in. Check your inbox for the verification link.'],
+        }),
         { status: 403 }
       )
     }
@@ -72,14 +84,14 @@ export async function POST(request: NextRequest) {
     const token = await createAuthToken({ userId: userByEmail.id, email: userByEmail.email })
 
     const res = NextResponse.json<AuthResponse>(
-      {
+      authResponseSchema.parse({
         ok: true,
         user: {
           id: userByEmail.id,
           email: userByEmail.email,
           username: userByEmail.username,
         },
-      },
+      }),
       { status: 200 }
     )
 
@@ -91,7 +103,7 @@ export async function POST(request: NextRequest) {
     // Avoid logging sensitive data.
     console.error('Login error:', err instanceof Error ? err.message : String(err))
     return NextResponse.json<AuthResponse>(
-      { ok: false, errors: ['Failed to sign in. Please try again.'] },
+      authResponseSchema.parse({ ok: false, errors: ['Failed to sign in. Please try again.'] }),
       { status: 500 }
     )
   }

@@ -1,27 +1,42 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/src/db'
 import { users, authTokens } from '@/src/db/schema'
 import { eq, lt, and } from 'drizzle-orm'
 import crypto from 'crypto'
+import { z } from 'zod'
 import { sendPasswordResetEmail } from '@/lib/auth/email'
 import { PASSWORD_RESET_EXPIRY } from '@/lib/auth/constants'
+import { emailField } from '@/src/lib/auth/schemas'
 
-export async function POST(request: Request) {
+// The api
+const passwordResetRequestSchema = z.object({
+  email: emailField,
+});
+
+export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
+    const validation = passwordResetRequestSchema.safeParse(await request.json())
 
-    if (!email) {
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const flattenedErrors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+
       return NextResponse.json(
-        { error: 'Email is required' },
+        { error: flattenedErrors[0] ?? 'Invalid request' },
         { status: 400 }
       )
     }
+
+    const { email } = validation.data
 
     // Find user by email
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.email, email.toLowerCase()))
+      .where(eq(users.email, email))
       .limit(1)
 
     // Always return success even if user doesn't exist (security best practice)

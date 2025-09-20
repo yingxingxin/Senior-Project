@@ -2,7 +2,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { db, users } from '@/src/db'
 import { eq } from 'drizzle-orm'
-import { getSessionFromRequest, type AuthResponse } from '@/lib/auth'
+import {
+  getSessionFromRequest,
+  authResponseSchema,
+  type AuthResponse,
+} from '@/lib/auth'
 
 /**
  * GET /api/auth/me
@@ -26,7 +30,7 @@ export async function GET(request: NextRequest) {
 
   if (!session) {
     return NextResponse.json<AuthResponse>(
-      { ok: false, errors: ['Not authenticated'] },
+      authResponseSchema.parse({ ok: false, errors: ['Not authenticated'] }),
       { status: 401, headers: { 'cache-control': 'no-store' } }
     )
   }
@@ -46,20 +50,20 @@ export async function GET(request: NextRequest) {
     // If the user is not found, return a 404 error
     if (!user) {
       return NextResponse.json<AuthResponse>(
-        { ok: false, errors: ['User not found'] },
+        authResponseSchema.parse({ ok: false, errors: ['User not found'] }),
         { status: 404, headers: { 'cache-control': 'no-store' } }
       )
     }
 
     return NextResponse.json<AuthResponse>(
-      {
+      authResponseSchema.parse({
         ok: true,
         user: {
           id: user.userId,
           email: user.email,
           username: user.username,
         },
-      },
+      }),
       { status: 200, headers: { 'cache-control': 'no-store' } }
     )
   } catch (err) {
@@ -70,7 +74,7 @@ export async function GET(request: NextRequest) {
     )
     // return a 500 error
     return NextResponse.json<AuthResponse>(
-      { ok: false, errors: ['Failed to load profile'] },
+      authResponseSchema.parse({ ok: false, errors: ['Failed to load profile'] }),
       { status: 500, headers: { 'cache-control': 'no-store' } }
     )
   }

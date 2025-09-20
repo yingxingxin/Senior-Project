@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/src/db'
 import { users, authTokens } from '@/src/db/schema'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import { sendWelcomeEmail } from '@/lib/auth/email'
+import { z } from 'zod'
+import { verifyEmailQuerySchema } from '@/lib/auth'
 
 /**
  * GET /api/auth/verify-email
@@ -27,17 +29,25 @@ import { sendWelcomeEmail } from '@/lib/auth/email'
  * - 404: User not found (shouldn't happen in normal flow)
  * - 500: Server error during verification
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const token = searchParams.get('token')
+    const validation = verifyEmailQuerySchema.safeParse(Object.fromEntries(searchParams))
 
-    if (!token) {
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const errors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+
       return NextResponse.json(
-        { error: 'Verification token is required' },
+        { error: errors[0] ?? 'Verification token is required' },
         { status: 400 }
       )
     }
+
+    const { token } = validation.data
 
     // Find valid email verification token
     // Token must:

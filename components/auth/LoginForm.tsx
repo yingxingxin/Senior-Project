@@ -5,9 +5,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { LogIn } from "lucide-react"
+import { z } from "zod"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { validateLogin, type LoginInput } from "@/lib/auth"
+import { loginSchema, type LoginInput } from "@/lib/auth"
 
 // Client component - only handles form interactivity and state
 // Structure and static content are in the page component
@@ -32,18 +34,25 @@ export default function LoginForm() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const validationErrors = validateLogin(formData)
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors)
+    const validation = loginSchema.safeParse(formData)
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const flattenedErrors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+      setErrors(flattenedErrors)
       setIsSubmitting(false)
       return
     }
+
+    const payload = validation.data
 
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()

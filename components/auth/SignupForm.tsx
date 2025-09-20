@@ -4,9 +4,11 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { UserPlus, CheckCircle } from "lucide-react"
+import { z } from "zod"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { validateSignup, type SignupInput } from "@/lib/auth"
+import { signupSchema, type SignupInput } from "@/lib/auth"
 
 // Client component - only handles form interactivity and state
 // Structure and static content are in the page component
@@ -35,18 +37,25 @@ export default function SignupForm() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const validationErrors = validateSignup(formData)
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors)
+    const validation = signupSchema.safeParse(formData)
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const flattenedErrors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+      setErrors(flattenedErrors)
       setIsSubmitting(false)
       return
     }
+
+    const payload = validation.data
 
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()

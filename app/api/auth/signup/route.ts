@@ -4,13 +4,19 @@ import { db, users, authTokens } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+import { z } from 'zod'
+
 import {
-  validateSignup,
   type SignupInput,
-  type SignupResponse,
   type AuthResponse,
+  signupSchema,
+  authResponseSchema,
 } from '@/lib/auth'
 import { sendVerificationEmail } from '@/lib/auth/email'
+
+export const signupRouteSchema = signupSchema.safeExtend({
+  username: z.string().trim().optional(),
+});
 
 /**
  * POST /api/auth/signup
@@ -24,26 +30,22 @@ import { sendVerificationEmail } from '@/lib/auth/email'
 */
 export async function POST(request: NextRequest) {
   try {
-    if (!request.headers.get('content-type')?.includes('application/json')) {
+    const validation = signupRouteSchema.safeParse(await request.json())
+
+    if (!validation.success) {
+      const errors = z.flattenError(validation.error)
+
       return NextResponse.json<AuthResponse>(
-        { ok: false, errors: ['Unsupported content type'] },
-        { status: 415 }
+        authResponseSchema.parse({ ok: false, errors: errors }),
+        { status: 400 }
       )
     }
 
-    const body = await request.json()
-    const payload = (body ?? {}) as Record<string, unknown>
-    const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : ''
-    const password = typeof payload.password === 'string' ? payload.password : ''
-    const confirmEmail = typeof payload.confirmEmail === 'string' ? payload.confirmEmail.trim().toLowerCase() : email
-    const confirmPassword = typeof payload.confirmPassword === 'string' ? payload.confirmPassword : ''
-    const username = typeof payload.username === 'string' ? payload.username : email.split('@')[0]
-
-    const formData: SignupInput = { email, password, confirmEmail, confirmPassword }
-    const errors = validateSignup(formData)
-    if (errors.length > 0) {
-      return NextResponse.json<SignupResponse>({ ok: false, errors }, { status: 400 })
-    }
+    const { username, ...rest } = validation.data
+    const formData: SignupInput = rest
+    const resolvedUsername = username && username.length > 0
+      ? username
+      : formData.email.split('@')[0]
 
     // Check for an existing account
     const [existing] = await db
@@ -53,8 +55,8 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (existing) {
-      return NextResponse.json<SignupResponse>(
-        { ok: false, errors: ['Email already registered'] },
+      return NextResponse.json<AuthResponse>(
+        authResponseSchema.parse({ ok: false, errors: ['Email already registered'] }),
         { status: 409 }
       )
     }
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     const [newUser] = await db.insert(users).values({
       email: formData.email,
-      username,
+      username: resolvedUsername,
       password: passwordHash,
       isEmailVerified: false,
     }).returning({ userId: users.userId })
@@ -88,11 +90,16 @@ export async function POST(request: NextRequest) {
       console.error('Signup verification email error:', error)
     }
 
-    return NextResponse.json<SignupResponse>(
-      {
+    return NextResponse.json<AuthResponse>(
+      authResponseSchema.parse({
         ok: true,
+        user: {
+          id: newUser.userId,
+          email: formData.email,
+          username: resolvedUsername,
+        },
         message: 'Verification email sent. Please check your inbox.',
-      },
+      }),
       { status: 201 }
     )
   } catch (err: unknown) {
@@ -107,8 +114,8 @@ export async function POST(request: NextRequest) {
     const status = isUniqueViolation ? 409 : 500
 
     console.error('Signup error:', err instanceof Error ? err.message : String(err))
-    return NextResponse.json<SignupResponse>(
-      { ok: false, errors: [message] },
+    return NextResponse.json<AuthResponse>(
+      authResponseSchema.parse({ ok: false, errors: [message] }),
       { status }
     )
   }

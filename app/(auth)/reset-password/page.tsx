@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { validatePasswordReset } from '@/lib/auth'
+import { z } from 'zod'
+
+import { passwordResetSchema } from '@/lib/auth'
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
@@ -26,12 +28,18 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
-    // Use standardized validation
-    const validationErrors = validatePasswordReset(password, confirmPassword)
-    if (validationErrors.length > 0) {
-      setError(validationErrors[0])
+    const validation = passwordResetSchema.safeParse({ password, confirmPassword })
+    if (!validation.success) {
+      const { formErrors, fieldErrors } = z.flattenError(validation.error)
+      const flattenedErrors = [
+        ...formErrors,
+        ...Object.values(fieldErrors).flat(),
+      ]
+      setError(flattenedErrors[0] || 'Failed to reset password')
       return
     }
+
+    const payload = validation.data
 
     setIsLoading(true)
 
@@ -39,7 +47,7 @@ export default function ResetPasswordPage() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password, confirmPassword })
+        body: JSON.stringify({ token, ...payload })
       })
 
       const data = await response.json()

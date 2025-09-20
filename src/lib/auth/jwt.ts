@@ -1,7 +1,8 @@
 // JWT sign/verify
 import { SignJWT, jwtVerify } from "jose";
 import { TOKEN } from "./constants";
-import type { TokenPayload } from "./types";
+import { tokenPayloadSchema } from "./schemas";
+import type { TokenPayload } from "./schemas";
 
 let cachedSecret: Uint8Array | null = null;
 
@@ -23,7 +24,9 @@ function getSecret(): Uint8Array {
 
 // Create a signed JWT for our TokenPayload.
 export async function createAuthToken(payload: TokenPayload): Promise<string> {
-  return await new SignJWT(payload)
+  const claims = tokenPayloadSchema.parse(payload);
+
+  return await new SignJWT(claims)
     .setProtectedHeader({ alg: TOKEN.alg })
     .setIssuedAt()
     .setIssuer(TOKEN.issuer)
@@ -40,18 +43,5 @@ export async function verifyAuthToken(token: string): Promise<TokenPayload> {
     audience: TOKEN.audience,
   });
 
-  // Validate the token payload structure
-  const rawPayload = payload as Record<string, unknown>;
-  
-  // Check that userId exists and is a number
-  if (typeof rawPayload.userId !== "number") {
-    throw new Error("Invalid token payload: userId must be a number");
-  }
-
-  // Check that email exists and is a string
-  if (typeof rawPayload.email !== "string" || !rawPayload.email) {
-    throw new Error("Invalid token payload: email must be a non-empty string");
-  }
-
-  return payload as TokenPayload;
+  return tokenPayloadSchema.parse(payload);
 }

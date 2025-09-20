@@ -2,22 +2,13 @@
 
 Server and client share one small surface for authentication. This folder provides:
 
-* A stable set of types for requests/responses.
+* A stable set of response schemas derived from Zod.
 * Stateless tokens (JWT via `jose`) stored in an httpOnly cookie.
-* Pure validators you can run on both client and server.
+* Shared Zod schemas you can run on both client and server.
 * Tiny helpers to read/apply/remove the cookie and extract a session.
 
 
 ## Modules and responsibilities
-
-* `types.ts`
-  Data contracts used by pages, forms, and routes:
-
-  * `LoginInput`, `SignupInput` — validated request shapes.
-  * `UserPublic` — what we expose to the client (id, email, username).
-  * `AuthResponse` — union `{ ok: true, user } | { ok: false, errors: string[] }`.
-  * `TokenPayload` — minimal token claims (e.g., `userId`, optional `email`).
-    Keep these in sync with route responses so your forms can rely on them.
 
 * `constants.ts`
   Centralized constants:
@@ -26,12 +17,13 @@ Server and client share one small surface for authentication. This folder provid
   * JWT metadata such as `ISSUER`, `AUDIENCE`, `EXPIRES_IN`.
   * Validation limits (min password length, etc.).
 
-* `validators.ts`
-  Pure functions that return arrays of messages; no IO:
+* `schemas.ts`
+  Shared Zod schemas and field primitives:
 
-  * `validateLogin(input): string[]`
-  * `validateSignup(input): string[]`
-    These run identically client-side (to show errors early) and server-side (to enforce).
+  * `loginSchema`, `signupSchema`, `passwordResetSchema` — identical validation on client and server, including trimming and confirmation checks.
+  * `resetPasswordRouteSchema`, `passwordResetRequestSchema`, `verifyEmailQuerySchema` — route-specific payload contracts for reset/verification flows.
+  * `tokenPayloadSchema`, `userPublicSchema`, `authResponseSchema` — runtime contracts for tokens, user payloads, and JSON responses.
+  Use `schema.safeParse(data)` and `z.flattenError` to surface `formErrors` + `fieldErrors` across surfaces.
 
 * `jwt.ts`
   Token helpers using `jose`:
@@ -75,7 +67,7 @@ All routes return `AuthResponse`.
 
   Responses:
 
-  * `201 { ok: true, user }` and sets the auth cookie.
+  * `201 { ok: true, user, message }` (message describes verification email dispatch).
   * `400 { ok: false, errors: [...] }` when validation fails.
   * `409 { ok: false, errors: ["Email already registered"] }` when unique check fails.
 
@@ -94,9 +86,9 @@ All routes return `AuthResponse`.
 ## Control flow (login example)
 
 ```
-Client form (validateLogin) -> POST /api/auth/login
+Client form (`loginSchema.safeParse`) -> POST /api/auth/login
   -> Route validates again -> fetch user -> bcrypt.compare
-  -> signToken({ userId, email? }) -> applyAuthCookie(res, token)
+  -> signToken({ userId, email }) -> applyAuthCookie(res, token)
   -> 200 { ok: true, user }
 ```
 
@@ -121,9 +113,13 @@ This would run before it hits any page.
 * Logging: log error messages, not token strings or stack traces containing secrets.
 * Rate limiting: consider adding throttling on login/signup to slow brute-force attempts.
 
+## Zod Validation
+
+For detailed information about our Zod schema architecture, validation patterns, and extension guidelines, see [`/docs/zod.md`](/docs/zod.md).
+
 ## Testing quickstart
 
-* Validators: unit-test correct path and each failure message.
+* Schemas: unit-test success paths and each failure message to guard error copy.
 * JWT: sign+verify roundtrip with a test `JWT_SECRET`; assert exp/iss/aud are enforced.
 * Routes: integration tests that:
 

@@ -2,7 +2,7 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE, COOKIE_OPTIONS } from "./constants";
 import { verifyAuthToken } from "./jwt";
-import type { TokenPayload } from "./types";
+import type { TokenPayload } from "./schemas";
 
 // Read the auth cookie straight from the Next.js request.
 export function readAuthCookie(request: NextRequest): string | undefined {

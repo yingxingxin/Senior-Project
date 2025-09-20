@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-auth-primary">Check Your Email</h2>
             <p className="mt-2 text-auth-secondary">
-              If an account exists for {email}, we've sent password reset instructions to that address.
+            If an account exists for {email}, we&apos;ve sent password reset instructions to that address.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-auth-primary">Forgot Password?</h2>
           <p className="mt-2 text-auth-secondary">
-            Enter your email address and we'll send you instructions to reset your password.
+            Enter your email address and we&apos;ll send you instructions to reset your password.
           </p>
         </div>
 
