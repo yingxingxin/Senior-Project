@@ -1,14 +1,28 @@
-/*
-// todo: seed the database with some data
+import { db, assistants } from './index';
 
-import { db } from './index';
-import { users, assistants, lessons, music, dashboards } from './schema';
+import { ASSISTANT_FIXTURES } from '../lib/onboarding/fixtures';
 
-export const seed = async () => {
-    await db.insert(users).values({
-        username: 'admin',
-        email: 'admin@example.com',
-        password: 'password',
-    });
-};
-*/
+type AssistantSeed = typeof assistants.$inferInsert;
+
+export async function seed() {
+  for (const option of ASSISTANT_FIXTURES) {
+    await db
+      .insert(assistants)
+      .values(option as AssistantSeed)
+      .onConflictDoUpdate({
+        target: assistants.slug,
+        set: {
+          name: option.name,
+          gender: option.gender,
+          avatarPng: option.avatarPng,
+          tagline: option.tagline,
+          description: option.description,
+          updatedAt: new Date(),
+        },
+      });
+  }
+}
+
+(async () => {
+  await seed();
+})();

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."onboarding_step" ADD VALUE 'welcome' BEFORE 'gender';

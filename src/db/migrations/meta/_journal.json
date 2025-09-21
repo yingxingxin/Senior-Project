@@ -22,6 +22,20 @@
       "when": 1758294470240,
       "tag": "0002_cool_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758470287036,
+      "tag": "0003_melted_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758478622258,
+      "tag": "0004_clean_violations",
+      "breakpoints": true
     }
   ]
 }

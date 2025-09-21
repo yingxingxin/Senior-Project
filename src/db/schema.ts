@@ -4,11 +4,17 @@
  * when querying and manipulating data in our application.
  */
 
-import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, decimal, boolean, json, primaryKey, timestamp, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Token type enum for different authentication token purposes
 export const tokenTypeEnum = pgEnum('token_type', ['password_reset', 'email_verification']);
+
+export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masculine', 'androgynous']);
+
+export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
+
+export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'persona', 'guided_intro']);
 
 export const users = pgTable('users', {
   userId: serial('user_id').primaryKey(),
@@ -18,6 +24,9 @@ export const users = pgTable('users', {
   isEmailVerified: boolean('is_email_verified').notNull().default(false),
   emailVerifiedAt: timestamp('email_verified_at'),
   assistantId: integer('assistant_id').references(() => assistants.assistantId),
+  assistantPersona: assistantPersonaEnum('assistant_persona'),
+  onboardingCompletedAt: timestamp('onboarding_completed_at'),
+  onboardingStep: onboardingStepEnum('onboarding_step'),
 });
 
 // Generic auth tokens table for password resets, email verification, etc.
@@ -33,10 +42,16 @@ export const authTokens = pgTable('auth_tokens', {
 export const assistants = pgTable('assistants', {
   assistantId: serial('assistant_id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
-  gender: varchar('gender', { length: 50 }),
+  slug: varchar('slug', { length: 64 }).notNull(),
+  gender: assistantGenderEnum('gender'),
   avatarPng: varchar('avatar_png', { length: 500 }),
-  personality: text('personality'),
-});
+  tagline: varchar('tagline', { length: 160 }),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  slugKey: uniqueIndex('assistants_slug_key').on(table.slug),
+}));
 
 export const lessons = pgTable('lessons', {
   lessonId: serial('lesson_id').primaryKey(),
