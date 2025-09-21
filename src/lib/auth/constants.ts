@@ -33,3 +33,16 @@ export const EMAIL_FROM_NAME = 'Sprite.exe';
 // Email token expiry times
 export const PASSWORD_RESET_EXPIRY = 60 * 60 * 1000; // 1 hour
 export const EMAIL_VERIFICATION_EXPIRY = 60 * 60 * 24 * 1000; // 24 hours
+export const OTP_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutes
+export const OTP_SESSION_EXPIRY = 15 * 60 * 1000; // 15 minutes to set new password
+export const OTP_CODE_LENGTH = 6;
+
+export const PASSWORD_RESET_SESSION_COOKIE = "password-reset-session" as const;
+
+export const PASSWORD_RESET_SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: Math.floor(OTP_SESSION_EXPIRY / 1000),
+} as const;

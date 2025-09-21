@@ -1,213 +1,213 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import Link from "next/link"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { AuthCard } from "@/components/auth/shared/AuthCard";
+import { AuthForm } from "@/components/auth/shared/AuthForm";
+import { OtpForm } from "@/components/auth/shared/OtpForm";
+import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+// Schemas (reuse yours if already exported)
 import {
   passwordResetRequestSchema,
+  passwordResetSchema,
   formResponseSchema,
-  type FormResponse,
-} from "@/lib/auth"
-import { z } from "zod"
+  postJson,
+  applyFieldErrors,
+} from "@/lib/auth";
 
-type ForgotPasswordInput = z.infer<typeof passwordResetRequestSchema>
+type Step = "email" | "otp" | "password" | "success";
 
-export function ForgotPasswordForm() {
-  const form = useForm<ForgotPasswordInput>({
+type EmailForm = z.infer<typeof passwordResetRequestSchema>;
+type PasswordForm = z.infer<typeof passwordResetSchema>;
+
+
+export default function ForgotPasswordForm() {
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("email");
+  // we store email in state to track the email getting password reset
+  const [email, setEmail] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Forms
+  const emailForm = useForm<EmailForm>({
     resolver: zodResolver(passwordResetRequestSchema),
     defaultValues: { email: "" },
-    mode: "onSubmit",
-  })
+  });
+  const pwForm = useForm<PasswordForm>({
+    resolver: zodResolver(passwordResetSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
 
-  const { handleSubmit, control, setError, formState, getValues } = form
-  const { isSubmitting, isSubmitSuccessful, errors } = formState
-
-  const successMsgRef = useRef<string>("")
-
-  const onSubmit = handleSubmit(async (values) => {
-    let response: Response
-    try {
-      response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(values),
-      })
-    } catch {
-      setError("root", {
-        type: "server",
-        message: "Network error. Please try again.",
-      })
-      return
-    }
-
-    const raw = await response.text()
-    let data: FormResponse
-
-    try {
-      data = formResponseSchema.parse(raw ? JSON.parse(raw) : {})
-    } catch {
-      setError("root", {
-        type: "server",
-        message: "Unexpected server response. Please try again.",
-      })
-      return
-    }
-
-    if (!response.ok || !data.ok) {
-      let rootMessage = data.message ?? ""
-      let hadField = false
-
-      if (!data.ok) {
-        for (const { field, message } of data.errors) {
-          if (field === "root") {
-            rootMessage = message
-          } else if (field in values) {
-            setError(field as keyof ForgotPasswordInput, {
-              type: "server",
-              message,
-            })
-            hadField = true
-          } else {
-            rootMessage = message
-          }
-        }
-      }
-
-      if (!hadField || rootMessage) {
-        setError("root", {
-          type: "server",
-          message:
-            rootMessage ||
-            "Failed to send reset instructions. Please try again.",
-        })
-      }
-
-      return
-    }
-
-    successMsgRef.current =
-      data.message || "If an account exists, reset instructions have been sent"
-  })
-
-  if (isSubmitSuccessful) {
-    const submittedEmail = getValues("email")
-
-    return (
-      <div className="space-y-6" aria-live="polite">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-[var(--auth-primary)]">
-            Check Your Email
-          </h2>
-          <p className="text-[var(--auth-secondary)]">
-            {successMsgRef.current ||
-              "If an account exists, reset instructions have been sent."}
-          </p>
-          {submittedEmail && (
-            <p className="text-[var(--auth-secondary)]">
-              We sent a link to {" "}
-              <span className="font-medium">{submittedEmail}</span>.
-            </p>
-          )}
-        </div>
-
-        <div className="text-center">
-          <Link
-            href="/"
-            className="text-[var(--auth-link)] hover:text-[var(--auth-link-hover)] transition-colors"
-          >
-            Return to login
-          </Link>
-        </div>
-      </div>
-    )
+  function resetAbort() {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    return abortRef.current.signal;
   }
 
+  // Actions
+  const onSendCode = emailForm.handleSubmit(async (vals) => {
+    try {
+      const signal = resetAbort();
+      await postJson(
+        "/api/auth/otp/request",
+        { flow: "password-reset", email: vals.email },
+        formResponseSchema,
+        signal
+      );
+      setEmail(vals.email);
+      setStep("otp");
+    } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") return;
+      applyFieldErrors(e, emailForm.setError, ["email"]);
+    }
+  });
+
+  const handleOtpSuccess = () => {
+    setStep("password");
+    pwForm.reset({ password: "", confirmPassword: "" });
+  };
+
+  const onSavePassword = pwForm.handleSubmit(async (vals) => {
+    try {
+      const signal = resetAbort();
+      await postJson(
+        "/api/auth/forgot-password",
+        {
+          email,
+          password: vals.password,
+          confirmPassword: vals.confirmPassword,
+        },
+        formResponseSchema,
+        signal
+      );
+      setStep("success");
+    } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") return;
+      applyFieldErrors(e, pwForm.setError, ["password", "confirmPassword"]);
+    }
+  });
+
+
+  // Views
+  if (step === "success") {
+    return (
+      <AuthSuccess
+        title="Password Reset"
+        message="Your password has been reset successfully. You can now log in with your new password."
+        primaryAction={{
+          label: "Go to Login",
+          onClick: () => router.push("/login")
+        }}
+        secondaryAction={{
+          label: "Return Home",
+          onClick: () => router.push("/")
+        }}
+      />
+    );
+  }
+
+  if (step === "otp") {
+    return (
+      <OtpForm
+        email={email}
+        flow="password-reset"
+        onSuccess={handleOtpSuccess}
+        headerDescription={<>We sent a verification code to <strong>{email}</strong> if it exists in our system.</>}
+      />
+    );
+  }
+
+  if (step === "password") {
+    return (
+      <>
+        <AuthCard.Header>
+          <AuthCard.Title>Set New Password</AuthCard.Title>
+          <AuthCard.Description>Choose a strong password for your account</AuthCard.Description>
+        </AuthCard.Header>
+
+        <AuthForm {...pwForm}>
+          <form onSubmit={onSavePassword} noValidate aria-busy={pwForm.formState.isSubmitting}>
+            <AuthForm.Body>
+              <AuthForm.RootError message={pwForm.formState.errors.root?.message} />
+
+              <AuthForm.Fieldset disabled={pwForm.formState.isSubmitting}>
+                <AuthForm.PasswordField
+                  control={pwForm.control}
+                  name="password"
+                  label="New password"
+                  autoComplete="new-password"
+                />
+                <AuthForm.PasswordField
+                  control={pwForm.control}
+                  name="confirmPassword"
+                  label="Confirm password"
+                  autoComplete="new-password"
+                />
+              </AuthForm.Fieldset>
+
+              <AuthForm.Actions>
+                <AuthForm.Button
+                  type="submit"
+                  isLoading={pwForm.formState.isSubmitting}
+                  loadingText="Saving..."
+                >
+                  Save new password
+                </AuthForm.Button>
+              </AuthForm.Actions>
+            </AuthForm.Body>
+          </form>
+        </AuthForm>
+      </>
+    );
+  }
+
+  // email
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--auth-primary)]">
-          Forgot Password?
-        </h2>
-        <p className="mt-2 text-[var(--auth-secondary)]">
-          Enter your email address and we&apos;ll send you instructions to reset
-          your password.
-        </p>
+    <>
+      <AuthCard.Header>
+        <AuthCard.Title>Forgot Password?</AuthCard.Title>
+        <AuthCard.Description>Enter your email and we will send a verification code</AuthCard.Description>
+      </AuthCard.Header>
+
+      <div className="space-y-6">
+        <AuthForm {...emailForm}>
+          <form onSubmit={onSendCode} noValidate aria-busy={emailForm.formState.isSubmitting}>
+            <AuthForm.Body>
+              <AuthForm.RootError message={emailForm.formState.errors.root?.message} />
+
+              <AuthForm.Fieldset disabled={emailForm.formState.isSubmitting}>
+                <AuthForm.EmailField
+                  control={emailForm.control}
+                  name="email"
+                  label="Email address"
+                  placeholder="you@example.com"
+                />
+              </AuthForm.Fieldset>
+
+              <AuthForm.Actions>
+                <AuthForm.Button
+                  type="submit"
+                  isLoading={emailForm.formState.isSubmitting}
+                  loadingText="Sending..."
+                >
+                  Send code
+                </AuthForm.Button>
+              </AuthForm.Actions>
+            </AuthForm.Body>
+          </form>
+        </AuthForm>
       </div>
 
-      {errors.root?.message && (
-        <div
-          role="alert"
-          aria-live="polite"
-          className="p-3 text-sm bg-[var(--auth-error-bg)] border border-[var(--auth-error-border)] rounded text-[var(--auth-error-text)]"
-        >
-          {errors.root.message}
-        </div>
-      )}
-
-      <Form {...form}>
-        <form
-          onSubmit={onSubmit}
-          noValidate
-          className="space-y-4"
-          aria-busy={isSubmitting}
-        >
-          <fieldset disabled={isSubmitting} className="space-y-4">
-            <FormField
-              control={control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[var(--auth-label)]">
-                    Email address
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[var(--auth-error-text)]" />
-                </FormItem>
-              )}
-            />
-          </fieldset>
-
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            aria-disabled={isSubmitting}
-            className="w-full bg-[var(--auth-button)] hover:bg-[var(--auth-button-hover)]"
-          >
-            {isSubmitting ? "Sending..." : "Send Reset Instructions"}
-          </Button>
-        </form>
-      </Form>
-
-      <div className="text-center">
-        <Link
-          href="/"
-          className="text-[var(--auth-link)] hover:text-[var(--auth-link-hover)] transition-colors"
-        >
-          Back to login
-        </Link>
-      </div>
-    </div>
-  )
+      <AuthCard.Footer>
+        Remember your password?{" "}
+        <AuthCard.FooterLink href="/login">Back to login</AuthCard.FooterLink>
+      </AuthCard.Footer>
+    </>
+  );
 }

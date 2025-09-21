@@ -1,5 +1,5 @@
-import Link from "next/link"
 import SignupForm from "@/components/auth/SignupForm"
+import { AuthCard } from "@/components/auth/shared/AuthCard"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -9,20 +9,16 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Create an account</h1>
-        <p className="text-gray-400 mt-2">Get started with Sprite.exe</p>
-      </div>
-
+    <AuthCard
+      title="Create an account"
+      subtitle="Get started with Sprite.exe"
+      footer={{
+        text: "Already have an account?",
+        linkText: "Sign in",
+        linkHref: "/login"
+      }}
+    >
       <SignupForm />
-
-      <p className="text-center text-sm text-gray-400">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-400 hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
+    </AuthCard>
   )
 }

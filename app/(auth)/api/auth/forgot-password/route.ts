@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/src/db'
 import { users, authTokens } from '@/src/db/schema'
-import { eq, lt, and } from 'drizzle-orm'
-import crypto from 'crypto'
-import { z } from 'zod'
+import { and, eq, gt, isNull } from 'drizzle-orm'
+import bcrypt from 'bcryptjs'
 
 import {
-  passwordResetRequestSchema,
   formResponseSchema,
+  passwordResetSchema,
+  emailField,
+  flattenZodErrors,
   type FormResponse,
 } from '@/lib/auth'
-import { sendPasswordResetEmail } from '@/lib/auth/email'
-import { PASSWORD_RESET_EXPIRY } from '@/lib/auth/constants'
+import { PASSWORD_RESET_SESSION_COOKIE, PASSWORD_RESET_SESSION_COOKIE_OPTIONS } from '@/lib/auth/constants'
+import { encodeOtpToken, hashOtpValue, isOtpTokenOfKind } from '@/lib/auth/otp'
+
+const passwordResetPayloadSchema = passwordResetSchema.safeExtend({
+  email: emailField,
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const validation = passwordResetRequestSchema.safeParse(await request.json())
+    const payload = await request.json()
+    const validation = passwordResetPayloadSchema.safeParse(payload)
 
     if (!validation.success) {
-      const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const errors = [
-        ...formErrors.map((message) => ({ field: 'root', message })),
-        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
-          messages.map((message) => ({ field, message }))
-        ),
-      ]
+      const errors = flattenZodErrors(validation.error)
 
       return NextResponse.json<FormResponse>(
         formResponseSchema.parse({ ok: false, errors }),
@@ -32,67 +32,140 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email } = validation.data
+    const { email, password } = validation.data
 
-    // Find user by email
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1)
+    const sessionCookie = request.cookies.get(PASSWORD_RESET_SESSION_COOKIE)?.value
 
-    // Always return success even if user doesn't exist (security best practice)
-    if (user.length === 0) {
-      return NextResponse.json<FormResponse>(
+    if (!sessionCookie) {
+      const response = NextResponse.json<FormResponse>(
         formResponseSchema.parse({
-          ok: true,
-          message: 'If an account exists, reset instructions have been sent',
-        })
+          ok: false,
+          errors: [
+            { field: 'root', message: 'Verification required. Request a new code.' },
+          ],
+        }),
+        { status: 400 }
       )
+
+      response.cookies.delete({
+        name: PASSWORD_RESET_SESSION_COOKIE,
+        path: PASSWORD_RESET_SESSION_COOKIE_OPTIONS.path,
+      })
+
+      return response
     }
 
-    const foundUser = user[0]
+    const hashedSession = hashOtpValue(sessionCookie)
+    const expectedToken = encodeOtpToken('session', hashedSession)
 
-    // Opportunistically clean up expired tokens
+    const [sessionToken] = await db
+      .select({
+        id: authTokens.id,
+        userId: authTokens.userId,
+        token: authTokens.token,
+      })
+      .from(authTokens)
+      .where(
+        and(
+          eq(authTokens.tokenType, 'password_reset'),
+          eq(authTokens.token, expectedToken),
+          isNull(authTokens.usedAt),
+          gt(authTokens.expiresAt, new Date())
+        )
+      )
+      .limit(1)
+
+    if (!sessionToken || !isOtpTokenOfKind(sessionToken.token, 'session')) {
+      const response = NextResponse.json<FormResponse>(
+        formResponseSchema.parse({
+          ok: false,
+          errors: [
+            { field: 'root', message: 'Invalid or expired verification session.' },
+          ],
+        }),
+        { status: 400 }
+      )
+
+      response.cookies.delete({
+        name: PASSWORD_RESET_SESSION_COOKIE,
+        path: PASSWORD_RESET_SESSION_COOKIE_OPTIONS.path,
+      })
+
+      return response
+    }
+
+    const [user] = await db
+      .select({
+        userId: users.userId,
+        email: users.email,
+        isEmailVerified: users.isEmailVerified,
+      })
+      .from(users)
+      .where(eq(users.userId, sessionToken.userId))
+      .limit(1)
+
+    if (!user || user.email !== email) {
+      const response = NextResponse.json<FormResponse>(
+        formResponseSchema.parse({
+          ok: false,
+          errors: [{ field: 'root', message: 'Invalid verification session.' }],
+        }),
+        { status: 400 }
+      )
+
+      response.cookies.delete({
+        name: PASSWORD_RESET_SESSION_COOKIE,
+        path: PASSWORD_RESET_SESSION_COOKIE_OPTIONS.path,
+      })
+
+      return response
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
+      })
+      .where(eq(users.userId, user.userId))
+
+    await db
+      .update(authTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(authTokens.id, sessionToken.id))
+
     await db
       .delete(authTokens)
       .where(
         and(
+          eq(authTokens.userId, user.userId),
           eq(authTokens.tokenType, 'password_reset'),
-          lt(authTokens.expiresAt, new Date())
+          isNull(authTokens.usedAt)
         )
       )
 
-    // Generate secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex')
-
-    // Calculate the expiration date for the token
-    // Token expires in 1 hour
-    const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY)
-
-    // Store token in database
-    await db.insert(authTokens).values({
-      userId: foundUser.userId,
-      token: resetToken,
-      tokenType: 'password_reset',
-      expiresAt,
-    })
-
-    // Send password reset email
-    await sendPasswordResetEmail(email, resetToken)
-
-    return NextResponse.json<FormResponse>(
+    const response = NextResponse.json<FormResponse>(
       formResponseSchema.parse({
         ok: true,
-        message: 'If an account exists, reset instructions have been sent',
+        message: 'Password reset successfully. You can now sign in.',
       })
     )
+
+    response.cookies.delete({
+      name: PASSWORD_RESET_SESSION_COOKIE,
+      path: PASSWORD_RESET_SESSION_COOKIE_OPTIONS.path,
+    })
+
+    return response
   } catch (error) {
-    console.error('Forgot password error:', error)
+    console.error('Forgot password reset error:', error)
     return NextResponse.json<FormResponse>(
       formResponseSchema.parse({
         ok: false,
-        errors: [{ field: 'root', message: 'Failed to process password reset request' }],
+        errors: [{ field: 'root', message: 'Failed to reset password.' }],
       }),
       { status: 500 }
     )

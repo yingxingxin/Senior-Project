@@ -3,7 +3,6 @@ import { NextResponse, NextRequest } from 'next/server'
 import { db, users } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import { z } from 'zod'
 
 import {
   createAuthToken,
@@ -11,6 +10,7 @@ import {
   COOKIE_OPTIONS,
   loginSchema,
   authResponseSchema,
+  flattenZodErrors,
   type LoginInput,
   type AuthResponse,
 } from '@/lib/auth'
@@ -31,13 +31,7 @@ export async function POST(request: NextRequest) {
     const validation = loginSchema.safeParse(await request.json())
 
     if (!validation.success) {
-      const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const errors = [
-        ...formErrors.map((message) => ({ field: 'root', message })),
-        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
-          messages.map((message) => ({ field, message }))
-        ),
-      ]
+      const errors = flattenZodErrors(validation.error)
 
       return NextResponse.json<AuthResponse>(
         authResponseSchema.parse({
@@ -92,7 +86,7 @@ export async function POST(request: NextRequest) {
             {
               field: 'root',
               message:
-                'Please verify your email before logging in. Check your inbox for the verification link.',
+                'Please verify your email before logging in. Check your inbox for the 6-digit code.',
             },
           ],
         }),

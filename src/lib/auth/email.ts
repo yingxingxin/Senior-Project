@@ -7,82 +7,49 @@ import { EMAIL_FROM, EMAIL_FROM_NAME } from './constants'
  */
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-/**
- * Send password reset email with a secure token link
- * @param toEmail - The email address to send the reset email to
- * @param resetToken - The unique token to give the user to reset their password
- */
-export async function sendPasswordResetEmail(toEmail: string, resetToken: string) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/forgot-password/${resetToken}`
-
+export async function sendPasswordResetOtpEmail(toEmail: string, code: string) {
   try {
     await resend.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_FROM}>`,
       to: toEmail,
-      subject: 'Reset Your Password',
+      subject: 'Your password reset code',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Password Reset Request</h2>
-          <p>Hi there,</p>
-          <p>You requested to reset your password for your ${EMAIL_FROM_NAME} account.</p>
-          <p>Click the button below to reset your password:</p>
-          <div style="margin: 30px 0;">
-            <a href="${resetUrl}"
-               style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Reset Password
-            </a>
+          <h2>Reset your password</h2>
+          <p>Use the code below to finish resetting your password for ${EMAIL_FROM_NAME}:</p>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 24px 0;">
+            ${code}
           </div>
-          <p>Or copy and paste this link into your browser:</p>
-          <p style="color: #666; word-break: break-all;">${resetUrl}</p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-          <p style="color: #999; font-size: 14px;">
-            This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.
-          </p>
+          <p>The code expires in 10 minutes. If you didn't request a reset, you can ignore this email.</p>
         </div>
-      `
+      `,
     });
-    // Log to server console so we can see it in the logs
-    console.log('Password reset email sent to:', toEmail)
+    console.log('Password reset OTP sent to:', toEmail)
   } catch (error) {
-    console.error('Failed to send email:', error)
-    // Log to server console so we can see it in the logs
-    // Don't throw - we don't want to reveal if email exists
+    console.error('Failed to send password reset OTP email:', error)
   }
 }
 
-// Future email functions can be added here:
-// Email verification flow for new accounts
-export async function sendVerificationEmail(toEmail: string, token: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const verificationUrl = `${appUrl}/verify-email?token=${token}`
-
+export async function sendSignupOtpEmail(toEmail: string, username: string, code: string) {
   try {
     await resend.emails.send({
       from: `${EMAIL_FROM_NAME} <${EMAIL_FROM}>`,
       to: toEmail,
-      subject: 'Verify Your Email Address',
+      subject: 'Verify your email address',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Confirm your email</h2>
-          <p>Thanks for signing up for ${EMAIL_FROM_NAME}.</p>
-          <p>Click the button below to verify your email address:</p>
-          <div style="margin: 30px 0;">
-            <a href="${verificationUrl}"
-               style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Verify Email
-            </a>
+          <h2>Welcome, ${username || 'there'}!</h2>
+          <p>Enter this code to verify your email and activate your ${EMAIL_FROM_NAME} account:</p>
+          <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 24px 0;">
+            ${code}
           </div>
-          <p>If the button doesn&apos;t work, copy and paste this link into your browser:</p>
-          <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
-          <p style="color: #999; font-size: 14px; margin-top: 40px;">
-            This verification link will expire in 24 hours. If you didn&apos;t create an account, you can ignore this email.
-          </p>
+          <p>This code expires in 10 minutes. If you didn't create an account, you can ignore this email.</p>
         </div>
-      `
-    })
-    console.log('Verification email sent to:', toEmail)
+      `,
+    });
+    console.log('Signup OTP email sent to:', toEmail)
   } catch (error) {
-    console.error('Failed to send verification email:', error)
+    console.error('Failed to send signup OTP email:', error)
   }
 }
 

@@ -1,9 +1,8 @@
 // app/api/auth/signup/route.ts
 import { NextResponse, NextRequest } from 'next/server'
-import { db, users, authTokens } from '@/src/db'
+import { db, users } from '@/src/db'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 import { z } from 'zod'
 
 import {
@@ -11,8 +10,9 @@ import {
   type AuthResponse,
   signupSchema,
   authResponseSchema,
+  flattenZodErrors,
 } from '@/lib/auth'
-import { sendVerificationEmail } from '@/lib/auth/email'
+import { issueOtpForUser } from '@/lib/auth/otp'
 
 export const signupRouteSchema = signupSchema.safeExtend({
   username: z.string().trim().optional(),
@@ -25,21 +25,14 @@ export const signupRouteSchema = signupSchema.safeExtend({
  * 1) Parse + validate request body.
  * 2) Normalize email and check if it already exists.
  * 3) Create user with isEmailVerified = false.
- * 4) Generate verification token and store in authTokens.
- * 5) Send verification email to the user.
+ * 4) Issue a numeric OTP and email it to the user.
 */
 export async function POST(request: NextRequest) {
   try {
     const validation = signupRouteSchema.safeParse(await request.json())
 
     if (!validation.success) {
-      const { formErrors, fieldErrors } = z.flattenError(validation.error)
-      const errors = [
-        ...formErrors.map((message) => ({ field: 'root', message })),
-        ...Object.entries(fieldErrors).flatMap(([field, messages]) =>
-          messages.map((message) => ({ field, message }))
-        ),
-      ]
+      const errors = flattenZodErrors(validation.error)
 
       return NextResponse.json<AuthResponse>(
         authResponseSchema.parse({ ok: false, errors }),
@@ -81,23 +74,12 @@ export async function POST(request: NextRequest) {
       isEmailVerified: false,
     }).returning({ userId: users.userId })
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex')
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-
-    // Store verification token
-    await db.insert(authTokens).values({
+    await issueOtpForUser({
+      flow: 'signup',
       userId: newUser.userId,
-      token: verificationToken,
-      tokenType: 'email_verification',
-      expiresAt,
+      email: formData.email,
+      username: resolvedUsername,
     })
-
-    try {
-      await sendVerificationEmail(formData.email, verificationToken)
-    } catch (error) {
-      console.error('Signup verification email error:', error)
-    }
 
     return NextResponse.json<AuthResponse>(
       authResponseSchema.parse({
@@ -107,7 +89,7 @@ export async function POST(request: NextRequest) {
           email: formData.email,
           username: resolvedUsername,
         },
-        message: 'Verification email sent. Please check your inbox.',
+        message: 'Verification code sent. Please check your email.',
       }),
       { status: 201 }
     )

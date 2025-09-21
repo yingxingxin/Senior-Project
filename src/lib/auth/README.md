@@ -20,9 +20,12 @@ Server and client share one small surface for authentication. This folder provid
   Shared Zod schemas and field primitives:
 
   * `loginSchema`, `signupSchema`, `passwordResetSchema` — identical validation on client and server, including trimming and confirmation checks.
-  * `resetPasswordRouteSchema`, `passwordResetRequestSchema`, `verifyEmailQuerySchema` — route-specific payload contracts for reset/verification flows.
-  * `tokenPayloadSchema`, `userPublicSchema`, `authResponseSchema` — runtime contracts for tokens, user payloads, and JSON responses.
+  * `passwordResetRequestSchema`, `otpRequestSchema`, `otpVerifySchema` — shared payload contracts for OTP and reset flows.
+  * `tokenPayloadSchema`, `userPublicSchema`, `authResponseSchema`, `formResponseSchema` — runtime contracts for tokens, user payloads, and JSON responses.
   Use `schema.safeParse(data)` and `z.flattenError` to surface `formErrors` + `fieldErrors` across surfaces.
+
+* `otp.ts`
+  Helpers for generating, hashing, and storing OTP codes/sessions plus shared email dispatch logic.
 
 * `jwt.ts`
   Token helpers using `jose`:
@@ -61,9 +64,35 @@ All routes return `AuthResponse`.
 
   Responses:
 
-  * `201 { ok: true, user, message }` (message describes verification email dispatch).
+  * `201 { ok: true, user, message }` (message confirms an OTP has been sent).
   * `400 { ok: false, errors: [{ field, message }] }` when validation fails.
   * `409 { ok: false, errors: [{ field: "email", message: "Email already registered" }] }` when unique check fails.
+
+* `POST /api/auth/otp/request`
+
+  ```json
+  { "flow": "signup", "email": "a@b.com" }
+  ```
+
+  Issues a six digit code for the requested flow. Always returns success to avoid enumeration.
+
+* `POST /api/auth/otp/verify`
+
+  ```json
+  { "flow": "password-reset", "email": "a@b.com", "code": "123456" }
+  ```
+
+  Validates the code. For password resets it sets a short-lived httpOnly cookie (`password-reset-session`) consumed by `/api/auth/forgot-password`.
+
+* `POST /api/auth/forgot-password`
+
+  Requires the verification cookie issued by the previous step.
+
+  ```json
+  { "email": "a@b.com", "password": "secret123", "confirmPassword": "secret123" }
+  ```
+
+  Updates the password when the session token is valid, and marks the email verified.
 
 * `GET /api/auth/me`
   Responses:
