@@ -32,17 +32,17 @@ export function OnboardingProgress({
         {/* Header with integrated branding */}
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-cyan-300/30 bg-gradient-to-r from-cyan-500/20 to-sky-500/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100 shadow-[0_4px_20px_rgba(34,211,238,0.25)]">
+            <span className="inline-flex items-center rounded-full border border-primary/30 bg-gradient-to-r from-primary/20 to-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-primary shadow-[0_4px_20px_rgba(34,211,238,0.25)]">
               Personalize Sprite.exe
             </span>
-            <span className="text-sm text-white/60">
-              Step <span className="font-semibold text-white">{currentIndex + 1}</span> of {steps.length}
+            <span className="text-sm text-muted-foreground">
+              Step <span className="font-semibold text-foreground">{currentIndex + 1}</span> of {steps.length}
             </span>
           </div>
 
           {/* Current step title on desktop */}
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-white/90">
+            <p className="text-sm font-medium text-foreground">
               {steps[currentIndex]?.title}
             </p>
           </div>
@@ -52,7 +52,7 @@ export function OnboardingProgress({
         <div className="relative mb-6">
           <Progress
             value={completion * 100}
-            className="h-2 bg-white/10 [&>div]:bg-gradient-to-r [&>div]:from-cyan-400 [&>div]:via-sky-300 [&>div]:to-violet-400 [&>div]:shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+            className="h-2 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-cyan-400 [&>div]:via-sky-300 [&>div]:to-violet-400 [&>div]:shadow-[0_0_20px_rgba(34,211,238,0.5)]"
           />
 
           {/* Step dots overlay */}
@@ -64,7 +64,7 @@ export function OnboardingProgress({
                   'size-3 rounded-full border-2 transition-all duration-300',
                   index <= currentIndex
                     ? 'border-cyan-300 bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]'
-                    : 'border-white/30 bg-white/10'
+                    : 'border-muted bg-muted/50'
                 )}
               />
             ))}
@@ -88,7 +88,7 @@ export function OnboardingProgress({
                     ? 'border-cyan-300/50 bg-gradient-to-br from-cyan-500/15 to-sky-500/10 shadow-[0_8px_32px_rgba(34,211,238,0.25)]'
                     : isComplete
                       ? 'border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5'
-                      : 'border-white/10 bg-white/5 opacity-60'
+                      : 'border-border bg-muted/20 opacity-60'
                 )}
               >
                 {/* Card gradient overlay */}
@@ -111,20 +111,20 @@ export function OnboardingProgress({
                       className={cn(
                         'inline-flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-300',
                         isCurrent
-                          ? 'bg-gradient-to-br from-cyan-400 to-sky-400 text-white shadow-[0_2px_10px_rgba(34,211,238,0.4)]'
+                          ? 'bg-gradient-to-br from-cyan-400 to-sky-400 text-primary-foreground shadow-[0_2px_10px_rgba(34,211,238,0.4)]'
                           : isComplete
-                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 text-white'
-                            : 'bg-white/10 text-white/50'
+                            ? 'bg-gradient-to-br from-emerald-400 to-emerald-500 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
                       )}
                     >
                       {isComplete ? '✓' : index + 1}
                     </span>
-                    <div className="text-sm font-semibold text-white/90">
+                    <div className="text-sm font-semibold text-foreground">
                       {step.title}
                     </div>
                   </div>
 
-                  <div className="text-xs text-white/60 line-clamp-2">
+                  <div className="text-xs text-muted-foreground line-clamp-2">
                     {step.description}
                   </div>
 
@@ -159,10 +159,10 @@ export function OnboardingProgress({
 
         {/* Mobile current step indicator */}
         <div className="mt-4 text-center sm:hidden">
-          <p className="text-sm font-medium text-white/90">
+          <p className="text-sm font-medium text-foreground">
             {steps[currentIndex]?.title}
           </p>
-          <p className="text-xs text-white/60 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {steps[currentIndex]?.description}
           </p>
         </div>

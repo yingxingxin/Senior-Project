@@ -39,16 +39,16 @@ export default async function OnboardingGenderPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
+        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
           Choose Your Assistant
         </h1>
-        <p className="mx-auto max-w-3xl text-lg text-white/70 sm:text-xl">
+        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
           These portraits shape the energy your companion brings to every study session. Pick the style that keeps you inspired.
         </p>
       </div>
 
       {/* Full-width assistant selection */}
-      <div className="onboarding-animate-fade-in">
+      <div className="animate-fade-in-up">
         <AssistantSelectionForm options={assistants} selectedAssistantId={user.assistantId ?? null} />
       </div>
     </div>

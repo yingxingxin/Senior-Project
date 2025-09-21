@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 
 function withAuthLabel(children?: React.ReactNode) {
-  return children ? <FormLabel className="text-[var(--auth-label)]">{children}</FormLabel> : null
+  return children ? <FormLabel className="text-sm font-medium text-foreground">{children}</FormLabel> : null
 }
 
 type AuthFormFieldProps<TFieldValues extends FieldValues> = {
@@ -48,11 +48,11 @@ const AuthFormEmailField = <TFieldValues extends FieldValues>({
             type="email"
             placeholder={placeholder}
             autoComplete={autoComplete}
-            className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+            className=""
             {...field}
           />
         </FormControl>
-        <FormMessage className="text-[var(--auth-error-text)]" />
+        <FormMessage />
       </FormItem>
     )}
   />
@@ -78,11 +78,11 @@ const AuthFormPasswordField = <TFieldValues extends FieldValues>({
           <Input
             type="password"
             autoComplete={autoComplete}
-            className="bg-[var(--auth-input-bg)] border-[var(--auth-input-border)] text-[var(--auth-primary)] focus:ring-[var(--auth-input-focus)] focus:border-[var(--auth-input-focus)]"
+            className=""
             {...field}
           />
         </FormControl>
-        <FormMessage className="text-[var(--auth-error-text)]" />
+        <FormMessage />
         {extra ? <div className="mt-2">{extra}</div> : null}
       </FormItem>
     )}
@@ -96,7 +96,7 @@ const AuthFormRootError = ({ message }: { message?: string }) => {
     <div
       role="alert"
       aria-live="polite"
-      className="rounded border border-[var(--auth-error-border)] bg-[var(--auth-error-bg)] p-3 text-sm text-[var(--auth-error-text)]"
+      className="rounded border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
     >
       • {message}
     </div>

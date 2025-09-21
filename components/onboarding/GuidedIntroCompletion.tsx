@@ -35,7 +35,7 @@ export function GuidedIntroCompletion() {
         type="button"
         onClick={handleComplete}
         disabled={pending}
-        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-400 via-cyan-300 to-violet-500 px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-[0_18px_60px_rgba(56,189,248,0.4)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background shadow-lg transition-all hover:bg-foreground/90 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? 'Finishing…' : 'Launch dashboard tour'}
         <span aria-hidden>→</span>

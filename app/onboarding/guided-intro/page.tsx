@@ -50,59 +50,58 @@ export default async function OnboardingGuidedIntroPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
+        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
           Welcome Aboard!
         </h1>
-        <p className="mx-auto max-w-3xl text-lg text-white/70 sm:text-xl">
+        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
           You&apos;re one tap away from meeting your assistant inside Sprite.exe. We&apos;ll walk you through the dashboard and highlight the tools that matter most.
         </p>
       </div>
 
       {/* Centered content grid */}
-      <div className="mx-auto max-w-5xl onboarding-animate-fade-in">
+      <div className="mx-auto max-w-5xl animate-fade-in-up">
         <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-white/10 p-6 shadow-[0_24px_70px_rgba(8,47,73,0.4)] backdrop-blur-2xl sm:p-8 onboarding-animate-scale-in">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.24),transparent_65%)] opacity-90" aria-hidden />
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-lg backdrop-blur-2xl sm:p-8 animate-scale-in">
           <div className="relative flex flex-col gap-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.38em] text-white/50">Summary</p>
-              <h3 className="mt-2 text-xl font-semibold text-white">Your companion is ready to launch</h3>
+              <p className="text-xs uppercase tracking-[0.38em] text-muted-foreground">Summary</p>
+              <h3 className="mt-2 text-xl font-semibold text-foreground">Your companion is ready to launch</h3>
             </div>
 
-            <dl className="grid gap-4 text-sm text-white/75 sm:grid-cols-2">
-              <div className="space-y-1 rounded-2xl border border-white/10 bg-black/30 p-4 backdrop-blur">
-                <dt className="text-xs uppercase tracking-[0.32em] text-white/45">Companion</dt>
-                <dd className="text-base text-white">
+            <dl className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
+              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Companion</dt>
+                <dd className="text-base text-foreground">
                   {assistantName ? assistantName : `Assistant #${user.assistantId}`}
                 </dd>
               </div>
-              <div className="space-y-1 rounded-2xl border border-white/10 bg-black/30 p-4 backdrop-blur">
-                <dt className="text-xs uppercase tracking-[0.32em] text-white/45">Voice</dt>
-                <dd className="text-base text-white">{personaLabel}</dd>
+              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Voice</dt>
+                <dd className="text-base text-foreground">{personaLabel}</dd>
               </div>
-              <div className="space-y-1 rounded-2xl border border-white/10 bg-black/30 p-4 backdrop-blur">
-                <dt className="text-xs uppercase tracking-[0.32em] text-white/45">Next action</dt>
-                <dd className="text-base text-white">Guided dashboard tour</dd>
+              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Next action</dt>
+                <dd className="text-base text-foreground">Guided dashboard tour</dd>
               </div>
-              <div className="space-y-1 rounded-2xl border border-white/10 bg-black/30 p-4 backdrop-blur">
-                <dt className="text-xs uppercase tracking-[0.32em] text-white/45">Runtime</dt>
-                <dd className="text-base text-white">Under 2 minutes</dd>
+              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Runtime</dt>
+                <dd className="text-base text-foreground">Under 2 minutes</dd>
               </div>
             </dl>
 
-            <div className="rounded-2xl border border-cyan-300/20 bg-gradient-to-r from-cyan-500/10 to-sky-500/5 p-4 text-sm text-white/80 onboarding-animate-glow-pulse">
+            <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-sm text-muted-foreground animate-glow-pulse">
               <p className="flex items-start gap-2">
-                <span className="mt-1 size-1.5 rounded-full bg-cyan-300 animate-pulse" />
+                <span className="mt-1 size-1.5 rounded-full bg-primary animate-pulse" />
                 Look for the neon highlights—they&apos;ll guide you through Study Queue, Practice Arena, and your Progress Pulse.
               </p>
             </div>
           </div>
         </section>
 
-        <aside className="flex flex-col justify-between gap-6 rounded-3xl border border-white/15 bg-gradient-to-br from-white/10 via-white/5 to-white/10 p-6 text-sm text-white/80 shadow-[0_24px_60px_rgba(8,47,73,0.35)] backdrop-blur-2xl onboarding-animate-slide-in">
+        <aside className="flex flex-col justify-between gap-6 rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-lg backdrop-blur-2xl animate-slide-in-left">
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">Final check</h3>
-            <p className="leading-relaxed text-white/70">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">Final check</h3>
+            <p className="leading-relaxed text-muted-foreground">
               We saved your setup. Kick off the guided intro whenever you&apos;re ready—we&apos;ll keep the welcome tour on standby if you need a refresher later.
             </p>
           </div>

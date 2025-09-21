@@ -71,20 +71,26 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
           // Define personality-based color schemes
           const colorScheme = {
             feminine: {
-              gradient: 'from-pink-500/20 via-rose-400/15 to-violet-500/20',
-              borderHover: 'hover:border-pink-300/50',
+              gradient: 'from-pink-500/20 via-rose-400/15 to-violet-500/20 dark:from-pink-500/30 dark:via-rose-400/20 dark:to-violet-500/30',
+              borderHover: 'hover:border-pink-400/50 dark:hover:border-pink-300/50',
+              selectedBorder: 'border-pink-400/60 dark:border-pink-300/60',
+              selectedGlow: 'shadow-pink-400/25 dark:shadow-pink-300/35',
               glowColor: 'rgba(236, 72, 153, 0.35)',
               accentBg: 'bg-gradient-to-br from-pink-400/30 to-rose-500/25',
             },
             masculine: {
-              gradient: 'from-blue-500/20 via-indigo-400/15 to-cyan-500/20',
-              borderHover: 'hover:border-blue-300/50',
+              gradient: 'from-blue-500/20 via-indigo-400/15 to-cyan-500/20 dark:from-blue-500/30 dark:via-indigo-400/20 dark:to-cyan-500/30',
+              borderHover: 'hover:border-blue-400/50 dark:hover:border-blue-300/50',
+              selectedBorder: 'border-blue-400/60 dark:border-blue-300/60',
+              selectedGlow: 'shadow-blue-400/25 dark:shadow-blue-300/35',
               glowColor: 'rgba(59, 130, 246, 0.35)',
               accentBg: 'bg-gradient-to-br from-blue-400/30 to-indigo-500/25',
             },
             androgynous: {
-              gradient: 'from-emerald-500/20 via-teal-400/15 to-cyan-500/20',
-              borderHover: 'hover:border-emerald-300/50',
+              gradient: 'from-emerald-500/20 via-teal-400/15 to-cyan-500/20 dark:from-emerald-500/30 dark:via-teal-400/20 dark:to-cyan-500/30',
+              borderHover: 'hover:border-emerald-400/50 dark:hover:border-emerald-300/50',
+              selectedBorder: 'border-emerald-400/60 dark:border-emerald-300/60',
+              selectedGlow: 'shadow-emerald-400/25 dark:shadow-emerald-300/35',
               glowColor: 'rgba(16, 185, 129, 0.35)',
               accentBg: 'bg-gradient-to-br from-emerald-400/30 to-teal-500/25',
             },
@@ -100,10 +106,10 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                 onMouseEnter={() => setHoveredCard(option.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 className={cn(
-                  'group relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-3xl border bg-gradient-to-br text-left transition-all duration-500 cursor-pointer',
+                  'group relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-3xl border bg-card bg-gradient-to-br text-left transition-all duration-500 cursor-pointer',
                   isSelected
-                    ? 'border-cyan-300/60 shadow-[var(--onboarding-card-selected-glow)] scale-[1.02]'
-                    : `border-white/15 ${scheme.borderHover} hover:scale-[1.01] hover:shadow-2xl`,
+                    ? `${scheme.selectedBorder} shadow-2xl scale-[1.02] ${scheme.selectedGlow}`
+                    : `border-border ${scheme.borderHover} hover:scale-[1.01] hover:shadow-2xl`,
                   pending && 'opacity-70 pointer-events-none',
                   scheme.gradient,
                 )}
@@ -138,7 +144,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-3xl font-bold text-white">{fallbackInitial}</span>
+                      <span className="text-3xl font-bold text-foreground">{fallbackInitial}</span>
                     )}
 
                     {/* Glow effect on avatar */}
@@ -153,11 +159,11 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
 
                 {/* Name and tagline */}
                 <div className="mb-4 text-center">
-                  <h3 className="text-xl font-bold text-white mb-1">
+                  <h3 className="text-xl font-bold text-foreground mb-1">
                     {option.name}
                   </h3>
                   {option.tagline && (
-                    <p className="text-sm text-white/80 italic">
+                    <p className="text-sm text-muted-foreground italic">
                       {option.tagline}
                     </p>
                   )}
@@ -165,7 +171,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
 
                 {/* Description */}
                 {option.description && (
-                  <p className="flex-1 text-sm leading-relaxed text-white/75 text-center">
+                  <p className="flex-1 text-sm leading-relaxed text-muted-foreground text-center">
                     {option.description}
                   </p>
                 )}
@@ -174,7 +180,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                 <div className="mt-6 flex flex-col gap-3">
                   {/* Gender label */}
                   <div className="flex justify-center">
-                    <span className="inline-flex items-center rounded-full border border-white/20 bg-black/20 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-white/70">
+                    <span className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
                       {option.gender || 'Custom'}
                     </span>
                   </div>
@@ -193,10 +199,10 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                         "flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 py-2.5 px-4",
                         "transition-all duration-300 group-hover:border-white/40 group-hover:bg-white/10"
                       )}>
-                        <span className="text-sm font-medium text-white/80">
+                        <span className="text-sm font-medium text-foreground">
                           Choose {option.name}
                         </span>
-                        <span className="text-white/60 transition-transform duration-300 group-hover:translate-x-1">
+                        <span className="text-muted-foreground transition-transform duration-300 group-hover:translate-x-1">
                           →
                         </span>
                       </div>
@@ -215,7 +221,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
         {localSelection && (
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-sm">
             <span className="size-2 rounded-full bg-cyan-300" />
-            <span className="text-white/80">
+            <span className="text-muted-foreground">
               {assistantById.get(localSelection)?.name ?? 'Assistant'} selected
             </span>
           </div>
@@ -225,7 +231,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
           onClick={handleContinue}
           disabled={!localSelection || pending}
           size="lg"
-          className="min-w-[200px] bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="min-w-[200px] bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? (
             <span className="flex items-center gap-2">
@@ -238,7 +244,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
         </Button>
 
         {!localSelection && (
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-muted-foreground">
             Select an assistant to continue
           </p>
         )}

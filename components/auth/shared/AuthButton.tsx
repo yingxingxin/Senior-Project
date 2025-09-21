@@ -8,14 +8,14 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const authButtonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--auth-button)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--auth-card)] disabled:pointer-events-none disabled:opacity-60 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-60 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-[var(--auth-button)] text-white hover:bg-[var(--auth-button-hover)]",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
         secondary:
-          "border border-[var(--auth-button)] bg-transparent text-[var(--auth-button)] hover:bg-[var(--auth-button)]/10",
-        link: "bg-transparent px-0 text-[var(--auth-link)] underline-offset-4 hover:text-[var(--auth-link-hover)] hover:underline focus-visible:ring-offset-0 focus-visible:ring-transparent",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         sm: "h-8 px-3 text-xs",

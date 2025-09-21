@@ -113,86 +113,10 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Auth-specific theme tokens following design system principles */
-:root {
-  /* Using semantic naming instead of direct color values */
-  --auth-background: rgb(17 24 39);       /* gray-900 */
-  --auth-card: rgb(31 41 55);             /* gray-800 */
-  --auth-card-border: rgb(55 65 81 / 0.1); /* gray-700 with opacity */
-  --auth-primary: rgb(255 255 255);       /* white */
-  --auth-secondary: rgb(156 163 175);     /* gray-400 */
-  --auth-label: rgb(209 213 219);         /* gray-300 */
-  --auth-input-bg: rgb(31 41 55);         /* gray-800 */
-  --auth-input-border: rgb(55 65 81);     /* gray-700 */
-  --auth-input-focus: rgb(59 130 246);    /* blue-500 */
-  --auth-button: rgb(59 130 246);         /* blue-500 */
-  --auth-button-hover: rgb(37 99 235);    /* blue-600 */
-  --auth-link: rgb(96 165 250);           /* blue-400 */
-  --auth-link-hover: rgb(147 197 253);    /* blue-300 */
-  --auth-error-bg: rgb(127 29 29 / 0.2);  /* red-900 with opacity */
-  --auth-error-border: rgb(239 68 68 / 0.5); /* red-500 with opacity */
-  --auth-error-text: rgb(248 113 113);    /* red-400 */
-  --auth-success-bg: rgb(20 83 45 / 0.2); /* green-900 with opacity */
-  --auth-success-border: rgb(34 197 94 / 0.5); /* green-500 with opacity */
-  --auth-success-text: rgb(74 222 128);   /* green-400 */
-}
 
-/* Onboarding-specific theme accents */
-:root {
-  /* Enhanced background color palette */
-  --onboarding-bg-base: rgb(2, 6, 23);
-  --onboarding-bg-dark: rgb(3, 7, 18);
-  --onboarding-bg-primary: rgb(6, 182, 212);
-  --onboarding-bg-secondary: rgb(138, 43, 226);
-  --onboarding-bg-accent: rgb(251, 146, 60);
-  --onboarding-bg-glow-cyan: rgba(34, 211, 238, 0.4);
-  --onboarding-bg-glow-purple: rgba(168, 85, 247, 0.35);
-  --onboarding-bg-glow-pink: rgba(236, 72, 153, 0.25);
 
-  /* Spacing system for full-page layouts */
-  --onboarding-content-max-width: 1400px;
-  --onboarding-card-spacing: 2rem;
-  --onboarding-grid-gap: 1.5rem;
-
-  /* Legacy background for fallback */
-  --onboarding-background: radial-gradient(circle at 20% -10%, rgba(56, 189, 248, 0.35), transparent 55%),
-    radial-gradient(circle at 80% 0%, rgba(168, 85, 247, 0.4), transparent 60%),
-    rgb(6 11 25);
-  --onboarding-panel: rgba(15, 23, 42, 0.75);
-  --onboarding-panel-border: rgb(148 163 184 / 0.18);
-  --onboarding-card: rgba(30, 41, 59, 0.72);
-  --onboarding-card-border: rgb(56 189 248 / 0.35);
-  --onboarding-card-glow: 0 18px 40px rgba(56, 189, 248, 0.25);
-  --onboarding-primary: rgb(56 189 248);
-
-  /* Enhanced design tokens for better UX */
-  --onboarding-card-height-min: 280px;
-  --onboarding-avatar-size: 96px;
-  --onboarding-avatar-size-mobile: 80px;
-  --onboarding-text-primary: rgb(255 255 255);
-  --onboarding-text-secondary: rgb(255 255 255 / 0.85);
-  --onboarding-text-tertiary: rgb(255 255 255 / 0.65);
-  --onboarding-text-muted: rgb(255 255 255 / 0.45);
-  --onboarding-accent-cyan: rgb(34 211 238);
-  --onboarding-accent-violet: rgb(167 139 250);
-  --onboarding-accent-sky: rgb(125 211 252);
-  --onboarding-card-hover-translate: -8px;
-  --onboarding-card-selected-border: rgb(34 211 238);
-  --onboarding-card-selected-glow: 0 35px 90px rgba(34, 211, 238, 0.45);
-  --onboarding-progress-height: 6px;
-  --onboarding-transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --onboarding-transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  --onboarding-glass-bg: rgba(255, 255, 255, 0.05);
-  --onboarding-glass-border: rgba(255, 255, 255, 0.1);
-  --onboarding-glass-blur: 24px;
-  --onboarding-primary-hover: rgb(14 165 233);
-  --onboarding-secondary: rgb(129 140 248 / 0.25);
-  --onboarding-secondary-border: rgb(129 140 248 / 0.45);
-  --onboarding-text-muted: rgb(148 163 184);
-}
-
-/* Onboarding animations */
-@keyframes onboarding-fade-in {
+/* Animations */
+@keyframes fade-in-up {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -203,7 +127,7 @@
   }
 }
 
-@keyframes onboarding-slide-in {
+@keyframes slide-in-left {
   from {
     opacity: 0;
     transform: translateX(-20px);
@@ -214,7 +138,7 @@
   }
 }
 
-@keyframes onboarding-scale-in {
+@keyframes scale-in {
   from {
     opacity: 0;
     transform: scale(0.95);
@@ -225,7 +149,7 @@
   }
 }
 
-@keyframes onboarding-glow-pulse {
+@keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
   }
@@ -234,7 +158,7 @@
   }
 }
 
-@keyframes onboarding-shimmer {
+@keyframes shimmer-slide {
   0% {
     transform: translateX(-100%);
   }
@@ -253,181 +177,32 @@
 }
 
 /* Utility classes for animations */
-.onboarding-animate-fade-in {
-  animation: onboarding-fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.onboarding-animate-slide-in {
-  animation: onboarding-slide-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.onboarding-animate-scale-in {
-  animation: onboarding-scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.onboarding-animate-glow-pulse {
-  animation: onboarding-glow-pulse 2s ease-in-out infinite;
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
 }
 
 /* Staggered animations for lists */
-.onboarding-stagger-1 { animation-delay: 100ms; }
-.onboarding-stagger-2 { animation-delay: 200ms; }
-.onboarding-stagger-3 { animation-delay: 300ms; }
-.onboarding-stagger-4 { animation-delay: 400ms; }
-.onboarding-stagger-5 { animation-delay: 500ms; }
 
-/* Enhanced background animations */
-@keyframes aurora-flow {
-  0%, 100% {
-    transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
-    opacity: 0.4;
-  }
-  25% {
-    transform: translateX(-30%) translateY(-10%) rotate(45deg) scale(1.1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateX(-70%) translateY(5%) rotate(90deg) scale(0.95);
-    opacity: 0.5;
-  }
-  75% {
-    transform: translateX(-40%) translateY(-5%) rotate(135deg) scale(1.05);
-    opacity: 0.45;
-  }
-}
-
-@keyframes mesh-morph {
-  0%, 100% {
-    transform: translate(0, 0) scale(1) rotate(0deg);
-  }
-  33% {
-    transform: translate(30px, -30px) scale(1.1) rotate(120deg);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9) rotate(240deg);
-  }
-}
-
-@keyframes particle-float {
-  0% {
-    transform: translateY(100vh) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100vh) translateX(100px);
-    opacity: 0;
-  }
-}
 
 @keyframes glow-pulse {
   0%, 100% {
-    filter: blur(40px) saturate(1);
     opacity: 0.5;
   }
   50% {
-    filter: blur(60px) saturate(1.2);
     opacity: 0.7;
   }
-}
-
-/* Background layer classes */
-.onboarding-bg-animated {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  background: var(--onboarding-bg-base);
-  z-index: -1;
-}
-
-.onboarding-bg-mesh {
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  top: -50%;
-  left: -50%;
-  background:
-    radial-gradient(circle at 20% 30%, var(--onboarding-bg-glow-cyan), transparent 40%),
-    radial-gradient(circle at 80% 60%, var(--onboarding-bg-glow-purple), transparent 45%),
-    radial-gradient(circle at 40% 80%, var(--onboarding-bg-glow-pink), transparent 50%);
-  animation: mesh-morph 30s ease-in-out infinite;
-  opacity: 0.6;
-  mix-blend-mode: screen;
-}
-
-.onboarding-bg-aurora {
-  position: absolute;
-  width: 150%;
-  height: 150%;
-  top: -25%;
-  left: -25%;
-  background: linear-gradient(
-    125deg,
-    transparent 20%,
-    var(--onboarding-bg-glow-cyan) 40%,
-    var(--onboarding-bg-glow-purple) 60%,
-    transparent 80%
-  );
-  animation: aurora-flow 20s ease-in-out infinite;
-  filter: blur(60px);
-  mix-blend-mode: color-dodge;
-}
-
-.onboarding-bg-particles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
-  background-size: 50px 50px, 80px 80px, 120px 120px;
-  background-position: 0 0, 25px 25px, 50px 50px;
-  animation: particle-float 40s linear infinite;
-  opacity: 0.4;
-}
-
-.onboarding-bg-glow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(circle at 50% 50%, var(--onboarding-bg-glow-cyan), transparent 50%);
-  animation: glow-pulse 8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Reduce motion support */
-@media (prefers-reduced-motion: reduce) {
-  .onboarding-bg-mesh,
-  .onboarding-bg-aurora,
-  .onboarding-bg-particles,
-  .onboarding-bg-glow {
-    animation: none;
-  }
-
-  .onboarding-bg-mesh {
-    opacity: 0.3;
-  }
-
-  .onboarding-bg-aurora {
-    opacity: 0.2;
-  }
-}
-
-/* Alternative subtle background */
-.onboarding-bg-subtle {
-  background:
-    radial-gradient(ellipse at top left, var(--onboarding-bg-glow-cyan), transparent 50%),
-    radial-gradient(ellipse at bottom right, var(--onboarding-bg-glow-purple), transparent 50%),
-    radial-gradient(ellipse at center, var(--onboarding-bg-glow-pink), transparent 70%);
-  animation: mesh-morph 60s ease-in-out infinite;
-  opacity: 0.3;
 }
 
 @layer base {

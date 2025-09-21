@@ -18,7 +18,7 @@ export function BackButton({ href, label = 'Back', className }: BackButtonProps)
       <Button
         variant="ghost"
         className={cn(
-          'text-white/70 hover:text-white hover:bg-white/10 transition-all',
+          'text-muted-foreground hover:text-foreground hover:bg-muted transition-all',
           className
         )}
       >

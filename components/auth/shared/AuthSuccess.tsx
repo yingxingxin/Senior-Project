@@ -18,7 +18,7 @@ type AuthSuccessProps = {
 }
 
 export function AuthSuccess({
-  icon = <CheckCircle className="size-16 text-[var(--auth-success-text)]" aria-hidden />,
+  icon = <CheckCircle className="size-16 text-green-500" aria-hidden />,
   title,
   message,
   primaryAction,
@@ -28,13 +28,13 @@ export function AuthSuccess({
     <div className="space-y-6" aria-live="polite">
       <div className="flex flex-col items-center space-y-4">
         {icon}
-        <h2 className="text-2xl font-semibold text-[var(--auth-success-text)]">
+        <h2 className="text-2xl font-semibold text-foreground">
           {title}
         </h2>
       </div>
 
       {message && (
-        <p className="text-center text-sm text-[var(--auth-secondary)]">
+        <p className="text-center text-sm text-muted-foreground">
           {message}
         </p>
       )}

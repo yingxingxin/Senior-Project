@@ -42,16 +42,16 @@ export default async function OnboardingPersonaPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
+        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
           Set Your Assistant&apos;s Voice
         </h1>
-        <p className="mx-auto max-w-3xl text-lg text-white/70 sm:text-xl">
+        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
           Every persona nudges your study partner&apos;s coaching style. Preview their voice and lock in the tone that helps you stay focused.
         </p>
       </div>
 
       {/* Full-width persona selection */}
-      <div className="onboarding-animate-fade-in">
+      <div className="animate-fade-in-up">
         <PersonaSelectionForm options={PERSONA_OPTIONS} selectedPersona={user.assistantPersona ?? null} />
       </div>
     </div>

@@ -28,7 +28,7 @@ const AuthCardTitle = ({ children, className, ...props }: React.HTMLAttributes<H
 )
 
 const AuthCardDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("mt-2 text-sm text-gray-400", className)} {...props}>
+  <p className={cn("mt-2 text-sm text-muted-foreground", className)} {...props}>
     {children}
   </p>
 )
@@ -40,13 +40,13 @@ const AuthCardBody = ({ children, className, ...props }: React.HTMLAttributes<HT
 )
 
 const AuthCardFooter = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-center text-sm text-gray-400", className)} {...props}>
+  <p className={cn("text-center text-sm text-muted-foreground", className)} {...props}>
     {children}
   </p>
 )
 
 const AuthCardFooterLink = ({ className, ...props }: LinkProps & { className?: string; children: React.ReactNode }) => (
-  <Link className={cn("text-blue-400 hover:underline", className)} {...props} />
+  <Link className={cn("text-primary hover:underline", className)} {...props} />
 )
 
 const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
@@ -54,7 +54,7 @@ const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
     const hasHeaderContent = title || subtitle
 
     return (
-      <div ref={ref} className={cn("w-full max-w-md space-y-6", className)} {...props}>
+      <div ref={ref} className={cn("w-full max-w-md space-y-6 rounded-lg border bg-card p-8 shadow-lg", className)} {...props}>
         {hasHeaderContent ? (
           <AuthCardHeader>
             {title

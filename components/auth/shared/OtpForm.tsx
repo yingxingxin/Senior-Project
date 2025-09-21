@@ -122,11 +122,11 @@ export function OtpForm({
   return (
     <div className="space-y-6" aria-live="polite">
       {/* Header */}
-      <div className="flex items-center gap-3 text-[var(--auth-primary)]">
+      <div className="flex items-center gap-3 text-foreground">
         {headerIcon}
         <div>
           <h2 className="text-lg font-semibold">{headerTitle}</h2>
-          <p className="text-sm text-[var(--auth-secondary)]">
+          <p className="text-sm text-muted-foreground">
             {headerDescription || (
               <>We sent a verification code to <strong>{email}</strong>.</>
             )}
@@ -136,7 +136,7 @@ export function OtpForm({
 
       {/* Server message */}
       {serverMessage && (
-        <div className="rounded border border-[var(--auth-success-border)] bg-[var(--auth-success-bg)] p-3 text-sm text-[var(--auth-success-text)]">
+        <div className="rounded border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">
           {serverMessage}
         </div>
       )}
@@ -149,7 +149,7 @@ export function OtpForm({
       />
 
       {/* Resend section */}
-      <div className="text-center text-sm text-[var(--auth-secondary)]">
+      <div className="text-center text-sm text-muted-foreground">
         <p>Didn&apos;t get a code?</p>
         <AuthButton
           type="button"
@@ -220,7 +220,7 @@ const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[var(--auth-label)]">{label}</FormLabel>
+                <FormLabel className="text-sm font-medium text-foreground">{label}</FormLabel>
                 <FormControl>
                   <InputOTP
                     maxLength={OTP_CODE_LENGTH}
@@ -236,7 +236,7 @@ const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
                         <Fragment key={index}>
                           <InputOTPSlot
                             index={index}
-                            className="h-12 w-10 border-[var(--auth-input-border)] bg-[var(--auth-input-bg)] text-lg font-semibold text-[var(--auth-primary)]"
+                            className="h-12 w-10 border-input bg-background text-lg font-semibold text-foreground"
                           />
                           {index === Math.floor(OTP_CODE_LENGTH / 2) - 1 && (
                             <InputOTPSeparator className="mx-1" />
@@ -246,7 +246,7 @@ const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
                     </InputOTPGroup>
                   </InputOTP>
                 </FormControl>
-                <FormMessage className="text-[var(--auth-error-text)]" />
+                <FormMessage className="text-destructive" />
               </FormItem>
             )}
           />
