@@ -181,7 +181,7 @@ export async function completeOnboardingAction() {
   // TODO: emit analytics event `onboarding_completed` with duration metadata.
 
   revalidatePath('/onboarding');
-  revalidatePath('/');
+  revalidatePath('/explore');
 
-  return { completed: true, redirectTo: '/' } as const;
+  return { completed: true, redirectTo: '/explore' } as const;
 }

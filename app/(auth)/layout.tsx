@@ -5,13 +5,30 @@
  */
 import Image from "next/image"
 import type React from "react"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { ModeToggle } from "@/components/ui/mode-toggle"
+import { AUTH_COOKIE, verifyAuthToken } from "@/src/lib/auth"
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Check if user is already logged in
+  const cookieStore = await cookies()
+  const token = cookieStore.get(AUTH_COOKIE)?.value
+
+  if (token) {
+    try {
+      await verifyAuthToken(token)
+      // User is logged in, redirect to explore
+      redirect('/explore')
+    } catch {
+      // Token is invalid, continue to auth pages
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Theme toggle in top-right corner */}

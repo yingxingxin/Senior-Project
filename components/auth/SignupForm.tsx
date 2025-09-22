@@ -85,14 +85,14 @@ export default function SignupForm() {
     return (
       <AuthSuccess
         title="Email Verified!"
-        message="Your email has been verified successfully. You can now log in to your account."
+        message="Your email has been verified successfully. Let's set up your assistant."
         primaryAction={{
-          label: "Go to Login",
-          onClick: () => router.push("/login")
+          label: "Continue to Setup",
+          onClick: () => router.push("/onboarding")
         }}
         secondaryAction={{
-          label: "Go to Home",
-          onClick: () => router.push("/")
+          label: "Skip for Now",
+          onClick: () => router.push("/explore")
         }}
       />
     )

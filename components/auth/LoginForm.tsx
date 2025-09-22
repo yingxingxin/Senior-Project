@@ -30,7 +30,7 @@ export default function LoginForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await postJson("/api/auth/login", values, authResponseSchema)
-      router.push("/home")
+      router.push("/explore")
     } catch (error) {
       applyFieldErrors(error, setError, ["email", "password"])
     }
