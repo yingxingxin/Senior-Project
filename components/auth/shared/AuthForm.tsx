@@ -3,8 +3,9 @@
 import * as React from "react"
 import type { Control, FieldValues, Path } from "react-hook-form"
 
-import { AuthButton, type AuthButtonProps } from "@/components/auth/shared/AuthButton"
 import { Input } from "@/components/ui/input"
+import { Button, type ButtonProps } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
 import {
   Form,
   FormControl,
@@ -16,7 +17,7 @@ import {
 import { cn } from "@/lib/utils"
 
 function withAuthLabel(children?: React.ReactNode) {
-  return children ? <FormLabel className="text-sm font-medium text-foreground">{children}</FormLabel> : null
+  return children ? <FormLabel className="text-base sm:text-sm font-medium text-foreground">{children}</FormLabel> : null
 }
 
 type AuthFormFieldProps<TFieldValues extends FieldValues> = {
@@ -104,20 +105,30 @@ const AuthFormRootError = ({ message }: { message?: string }) => {
 }
 
 const AuthFormFieldset = ({ className, ...props }: React.FieldsetHTMLAttributes<HTMLFieldSetElement>) => (
-  <fieldset className={cn("space-y-4", className)} {...props} />
+  <fieldset className={cn("space-y-5 sm:space-y-4", className)} {...props} />
 )
 
 const AuthFormActions = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-3", className)} {...props} />
+  <div className={cn("space-y-4 sm:space-y-3", className)} {...props} />
 )
 
 const AuthFormBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-4", className)} {...props} />
+  <div className={cn("space-y-5 sm:space-y-4", className)} {...props} />
 )
 
-const AuthFormButton = React.forwardRef<HTMLButtonElement, AuthButtonProps>((props, ref) => (
-  <AuthButton ref={ref} fullWidth {...props} />
-))
+interface AuthFormButtonProps extends ButtonProps {
+  isLoading?: boolean
+  loadingText?: React.ReactNode
+}
+
+const AuthFormButton = React.forwardRef<HTMLButtonElement, AuthFormButtonProps>(
+  ({ isLoading, loadingText, children, disabled, ...props }, ref) => (
+    <Button ref={ref} className="w-full" disabled={disabled || isLoading} {...props}>
+      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {isLoading ? (loadingText || children) : children}
+    </Button>
+  )
+)
 AuthFormButton.displayName = "AuthFormButton"
 
 const AuthFormRoot = Form

@@ -30,8 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (todo: uncomment after everyone has the connection string in their .env file)
-# .env*
+# env files
+.env
 
 # vercel
 .vercel

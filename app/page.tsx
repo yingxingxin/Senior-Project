@@ -45,24 +45,24 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Simple Header */}
-      <header className="container mx-auto px-4 py-6 flex items-center justify-between">
+      <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">Sprite.exe</span>
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <span className="text-lg sm:text-xl font-bold">Sprite.exe</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {isAuthenticated ? (
             <>
-              <Link href="/explore">
+              <Link href="/explore" className="hidden sm:block">
                 <Button>Go to Dashboard</Button>
               </Link>
             </>
           ) : (
             <>
-              <Link href="/login">
+              <Link href="/login" className="hidden sm:block">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/signup" className="hidden md:block">
                 <Button>Get Started</Button>
               </Link>
             </>
@@ -72,29 +72,29 @@ export default async function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-20">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
         <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Learn with Your Personal AI Assistant
           </h1>
 
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             Sprite.exe pairs you with a customizable AI companion to make learning engaging,
             personalized, and fun. Choose your assistant&apos;s personality and start your journey.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4 w-full max-w-sm sm:max-w-none mx-auto">
             {isAuthenticated ? (
               <>
-                <Link href="/explore">
-                  <Button size="lg" className="gap-2">
+                <Link href="/explore" className="w-full sm:w-auto">
+                  <Button size="lg" className="gap-2 w-full sm:w-auto sm:min-w-[180px]">
                     Continue to Dashboard
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 {!hasCompletedOnboarding && (
-                  <Link href="/onboarding">
-                    <Button size="lg" variant="outline">
+                  <Link href="/onboarding" className="w-full sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto sm:min-w-[180px]">
                       Setup Assistant
                     </Button>
                   </Link>
@@ -102,15 +102,10 @@ export default async function LandingPage() {
               </>
             ) : (
               <>
-                <Link href="/signup">
-                  <Button size="lg" className="gap-2">
+                <Link href="/signup" className="w-full sm:w-auto">
+                  <Button size="lg" className="gap-2 w-full sm:w-auto sm:min-w-[180px]">
                     Start Learning Free
                     <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button size="lg" variant="outline">
-                    I have an account
                   </Button>
                 </Link>
               </>
@@ -119,7 +114,7 @@ export default async function LandingPage() {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mt-20 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-16 sm:mt-20 max-w-5xl mx-auto">
           <div className="rounded-lg border bg-card p-6 space-y-3">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-6 w-6 text-primary" />

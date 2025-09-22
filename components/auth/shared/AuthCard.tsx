@@ -22,13 +22,13 @@ const AuthCardHeader = ({ children, className, ...props }: React.HTMLAttributes<
 )
 
 const AuthCardTitle = ({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h1 className={cn("text-2xl font-bold", className)} {...props}>
+  <h1 className={cn("text-3xl sm:text-2xl font-bold", className)} {...props}>
     {children}
   </h1>
 )
 
 const AuthCardDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("mt-2 text-sm text-muted-foreground", className)} {...props}>
+  <p className={cn("mt-2 text-base sm:text-sm text-muted-foreground", className)} {...props}>
     {children}
   </p>
 )
@@ -54,7 +54,14 @@ const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
     const hasHeaderContent = title || subtitle
 
     return (
-      <div ref={ref} className={cn("w-full max-w-md space-y-6 rounded-lg border bg-card p-8 shadow-lg", className)} {...props}>
+      <div ref={ref} className={cn(
+        "w-full space-y-6 bg-card",
+        // Mobile-first responsive design
+        "px-4 py-6",                    // Mobile padding
+        "sm:max-w-md sm:rounded-lg sm:border sm:px-6 sm:py-8 sm:shadow-lg",  // Small screens and up
+        "md:px-8",                       // Medium screens
+        className
+      )} {...props}>
         {hasHeaderContent ? (
           <AuthCardHeader>
             {title

@@ -1,6 +1,6 @@
 "use client"
 
-import { AuthButton } from "@/components/auth/shared/AuthButton"
+import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
 
 type AuthSuccessProps = {
@@ -28,13 +28,13 @@ export function AuthSuccess({
     <div className="space-y-6" aria-live="polite">
       <div className="flex flex-col items-center space-y-4">
         {icon}
-        <h2 className="text-2xl font-semibold text-foreground">
+        <h2 className="text-3xl sm:text-2xl font-semibold text-foreground">
           {title}
         </h2>
       </div>
 
       {message && (
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-base sm:text-sm text-muted-foreground">
           {message}
         </p>
       )}
@@ -42,14 +42,14 @@ export function AuthSuccess({
       {(primaryAction || secondaryAction) && (
         <div className="space-y-3">
           {primaryAction && (
-            <AuthButton onClick={primaryAction.onClick} fullWidth>
+            <Button onClick={primaryAction.onClick} className="w-full">
               {primaryAction.label}
-            </AuthButton>
+            </Button>
           )}
           {secondaryAction && (
-            <AuthButton onClick={secondaryAction.onClick} variant="secondary" fullWidth>
+            <Button onClick={secondaryAction.onClick} variant="secondary" className="w-full">
               {secondaryAction.label}
-            </AuthButton>
+            </Button>
           )}
         </div>
       )}

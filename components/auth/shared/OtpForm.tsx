@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
-import { AuthButton } from "@/components/auth/shared/AuthButton"
+import { Button } from "@/components/ui/button"
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form"
@@ -52,8 +52,8 @@ export function OtpForm({
       <div className="flex items-center gap-3 text-foreground">
         {headerIcon}
         <div>
-          <h2 className="text-lg font-semibold">{headerTitle}</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-xl sm:text-lg font-semibold">{headerTitle}</h2>
+          <p className="text-base sm:text-sm text-muted-foreground">
             {headerDescription || <>We sent a verification code to <strong>{email}</strong>.</>}
           </p>
         </div>
@@ -73,13 +73,13 @@ export function OtpForm({
       {onResend && (
         <div className="text-center text-sm text-muted-foreground">
           <p>Didn&apos;t get a code?</p>
-          <AuthButton
+          <Button
             type="button"
             variant="link"
             onClick={handleResend}
           >
             Resend code
-          </AuthButton>
+          </Button>
         </div>
       )}
     </div>
@@ -142,7 +142,7 @@ export const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-foreground">{label}</FormLabel>
+                <FormLabel className="text-base sm:text-sm font-medium text-foreground">{label}</FormLabel>
                 <FormControl>
                   <InputOTP
                     maxLength={OTP_CODE_LENGTH}
@@ -158,7 +158,7 @@ export const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
                         <Fragment key={index}>
                           <InputOTPSlot
                             index={index}
-                            className="h-12 w-10 border-input bg-background text-lg font-semibold text-foreground"
+                            className="h-14 w-12 sm:h-12 sm:w-10 border-input bg-background text-xl sm:text-lg font-semibold text-foreground"
                           />
                           {index === Math.floor(OTP_CODE_LENGTH / 2) - 1 && (
                             <InputOTPSeparator className="mx-1" />

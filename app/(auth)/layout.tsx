@@ -32,9 +32,9 @@ export default async function AuthLayout({
         <ModeToggle />
       </div>
 
-      <div className="flex h-screen">
-        {/* Left side - Artwork/Branding */}
-        <div className="relative hidden flex-1 overflow-hidden bg-card lg:block">
+      <div className="flex min-h-screen">
+        {/* Left side - Artwork/Branding - Hidden on mobile, visible on md and up */}
+        <div className="relative hidden flex-1 overflow-hidden bg-card md:block">
           <div
             className="absolute inset-0"
             style={{ clipPath: "polygon(0 0, 100% 0, 70% 100%, 0 100%)" }}
@@ -50,8 +50,8 @@ export default async function AuthLayout({
           </div>
         </div>
 
-        {/* Right side - Auth content */}
-        <div className="flex-1 bg-background dark:bg-card/50 flex flex-col items-center justify-center px-8 lg:px-12">
+        {/* Right side - Auth content - Full width on mobile */}
+        <div className="flex-1 bg-background dark:bg-card/50 flex flex-col items-center justify-center px-4 py-8 sm:px-6 md:px-8 lg:px-12">
           {children}
         </div>
       </div>

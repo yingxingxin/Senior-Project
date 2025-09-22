@@ -11,8 +11,8 @@ export const auth = betterAuth({
     schema,
   }),
 
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  secret: process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 
   // With property keys aligned, we only need modelName to match table name
   user: {
@@ -62,21 +62,23 @@ export const auth = betterAuth({
     minPasswordLength: 6,
   },
 
-  // Social providers (add env vars when ready)
-  socialProviders: process.env.GOOGLE_CLIENT_ID
-    ? {
-        google: {
-          clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        },
-        ...(process.env.GITHUB_CLIENT_ID && {
-          github: {
-            clientId: process.env.GITHUB_CLIENT_ID,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-          },
-        }),
-      }
-    : undefined,
+  // Social providers
+  socialProviders: {
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && {
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        redirectURI: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback/google`,
+      },
+    }),
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        redirectURI: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback/github`,
+      },
+    }),
+  },
 
   plugins: [
     emailOTP({
