@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button"
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  // Prevent hydration mismatch by only rendering after mount
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleToggle = () => {
     if (theme === "light") {
@@ -20,6 +26,11 @@ export function ModeToggle() {
   }
 
   const getIcon = () => {
+    // Show sun icon as default during SSR and before mount
+    if (!mounted) {
+      return <Sun className="h-[1.2rem] w-[1.2rem]" />
+    }
+
     switch (theme) {
       case "light":
         return <Sun className="h-[1.2rem] w-[1.2rem]" />
@@ -30,12 +41,16 @@ export function ModeToggle() {
     }
   }
 
+  // During SSR and before mount, show a consistent state
+  const currentTheme = mounted ? (theme || 'system') : 'system'
+
   return (
-    <Button 
-      variant="outline" 
-      size="icon" 
+    <Button
+      variant="outline"
+      size="icon"
       onClick={handleToggle}
-      title={`Current theme: ${theme || 'system'}. Click to cycle through themes.`}
+      title={`Current theme: ${currentTheme}. Click to cycle through themes.`}
+      disabled={!mounted}
     >
       {getIcon()}
       <span className="sr-only">Toggle theme</span>

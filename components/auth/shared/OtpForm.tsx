@@ -1,41 +1,31 @@
 /**
- * This component is used to display the OTP form.
- * Note we don't use any of the AuthCard or AuthForm components here.
- * This is because I'm unsure if we'll need to use them in the future.
+ * Simplified OTP Form
+ * - Parent components handle their own verification/resend logic
+ * - This component just provides the UI and form handling
  */
 "use client"
 
-import { useRef, useState, useEffect } from "react"
-import { AuthButton } from "@/components/auth/shared/AuthButton"
-import { MailPlus } from "lucide-react"
-import { postJson, formResponseSchema } from "@/lib/auth"
 import { Fragment, forwardRef, useImperativeHandle } from "react"
+import { MailPlus } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+
+import { AuthButton } from "@/components/auth/shared/AuthButton"
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form"
 import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
+  InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot,
 } from "@/components/ui/input-otp"
-import { OTP_CODE_LENGTH } from "@/lib/auth"
 
-type OtpFlow = "signup" | "password-reset"
+const OTP_CODE_LENGTH = 6
 
 type OtpFormProps = {
   email: string
-  flow: OtpFlow
+  onSubmit: (code: string) => Promise<void>
+  onResend?: () => Promise<void>
   message?: string
-  onSuccess: () => void
   headerIcon?: React.ReactNode
   headerTitle?: string
   headerDescription?: React.ReactNode
@@ -43,79 +33,16 @@ type OtpFormProps = {
 
 export function OtpForm({
   email,
-  flow,
-  message: initialMessage,
-  onSuccess,
+  onSubmit,
+  onResend,
+  message,
   headerIcon = <MailPlus className="size-6" aria-hidden />,
   headerTitle = "Check your email",
   headerDescription,
 }: OtpFormProps) {
-  const [serverMessage, setServerMessage] = useState(initialMessage || "")
-  const [isResending, setIsResending] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const abortRef = useRef<AbortController | null>(null)
-  const otpFieldRef = useRef<OtpCodeFieldHandle>(null)
-
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort()
-    }
-  }, [])
-
-  const resetAbort = () => {
-    abortRef.current?.abort()
-    abortRef.current = new AbortController()
-    return abortRef.current.signal
-  }
-
-  const verifyOtp = async (code: string) => {
-    setIsVerifying(true)
-    try {
-      const signal = resetAbort()
-      const data = await postJson(
-        "/api/auth/otp/verify",
-        { flow, email, code },
-        formResponseSchema,
-        signal
-      )
-
-      if (!data.ok) {
-        throw new Error(data.message || "Verification failed")
-      }
-
-      onSuccess()
-    } catch (error) {
-      if ((error as { name?: string })?.name === "AbortError") return
-
-      const message = error instanceof Error ? error.message : "Verification failed"
-      otpFieldRef.current?.setError(message)
-      throw error
-    } finally {
-      setIsVerifying(false)
-    }
-  }
-
-  const resendCode = async () => {
-    setIsResending(true)
-    try {
-      const data = await postJson(
-        "/api/auth/otp/request",
-        { flow, email },
-        formResponseSchema
-      )
-
-      setServerMessage(
-        data.message ||
-        (flow === "signup"
-          ? "Verification code resent. Check your inbox."
-          : "If the email exists, we sent you a code.")
-      )
-      otpFieldRef.current?.reset()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to resend code."
-      setServerMessage(message)
-    } finally {
-      setIsResending(false)
+  const handleResend = async () => {
+    if (onResend) {
+      await onResend()
     }
   }
 
@@ -127,40 +54,34 @@ export function OtpForm({
         <div>
           <h2 className="text-lg font-semibold">{headerTitle}</h2>
           <p className="text-sm text-muted-foreground">
-            {headerDescription || (
-              <>We sent a verification code to <strong>{email}</strong>.</>
-            )}
+            {headerDescription || <>We sent a verification code to <strong>{email}</strong>.</>}
           </p>
         </div>
       </div>
 
       {/* Server message */}
-      {serverMessage && (
+      {message && (
         <div className="rounded border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">
-          {serverMessage}
+          {message}
         </div>
       )}
 
       {/* OTP input field */}
-      <OtpCodeField
-        ref={otpFieldRef}
-        onSubmit={verifyOtp}
-        disabled={isVerifying}
-      />
+      <OtpCodeField onSubmit={onSubmit} />
 
-      {/* Resend section */}
-      <div className="text-center text-sm text-muted-foreground">
-        <p>Didn&apos;t get a code?</p>
-        <AuthButton
-          type="button"
-          variant="link"
-          onClick={resendCode}
-          isLoading={isResending}
-          loadingText="Resending..."
-        >
-          Resend code
-        </AuthButton>
-      </div>
+      {/* Resend */}
+      {onResend && (
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Didn&apos;t get a code?</p>
+          <AuthButton
+            type="button"
+            variant="link"
+            onClick={handleResend}
+          >
+            Resend code
+          </AuthButton>
+        </div>
+      )}
     </div>
   )
 }
@@ -176,7 +97,7 @@ const otpSchema = z.object({
 export type OtpFormValues = z.infer<typeof otpSchema>
 
 export type OtpCodeFieldProps = {
-  onSubmit: (code: string) => Promise<void> | void
+  onSubmit: (code: string) => Promise<void>
   disabled?: boolean
   label?: string
   onError?: (error: string) => void
@@ -187,15 +108,14 @@ export type OtpCodeFieldHandle = {
   setError: (message: string) => void
 }
 
-const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
+export const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
   ({ onSubmit, disabled = false, label = "Enter the 6-digit code", onError }, ref) => {
     const form = useForm<OtpFormValues>({
       resolver: zodResolver(otpSchema),
       defaultValues: { code: "" },
       mode: "onSubmit",
     })
-
-    const { control, handleSubmit, reset, setError } = form
+    const { control, handleSubmit, reset, setError, formState: { isSubmitting } } = form
 
     useImperativeHandle(ref, () => ({
       reset: () => reset({ code: "" }),
@@ -205,6 +125,8 @@ const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
     const handleFormSubmit = handleSubmit(async ({ code }) => {
       try {
         await onSubmit(code)
+        // Reset form on success
+        reset({ code: "" })
       } catch (error) {
         const message = error instanceof Error ? error.message : "Verification failed"
         setError("code", { type: "server", message })
@@ -227,7 +149,7 @@ const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
                     value={field.value}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
-                    disabled={disabled}
+                    disabled={disabled || isSubmitting}
                     containerClassName="justify-center"
                     onComplete={handleFormSubmit}
                   >

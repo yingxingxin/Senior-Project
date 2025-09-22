@@ -1,34 +1,33 @@
 // Root page for the app (/)
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, BookOpen, Brain } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { AUTH_COOKIE, verifyAuthToken } from "@/src/lib/auth";
+import { auth } from "@/src/lib/auth";
+import { headers } from "next/headers";
 import { db, users } from "@/src/db";
 import { eq } from "drizzle-orm";
 
 async function getAuthState() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!token) {
+  if (!session || !session.user) {
     return { isAuthenticated: false, user: null, hasCompletedOnboarding: false };
   }
 
   try {
-    const session = await verifyAuthToken(token);
-
     // Get user details including onboarding status
     const [user] = await db
       .select({
-        userId: users.userId,
-        username: users.username,
+        userId: users.id,
+        username: users.name,
         email: users.email,
         onboardingCompletedAt: users.onboardingCompletedAt,
       })
       .from(users)
-      .where(eq(users.userId, session.userId))
+      .where(eq(users.id, Number(session.user.id)))
       .limit(1);
 
     return {

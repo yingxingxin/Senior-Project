@@ -15,7 +15,7 @@ export interface AssistantOption {
 export async function getAssistantOptions(): Promise<AssistantOption[]> {
   const rows = await db
     .select({
-      id: assistants.assistantId,
+      id: assistants.id,
       name: assistants.name,
       slug: assistants.slug,
       gender: assistants.gender,
@@ -43,8 +43,8 @@ export async function getAssistantNameForUser(userId: number): Promise<string | 
       name: assistants.name,
     })
     .from(users)
-    .innerJoin(assistants, eq(users.assistantId, assistants.assistantId))
-    .where(eq(users.userId, userId))
+    .innerJoin(assistants, eq(users.assistantId, assistants.id))
+    .where(eq(users.id, userId))
     .limit(1);
 
   return row?.name ?? null;

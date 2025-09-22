@@ -9,15 +9,11 @@ import { AuthCard } from "@/components/auth/shared/AuthCard";
 import { AuthForm } from "@/components/auth/shared/AuthForm";
 import { OtpForm } from "@/components/auth/shared/OtpForm";
 import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
-
-// Schemas (reuse yours if already exported)
+import { authClient } from "@/src/lib/auth-client";
 import {
   passwordResetRequestSchema,
   passwordResetSchema,
-  formResponseSchema,
-  postJson,
-  applyFieldErrors,
-} from "@/lib/auth";
+} from "@/src/lib/auth/schemas";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -30,6 +26,8 @@ export default function ForgotPasswordForm() {
   const [step, setStep] = useState<Step>("email");
   // we store email in state to track the email getting password reset
   const [email, setEmail] = useState("");
+  const [verifiedOtp, setVerifiedOtp] = useState("");
+  const [otpMessage, setOtpMessage] = useState<string | undefined>();
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -54,42 +52,62 @@ export default function ForgotPasswordForm() {
   const onSendCode = emailForm.handleSubmit(async (vals) => {
     try {
       const signal = resetAbort();
-      await postJson(
-        "/api/auth/otp/request",
-        { flow: "password-reset", email: vals.email },
-        formResponseSchema,
-        signal
+      // Send password reset OTP using Better Auth's forgetPassword.emailOtp
+      const { error } = await authClient.forgetPassword.emailOtp(
+        { email: vals.email },
+        { signal }
       );
+      if (error) throw new Error(error.message || "Failed to send reset code");
       setEmail(vals.email);
       setStep("otp");
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") return;
-      applyFieldErrors(e, emailForm.setError, ["email"]);
+      const message = e instanceof Error ? e.message : "Failed to send code";
+      emailForm.setError("root", { type: "server", message });
     }
   });
 
-  const handleOtpSuccess = () => {
+  const handleOtpSubmit = async (code: string) => {
+    // Verify the OTP
+    const { error } = await authClient.emailOtp.checkVerificationOtp({
+      email,
+      type: "forget-password",
+      otp: code,
+    });
+    if (error) throw new Error(error.message || "Invalid code");
+    setVerifiedOtp(code);
     setStep("password");
     pwForm.reset({ password: "", confirmPassword: "" });
+  };
+
+  const handleOtpResend = async () => {
+    // Resend password reset OTP
+    const { error } = await authClient.forgetPassword.emailOtp(
+      { email },
+      { signal: resetAbort() }
+    );
+    if (error) throw new Error(error.message || "Failed to resend code");
+    setOtpMessage("If the email exists, we sent you a new code.");
   };
 
   const onSavePassword = pwForm.handleSubmit(async (vals) => {
     try {
       const signal = resetAbort();
-      await postJson(
-        "/api/auth/forgot-password",
+      // Reset password with the verified OTP using Better Auth's emailOtp.resetPassword
+      const { error } = await authClient.emailOtp.resetPassword(
         {
           email,
+          otp: verifiedOtp,
           password: vals.password,
-          confirmPassword: vals.confirmPassword,
         },
-        formResponseSchema,
-        signal
+        { signal }
       );
+      if (error) throw new Error(error.message || "Failed to reset password");
       setStep("success");
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") return;
-      applyFieldErrors(e, pwForm.setError, ["password", "confirmPassword"]);
+      const message = e instanceof Error ? e.message : "Failed to reset password";
+      pwForm.setError("root", { type: "server", message });
     }
   });
 
@@ -116,8 +134,9 @@ export default function ForgotPasswordForm() {
     return (
       <OtpForm
         email={email}
-        flow="password-reset"
-        onSuccess={handleOtpSuccess}
+        onSubmit={handleOtpSubmit}
+        onResend={handleOtpResend}
+        message={otpMessage}
         headerDescription={<>We sent a verification code to <strong>{email}</strong> if it exists in our system.</>}
       />
     );
@@ -134,8 +153,9 @@ export default function ForgotPasswordForm() {
         <AuthForm {...pwForm}>
           <form onSubmit={onSavePassword} noValidate aria-busy={pwForm.formState.isSubmitting}>
             <AuthForm.Body>
-              <AuthForm.RootError message={pwForm.formState.errors.root?.message} />
-
+              {pwForm.formState.errors.root && (
+                <AuthForm.RootError message={pwForm.formState.errors.root.message} />
+              )}
               <AuthForm.Fieldset disabled={pwForm.formState.isSubmitting}>
                 <AuthForm.PasswordField
                   control={pwForm.control}
@@ -179,7 +199,9 @@ export default function ForgotPasswordForm() {
         <AuthForm {...emailForm}>
           <form onSubmit={onSendCode} noValidate aria-busy={emailForm.formState.isSubmitting}>
             <AuthForm.Body>
-              <AuthForm.RootError message={emailForm.formState.errors.root?.message} />
+              {emailForm.formState.errors.root && (
+                <AuthForm.RootError message={emailForm.formState.errors.root.message} />
+              )}
 
               <AuthForm.Fieldset disabled={emailForm.formState.isSubmitting}>
                 <AuthForm.EmailField

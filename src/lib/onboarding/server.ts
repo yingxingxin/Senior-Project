@@ -1,8 +1,8 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
 
-import { AUTH_COOKIE, verifyAuthToken } from '@/lib/auth';
+import { auth } from '@/src/lib/auth';
 import { db, users } from '@/src/db';
 import { assistantPersonaEnum } from '@/src/db/schema';
 
@@ -26,33 +26,27 @@ export interface ActiveOnboardingUser {
 }
 
 export async function requireActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!token) {
+  if (!session || !session.user) {
     redirect(LOGIN_REDIRECT);
   }
 
-  let sessionUserId: number | null = null;
-
-  try {
-    const session = await verifyAuthToken(token!);
-    sessionUserId = session.userId;
-  } catch {
-    redirect(LOGIN_REDIRECT);
-  }
+  const sessionUserId = Number(session.user.id);
 
   const [record] = await db
     .select({
-      userId: users.userId,
-      username: users.username,
+      userId: users.id,
+      username: users.name,
       assistantId: users.assistantId,
       assistantPersona: users.assistantPersona,
       onboardingCompletedAt: users.onboardingCompletedAt,
       onboardingStep: users.onboardingStep,
     })
     .from(users)
-    .where(eq(users.userId, sessionUserId!))
+    .where(eq(users.id, sessionUserId))
     .limit(1);
 
   if (!record) {

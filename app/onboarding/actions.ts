@@ -1,35 +1,36 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
 import { eq } from 'drizzle-orm';
 
-import { AUTH_COOKIE, verifyAuthToken } from '@/lib/auth';
+import { auth } from '@/src/lib/auth';
+import { headers } from 'next/headers';
 import { db, assistants, users } from '@/src/db';
 import type { ActiveOnboardingUser, AssistantPersona } from '@/src/lib/onboarding/server';
 import { getOnboardingStepHref, OnboardingStep, ONBOARDING_STEPS } from '@/src/lib/onboarding/steps';
 
 async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE)?.value;
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  if (!token) {
+  if (!session || !session.user) {
     throw new Error('Not authenticated');
   }
 
-  const session = await verifyAuthToken(token);
+  const sessionUserId = Number(session.user.id);
 
   const [record] = await db
     .select({
-      userId: users.userId,
-      username: users.username,
+      userId: users.id,
+      username: users.name,
       assistantId: users.assistantId,
       assistantPersona: users.assistantPersona,
       onboardingCompletedAt: users.onboardingCompletedAt,
       onboardingStep: users.onboardingStep,
     })
     .from(users)
-    .where(eq(users.userId, session.userId))
+    .where(eq(users.id, sessionUserId))
     .limit(1);
 
   if (!record) {
@@ -54,9 +55,9 @@ export async function selectAssistantGenderAction(assistantId: number) {
   const user = await loadActiveOnboardingUser();
 
   const [assistant] = await db
-    .select({ assistantId: assistants.assistantId })
+    .select({ assistantId: assistants.id })
     .from(assistants)
-    .where(eq(assistants.assistantId, assistantId))
+    .where(eq(assistants.id, assistantId))
     .limit(1);
 
   if (!assistant) {
@@ -70,7 +71,7 @@ export async function selectAssistantGenderAction(assistantId: number) {
       onboardingStep: 'persona',
       onboardingCompletedAt: null,
     })
-    .where(eq(users.userId, user.userId));
+    .where(eq(users.id, user.userId));
 
   // TODO: emit analytics event `assistant_gender_selected`.
 
@@ -95,7 +96,7 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
       assistantPersona: persona,
       onboardingStep: 'guided_intro',
     })
-    .where(eq(users.userId, user.userId));
+    .where(eq(users.id, user.userId));
 
   // TODO: emit analytics event `assistant_persona_selected`.
 
@@ -113,7 +114,7 @@ export async function updateOnboardingStepAction(step: OnboardingStep) {
   await db
     .update(users)
     .set({ onboardingStep: step })
-    .where(eq(users.userId, user.userId));
+    .where(eq(users.id, user.userId));
 
   revalidatePath('/onboarding');
 
@@ -176,7 +177,7 @@ export async function completeOnboardingAction() {
       onboardingCompletedAt: new Date(),
       onboardingStep: null,
     })
-    .where(eq(users.userId, user.userId));
+    .where(eq(users.id, user.userId));
 
   // TODO: emit analytics event `onboarding_completed` with duration metadata.
 

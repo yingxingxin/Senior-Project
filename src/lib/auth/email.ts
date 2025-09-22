@@ -1,5 +1,7 @@
 import { Resend } from 'resend'
-import { EMAIL_FROM, EMAIL_FROM_NAME } from './constants'
+
+const EMAIL_FROM = 'onboarding@resend.dev'; // TODO: Change to verified domain in production
+const EMAIL_FROM_NAME = 'Sprite.exe';
 
 /**
  * We use a service called Resend to send emails

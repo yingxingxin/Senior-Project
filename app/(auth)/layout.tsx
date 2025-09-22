@@ -5,10 +5,10 @@
  */
 import Image from "next/image"
 import type React from "react"
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { ModeToggle } from "@/components/ui/mode-toggle"
-import { AUTH_COOKIE, verifyAuthToken } from "@/src/lib/auth"
+import { auth } from "@/src/lib/auth"
+import { headers } from "next/headers"
 
 export default async function AuthLayout({
   children,
@@ -16,17 +16,13 @@ export default async function AuthLayout({
   children: React.ReactNode
 }) {
   // Check if user is already logged in
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AUTH_COOKIE)?.value
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
 
-  if (token) {
-    try {
-      await verifyAuthToken(token)
-      // User is logged in, redirect to explore
-      redirect('/explore')
-    } catch {
-      // Token is invalid, continue to auth pages
-    }
+  if (session && session.user) {
+    // User is logged in, redirect to explore
+    redirect('/explore')
   }
 
   return (
