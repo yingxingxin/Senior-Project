@@ -19,7 +19,7 @@ export async function getAssistantOptions(): Promise<AssistantOption[]> {
       name: assistants.name,
       slug: assistants.slug,
       gender: assistants.gender,
-      avatarUrl: assistants.avatarPng,
+      avatarUrl: assistants.avatar_url,
       tagline: assistants.tagline,
       description: assistants.description,
     })
@@ -43,7 +43,7 @@ export async function getAssistantNameForUser(userId: number): Promise<string | 
       name: assistants.name,
     })
     .from(users)
-    .innerJoin(assistants, eq(users.assistantId, assistants.id))
+    .innerJoin(assistants, eq(users.assistant_id, assistants.id))
     .where(eq(users.id, userId))
     .limit(1);
 

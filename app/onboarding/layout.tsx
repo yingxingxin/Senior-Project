@@ -57,7 +57,7 @@ function OnboardingLayoutShell({
 
       {/* Simple gradient background */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-black" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background to-muted" />
       </div>
 
       <div className="relative flex min-h-screen flex-col">

@@ -14,33 +14,80 @@ export const auth = betterAuth({
   secret: process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 
-  // With property keys aligned, we only need modelName to match table name
+  // Map Better Auth's expected camelCase to our snake_case database columns
   user: {
     modelName: "users",
-    // No field mappings needed - property keys now match Better Auth expectations
+    fields: {
+      emailVerified: "is_email_verified",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      emailVerifiedAt: "email_verified_at",
+    },
     additionalFields: {
-      assistantId: { type: "number", input: false },
-      assistantPersona: { type: "string", input: false },
-      onboardingCompletedAt: { type: "date", input: false },
-      onboardingStep: { type: "string", input: false },
+      assistant_id: {
+        type: "number",
+        input: false,
+        defaultValue: null,
+        required: false,
+      },
+      assistant_persona: {
+        type: "string",
+        input: false,
+        defaultValue: null,
+        required: false,
+      },
+      onboarding_completed_at: {
+        type: "date",
+        input: false,
+        defaultValue: null,
+        required: false,
+      },
+      onboarding_step: {
+        type: "string",
+        input: false,
+        defaultValue: null,
+        required: false,
+      },
     },
   },
 
   session: {
-    modelName: "session",
-    // No field mappings needed - property keys now match Better Auth expectations
+    modelName: "sessions",
+    fields: {
+      userId: "user_id",
+      expiresAt: "expires_at",
+      ipAddress: "ip_address",
+      userAgent: "user_agent",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
     expiresIn: 60 * 60 * 24 * 7,
     cookieCache: { enabled: true, maxAge: 60 * 5 },
   },
 
   account: {
-    modelName: "account",
-    // No field mappings needed
+    modelName: "accounts",
+    fields: {
+      userId: "user_id",
+      accountId: "account_id",
+      providerId: "provider_id",
+      accessToken: "access_token",
+      refreshToken: "refresh_token",
+      accessTokenExpiresAt: "access_token_expires_at",
+      refreshTokenExpiresAt: "refresh_token_expires_at",
+      idToken: "id_token",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
   },
 
   verification: {
-    modelName: "verification",
-    // No field mappings needed
+    modelName: "verifications",
+    fields: {
+      expiresAt: "expires_at",
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
   },
 
   // Let database handle all ID generation
@@ -71,13 +118,47 @@ export const auth = betterAuth({
         redirectURI: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback/google`,
       },
     }),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && {
-      github: {
-        clientId: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        redirectURI: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback/github`,
+    // Use development GitHub app in development, production app in production
+    // Github doesn't support multiple redirect URIs; so we use two different Github Oauth apps for development and production
+    ...(() => {
+      const isDevelopment = process.env.NODE_ENV === 'development' ||
+                           process.env.VERCEL_ENV === 'development' ||
+                           !process.env.VERCEL_ENV; // Local development
+
+      const githubClientId = isDevelopment
+        ? (process.env.GITHUB_CLIENT_ID_DEVELOPMENT || process.env.GITHUB_CLIENT_ID)
+        : process.env.GITHUB_CLIENT_ID;
+
+      const githubClientSecret = isDevelopment
+        ? (process.env.GITHUB_CLIENT_SECRET_DEVELOPMENT || process.env.GITHUB_CLIENT_SECRET)
+        : process.env.GITHUB_CLIENT_SECRET;
+
+      if (githubClientId && githubClientSecret) {
+        return {
+          github: {
+            clientId: githubClientId,
+            clientSecret: githubClientSecret,
+            redirectURI: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/auth/callback/github`,
+          },
+        };
+      }
+      return {};
+    })(),
+  },
+
+  // Database hooks to handle OAuth onboarding
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Check if this is an OAuth user (they won't have completed onboarding)
+          // OAuth users are created automatically on first sign-in
+          // We'll handle the redirect check in the auth layout
+          console.log("New user created:", user.id, "Email:", user.email);
+          // The auth layout will check onboarding status and redirect accordingly
+        },
       },
-    }),
+    },
   },
 
   plugins: [

@@ -24,7 +24,7 @@ async function getAuthState() {
         userId: users.id,
         username: users.name,
         email: users.email,
-        onboardingCompletedAt: users.onboardingCompletedAt,
+        onboardingCompletedAt: users.onboarding_completed_at,
       })
       .from(users)
       .where(eq(users.id, Number(session.user.id)))
@@ -53,7 +53,7 @@ export default async function LandingPage() {
         <div className="flex items-center gap-2 sm:gap-4">
           {isAuthenticated ? (
             <>
-              <Link href="/explore" className="hidden sm:block">
+              <Link href="/home" className="hidden sm:block">
                 <Button>Go to Dashboard</Button>
               </Link>
             </>
@@ -86,7 +86,7 @@ export default async function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4 w-full max-w-sm sm:max-w-none mx-auto">
             {isAuthenticated ? (
               <>
-                <Link href="/explore" className="w-full sm:w-auto">
+                <Link href="/home" className="w-full sm:w-auto">
                   <Button size="lg" className="gap-2 w-full sm:w-auto sm:min-w-[180px]">
                     Continue to Dashboard
                     <ArrowRight className="h-4 w-4" />

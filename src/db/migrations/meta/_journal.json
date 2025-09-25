@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1758232998347,
-      "tag": "0000_initial-schema",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1758249134447,
-      "tag": "0001_quiet_domino",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1758294470240,
-      "tag": "0002_cool_nightmare",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1758470287036,
-      "tag": "0003_melted_blur",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1758478622258,
-      "tag": "0004_clean_violations",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1758547666628,
-      "tag": "0005_same_peter_quill",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1758556053187,
-      "tag": "0006_wonderful_tomas",
+      "when": 1758813006532,
+      "tag": "0000_odd_moira_mactaggert",
       "breakpoints": true
     }
   ]

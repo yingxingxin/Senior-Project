@@ -40,10 +40,10 @@ export async function requireActiveOnboardingUser(): Promise<ActiveOnboardingUse
     .select({
       userId: users.id,
       username: users.name,
-      assistantId: users.assistantId,
-      assistantPersona: users.assistantPersona,
-      onboardingCompletedAt: users.onboardingCompletedAt,
-      onboardingStep: users.onboardingStep,
+      assistantId: users.assistant_id,
+      assistantPersona: users.assistant_persona,
+      onboardingCompletedAt: users.onboarding_completed_at,
+      onboardingStep: users.onboarding_step,
     })
     .from(users)
     .where(eq(users.id, sessionUserId))

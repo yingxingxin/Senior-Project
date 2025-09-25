@@ -24,10 +24,10 @@ async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
     .select({
       userId: users.id,
       username: users.name,
-      assistantId: users.assistantId,
-      assistantPersona: users.assistantPersona,
-      onboardingCompletedAt: users.onboardingCompletedAt,
-      onboardingStep: users.onboardingStep,
+      assistantId: users.assistant_id,
+      assistantPersona: users.assistant_persona,
+      onboardingCompletedAt: users.onboarding_completed_at,
+      onboardingStep: users.onboarding_step,
     })
     .from(users)
     .where(eq(users.id, sessionUserId))
@@ -67,9 +67,9 @@ export async function selectAssistantGenderAction(assistantId: number) {
   await db
     .update(users)
     .set({
-      assistantId,
-      onboardingStep: 'persona',
-      onboardingCompletedAt: null,
+      assistant_id: assistantId,
+      onboarding_step: 'persona',
+      onboarding_completed_at: null,
     })
     .where(eq(users.id, user.userId));
 
@@ -93,8 +93,8 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
   await db
     .update(users)
     .set({
-      assistantPersona: persona,
-      onboardingStep: 'guided_intro',
+      assistant_persona: persona,
+      onboarding_step: 'guided_intro',
     })
     .where(eq(users.id, user.userId));
 
@@ -113,7 +113,7 @@ export async function updateOnboardingStepAction(step: OnboardingStep) {
 
   await db
     .update(users)
-    .set({ onboardingStep: step })
+    .set({ onboarding_step: step })
     .where(eq(users.id, user.userId));
 
   revalidatePath('/onboarding');
@@ -174,15 +174,16 @@ export async function completeOnboardingAction() {
   await db
     .update(users)
     .set({
-      onboardingCompletedAt: new Date(),
-      onboardingStep: null,
+      onboarding_completed_at: new Date(),
+      onboarding_step: null,
     })
     .where(eq(users.id, user.userId));
 
   // TODO: emit analytics event `onboarding_completed` with duration metadata.
+  // should activity events be updated to support onboarding_completed?
 
   revalidatePath('/onboarding');
-  revalidatePath('/explore');
+  revalidatePath('/home');
 
-  return { completed: true, redirectTo: '/explore' } as const;
+  return { completed: true, redirectTo: '/home' } as const;
 }

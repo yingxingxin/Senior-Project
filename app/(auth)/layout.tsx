@@ -9,6 +9,8 @@ import { redirect } from "next/navigation"
 import { ModeToggle } from "@/components/ui/mode-toggle"
 import { auth } from "@/src/lib/auth"
 import { headers } from "next/headers"
+import { db, users } from "@/src/db"
+import { eq } from "drizzle-orm"
 
 export default async function AuthLayout({
   children,
@@ -21,8 +23,23 @@ export default async function AuthLayout({
   })
 
   if (session && session.user) {
-    // User is logged in, redirect to explore
-    redirect('/explore')
+    // User is logged in, check onboarding status
+    const userId = Number(session.user.id);
+    const [userData] = await db
+      .select({
+        onboarding_completed_at: users.onboarding_completed_at,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    // If user hasn't completed onboarding, redirect to onboarding
+    if (!userData?.onboarding_completed_at) {
+      redirect('/onboarding')
+    }
+
+    // User has completed onboarding, redirect to home
+    redirect('/home')
   }
 
   return (

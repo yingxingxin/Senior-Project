@@ -3,7 +3,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'nova-feminine',
     name: 'Nova',
     gender: 'feminine' as const,
-    avatarPng: '/assistants/nova-feminine.png',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/power_smart.jpg',
     tagline: 'Brilliant strategist with infectious enthusiasm.',
     description:
       'Breaks down complex problems into achievable wins, celebrating each milestone with genuine excitement.',
@@ -12,7 +12,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'atlas-masculine',
     name: 'Atlas',
     gender: 'masculine' as const,
-    avatarPng: '/assistants/atlas-masculine.png',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/tomoyw.jpg',
     tagline: 'Steady mentor with years of wisdom.',
     description:
       'Draws from deep experience to guide you through challenges, knowing exactly when to push and when to pause.',
@@ -21,7 +21,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'sage-androgynous',
     name: 'Sage',
     gender: 'androgynous' as const,
-    avatarPng: '/assistants/sage-androgynous.png',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/femto.jpg',
     tagline: 'Intuitive guide who reads between the lines.',
     description:
       'Picks up on your learning style quickly, adapting explanations to match how you think best.',
