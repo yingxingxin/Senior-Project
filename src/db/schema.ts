@@ -25,7 +25,10 @@ export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masc
 
 export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
 
-export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'persona', 'guided_intro']);
+export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro']);
+
+// Skill level for initial placement from onboarding quiz
+export const skillLevelEnum = pgEnum('skill_level', ['beginner', 'intermediate', 'advanced']);
 
 /* Events that drive the activity feed and point awards */
 export const activityEventTypeEnum = pgEnum('activity_event_type', [
@@ -84,6 +87,8 @@ export const users = pgTable('users', {
   // Assistant preferences - set during onboarding
   assistant_id: integer('assistant_id').references(() => assistants.id),
   assistant_persona: assistantPersonaEnum('assistant_persona'),
+  // Skill placement from onboarding quiz
+  skill_level: skillLevelEnum('skill_level'),
   // Onboarding tracking
   onboarding_completed_at: timestamp('onboarding_completed_at', { withTimezone: true }),
   onboarding_step: onboardingStepEnum('onboarding_step'),
@@ -468,6 +473,33 @@ export const levels = pgTable('levels', {
 });
 
 /**
+ * Skill Quiz Tables - Simple multiple-choice quiz used during onboarding to assess initial level
+ */
+export const skill_questions = pgTable('skill_questions', {
+  id: serial('id').primaryKey(),
+  order_index: integer('order_index').notNull().default(0),
+  text: text('text').notNull(),
+  // optional difficulty tag for future use
+  difficulty: difficultyEnum('difficulty'),
+}, (t) => [
+  uniqueIndex('uq_skill_questions__order').on(t.order_index),
+]);
+
+export const skill_options = pgTable('skill_options', {
+  id: serial('id').primaryKey(),
+  question_id: integer('question_id').notNull().references(() => skill_questions.id, { onDelete: 'cascade' }),
+  order_index: integer('order_index').notNull().default(0),
+  text: text('text').notNull(),
+  is_correct: boolean('is_correct').notNull().default(false),
+}, (t) => [
+  index('ix_skill_options__question').on(t.question_id),
+  uniqueIndex('uq_skill_options__question_order').on(t.question_id, t.order_index),
+  uniqueIndex('uq_skill_options__one_correct_per_question')
+    .on(t.question_id)
+    .where(sql`${t.is_correct} = true`),
+]);
+
+/**
  * User Preferences Table - Stores personalized learning settings including difficulty, goals, and reminders
  *
  * WHEN CREATED: User customizes settings
@@ -779,6 +811,17 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 
   // Misc
   userMusicTracks: many(user_music_tracks),
+}));
+
+export const skillQuestionsRelations = relations(skill_questions, ({ many }) => ({
+  options: many(skill_options),
+}));
+
+export const skillOptionsRelations = relations(skill_options, ({ one }) => ({
+  question: one(skill_questions, {
+    fields: [skill_options.question_id],
+    references: [skill_questions.id],
+  }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({

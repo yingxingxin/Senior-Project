@@ -68,7 +68,7 @@ export async function selectAssistantGenderAction(assistantId: number) {
     .update(users)
     .set({
       assistant_id: assistantId,
-      onboarding_step: 'persona',
+      onboarding_step: 'skill_quiz',
       onboarding_completed_at: null,
     })
     .where(eq(users.id, user.userId));
@@ -78,8 +78,8 @@ export async function selectAssistantGenderAction(assistantId: number) {
   revalidatePath('/onboarding');
 
   return {
-    nextStep: 'persona' as const,
-    nextHref: getOnboardingStepHref('persona'),
+    nextStep: 'skill_quiz' as const,
+    nextHref: getOnboardingStepHref('skill_quiz'),
   };
 }
 
@@ -148,6 +148,9 @@ export async function navigateToOnboardingStep(targetStep: OnboardingStep) {
   // For forward navigation to the immediate next step
   if (targetStepIndex === currentStepIndex + 1) {
     // Check prerequisites
+    if (targetStep === 'skill_quiz' && !user.assistantId) {
+      throw new Error('Please select an assistant first');
+    }
     if (targetStep === 'persona' && !user.assistantId) {
       throw new Error('Please select an assistant first');
     }

@@ -14,7 +14,7 @@ export default async function OnboardingWelcomePage() {
 
   // Only redirect if user is trying to skip ahead
   // Allow access if this is current step or user is going back
-  const currentIndex = ['welcome', 'gender', 'persona', 'guided_intro'].indexOf(currentStep);
+  const currentIndex = ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro'].indexOf(currentStep);
   const thisIndex = 0; // welcome is index 0
 
   if (currentIndex > thisIndex + 1) {
@@ -75,7 +75,7 @@ export default async function OnboardingWelcomePage() {
                   <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                     What to expect
                   </h2>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
@@ -86,14 +86,21 @@ export default async function OnboardingWelcomePage() {
                     <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
-                        <h3 className="mb-1 font-semibold text-foreground">Step 2: Set Their Voice</h3>
+                        <h3 className="mb-1 font-semibold text-foreground">Step 2: Quick Skill Check</h3>
+                        <p className="text-sm text-muted-foreground">Answer a few questions so we can start you at the right learning level.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
+                      <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
+                      <div className="flex-1">
+                        <h3 className="mb-1 font-semibold text-foreground">Step 3: Set Their Voice</h3>
                         <p className="text-sm text-muted-foreground">Preview how they&apos;ll respond and choose the coaching tone that motivates you.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
-                        <h3 className="mb-1 font-semibold text-foreground">Step 3: Guided Tour</h3>
+                        <h3 className="mb-1 font-semibold text-foreground">Step 4: Guided Tour</h3>
                         <p className="text-sm text-muted-foreground">Launch straight into a dashboard tour with your new companion.</p>
                       </div>
                     </div>
@@ -112,7 +119,7 @@ export default async function OnboardingWelcomePage() {
                   </form>
 
                   <p className="text-center text-sm text-muted-foreground">
-                    Takes about 2 minutes to complete
+                    Takes about 3 minutes to complete
                   </p>
                 </div>
               </div>
