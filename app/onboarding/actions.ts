@@ -1,11 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
+import { eq, and, inArray, asc } from 'drizzle-orm';
 
 import { auth } from '@/src/lib/auth';
 import { headers } from 'next/headers';
-import { db, assistants, users } from '@/src/db';
+import {
+  db,
+  assistants,
+  users,
+  quizzes,
+  quiz_questions,
+  quiz_options,
+  quiz_attempts,
+  quiz_attempt_answers,
+  activity_events
+} from '@/src/db';
 import type { ActiveOnboardingUser, AssistantPersona } from '@/src/lib/onboarding/server';
 import { getOnboardingStepHref, OnboardingStep, ONBOARDING_STEPS } from '@/src/lib/onboarding/steps';
 
@@ -26,6 +36,7 @@ async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
       username: users.name,
       assistantId: users.assistant_id,
       assistantPersona: users.assistant_persona,
+      skillLevel: users.skill_level,
       onboardingCompletedAt: users.onboarding_completed_at,
       onboardingStep: users.onboarding_step,
     })
@@ -46,6 +57,7 @@ async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
     username: record.username,
     assistantId: record.assistantId,
     assistantPersona: record.assistantPersona,
+    skillLevel: record.skillLevel,
     onboardingCompletedAt: record.onboardingCompletedAt,
     onboardingStep: record.onboardingStep,
   };
@@ -189,4 +201,178 @@ export async function completeOnboardingAction() {
   revalidatePath('/home');
 
   return { completed: true, redirectTo: '/home' } as const;
+}
+
+// Skill Quiz Server Actions
+
+// Server function
+export async function getSkillQuizQuestions() {
+  // Find the skill assessment quiz
+  const skillQuiz = await db.query.quizzes.findFirst({
+    where: eq(quizzes.topic, 'Skill Assessment'),
+  });
+
+  if (!skillQuiz) {
+    throw new Error('Skill assessment quiz not found. Please run migrations and seed.');
+  }
+
+  // Get questions with options for the skill assessment quiz
+  const questions = await db.query.quiz_questions.findMany({
+    where: eq(quiz_questions.quiz_id, skillQuiz.id),
+    orderBy: asc(quiz_questions.order_index),
+    with: {
+      options: {
+        orderBy: asc(quiz_options.order_index),
+      },
+    },
+    limit: 5,
+  });
+
+  return questions.map(q => ({
+    id: q.id,
+    text: q.text,
+    orderIndex: q.order_index,
+    options: q.options.map(o => ({
+      id: o.id,
+      text: o.text,
+      orderIndex: o.order_index
+    })),
+  }));
+}
+
+// Server actions for skill quiz
+type SkillQuizSubmission = {
+  answers: Array<{
+    questionId: number;
+    optionId: number;
+  }>;
+};
+
+function mapScoreToLevel(score: number, total: number) {
+  const percentage = (score / total) * 100;
+  if (percentage <= 40) return 'beginner' as const;
+  if (percentage <= 70) return 'intermediate' as const;
+  return 'advanced' as const;
+}
+
+function suggestedCourseFor(level: 'beginner' | 'intermediate' | 'advanced') {
+  switch (level) {
+    case 'beginner':
+      return 'Python Intro';
+    case 'intermediate':
+      return 'Python Fundamentals + Projects';
+    case 'advanced':
+      return 'Data Structures & Algorithms in Python';
+  }
+}
+
+export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+
+  const userId = Number(session.user.id);
+  const answers = submission.answers;
+
+  // Find the skill assessment quiz
+  const skillQuiz = await db.query.quizzes.findFirst({
+    where: eq(quizzes.topic, 'Skill Assessment'),
+  });
+
+  if (!skillQuiz) {
+    throw new Error('Skill assessment quiz not found. Please run migrations and seed.');
+  }
+
+  // Check how many attempts the user has made
+  const existingAttempts = await db
+    .select({ attempt_number: quiz_attempts.attempt_number })
+    .from(quiz_attempts)
+    .where(and(
+      eq(quiz_attempts.user_id, userId),
+      eq(quiz_attempts.quiz_id, skillQuiz.id)
+    ))
+    .orderBy(quiz_attempts.attempt_number);
+
+  const attemptNumber = existingAttempts.length > 0
+    ? Math.max(...existingAttempts.map(a => a.attempt_number)) + 1
+    : 1;
+
+  // Create a quiz attempt
+  const [attempt] = await db.insert(quiz_attempts).values({
+    user_id: userId,
+    quiz_id: skillQuiz.id,
+    attempt_number: attemptNumber,
+    started_at: new Date(),
+    submitted_at: new Date(),
+    duration_sec: 0, // Could be tracked client-side if needed
+  }).returning();
+
+  // Get all the options to check correctness
+  const optionIds = answers.map(a => a.optionId);
+  const options = await db
+    .select({
+      id: quiz_options.id,
+      is_correct: quiz_options.is_correct,
+      question_id: quiz_options.question_id,
+    })
+    .from(quiz_options)
+    .where(inArray(quiz_options.id, optionIds));
+
+  // Create answer records
+  const answerRecords = answers.map(answer => ({
+    attempt_id: attempt.id,
+    question_id: answer.questionId,
+    selected_option_id: answer.optionId,
+    time_taken_ms: 0, // Could be tracked client-side if needed
+  }));
+
+  await db.insert(quiz_attempt_answers).values(answerRecords);
+
+  // Calculate score
+  const correctSet = new Set(options.filter(o => o.is_correct).map(o => o.id));
+  const score = answers.reduce((acc, a) => acc + (correctSet.has(a.optionId) ? 1 : 0), 0);
+  const level = mapScoreToLevel(score, answers.length);
+
+  // Update user's skill level and onboarding step
+  await db.update(users)
+    .set({
+      skill_level: level,
+      onboarding_step: 'persona'
+    })
+    .where(eq(users.id, userId));
+
+  // Log activity event for quiz submission
+  const pointsEarned = score * 10; // 10 points per correct answer
+  await db.insert(activity_events).values({
+    user_id: userId,
+    event_type: 'quiz_submitted',
+    points_delta: pointsEarned,
+    quiz_id: skillQuiz.id,
+    quiz_attempt_id: attempt.id,
+    occurred_at: new Date(),
+  });
+
+  // If perfect score, log additional achievement
+  if (score === answers.length) {
+    await db.insert(activity_events).values({
+      user_id: userId,
+      event_type: 'quiz_perfect',
+      points_delta: 20, // Bonus points for perfect score
+      quiz_id: skillQuiz.id,
+      quiz_attempt_id: attempt.id,
+      occurred_at: new Date(),
+    });
+  }
+
+  revalidatePath('/onboarding/skill-quiz');
+  revalidatePath('/onboarding/persona');
+
+  return {
+    score,
+    total: answers.length,
+    level,
+    suggestedCourse: suggestedCourseFor(level),
+    next: '/onboarding/persona',
+  };
 }

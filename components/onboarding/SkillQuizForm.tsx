@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { z } from 'zod';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { submitSkillQuizAnswers } from "@/app/onboarding/actions";
 
+// TODO: these probably could come from the db schema
 type Question = {
   id: number;
   text: string;
@@ -16,107 +20,167 @@ type Question = {
   options: { id: number; text: string; orderIndex: number }[];
 };
 
-export function SkillQuizForm() {
+type SkillQuizFormProps = {
+  initialQuestions: Question[];
+};
+
+type ServerResult = {
+  level: string;
+  score: number;
+  total: number;
+  suggestedCourse: string;
+  next: string;
+};
+
+const AnswerSchema = z.object({
+  questionId: z.number(),
+  optionId: z.number().nullable(), // allow empty in UI; we'll enforce selection below
+});
+
+const FormSchema = z
+  .object({
+    answers: z.array(AnswerSchema),
+  })
+  .superRefine((data, ctx) => {
+    data.answers.forEach((a, idx) => {
+      if (a.optionId === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["answers", idx, "optionId"],
+          message: "Please answer this question",
+        });
+      }
+    });
+  });
+
+type FormData = z.infer<typeof FormSchema>;
+
+export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<number, number | undefined>>({});
-  const [result, setResult] = useState<null | { level: string; suggestedCourse: string; score: number; total: number; next: string }>(null);
+  // we need this state to show the result of the quiz
+  const [result, setResult] = useState<ServerResult | null>(null);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      answers: initialQuestions.map((q) => ({
+        questionId: q.id,
+        optionId: null,
+      })),
+    },
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+  });
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch('/api/skill-quiz/questions', { cache: 'no-store' });
-        const data = await res.json();
-        if (mounted) {
-          setQuestions(data.questions ?? []);
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+    if (!result) return;
+    const id = setTimeout(() => router.push(result.next), 2000);
+    return () => clearTimeout(id);
+  }, [result, router]);
 
-  const allAnswered = questions.length > 0 && questions.every(q => answers[q.id] !== undefined);
-
-  async function onSubmit() {
-    setSubmitting(true);
+  const onSubmit = async (data: FormData) => {
     try {
-      const payload = {
-        answers: questions.map(q => ({ questionId: q.id, optionId: answers[q.id]! })),
-      };
-      const res = await fetch('/api/skill-quiz/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      // Zod already ensured optionId != null, but TS still sees nullable.
+      // We need to convert the string to a number.
+      const answers = data.answers.map((a) => ({
+        questionId: a.questionId,
+        optionId: Number(a.optionId),
+      }));
+
+      const res = await submitSkillQuizAnswers({ answers });
+      setResult(res as ServerResult);
+    } catch (error) {
+      console.error("Failed to submit quiz:", error);
+      form.setError("root", {
+        message: "Failed to submit quiz. Please try again.",
       });
-      const data = await res.json();
-      if (res.ok) {
-        setResult(data);
-      } else {
-        alert(data.error || 'Submission failed');
-      }
-    } finally {
-      setSubmitting(false);
     }
-  }
-
-  if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading questions…</div>;
-  }
-
-  if (result) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Your starting level: {result.level.toUpperCase()}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-2">Score: {result.score} / {result.total}</p>
-          <p>Suggested course: <strong>{result.suggestedCourse}</strong></p>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={() => router.push(result.next)}>Continue</Button>
-        </CardFooter>
-      </Card>
-    );
-  }
+  };
 
   return (
-    <div className="space-y-6">
-      {questions.map((q, idx) => (
-        <Card key={q.id}>
-          <CardHeader>
-            <CardTitle className="text-base">Q{idx + 1}. {q.text}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={answers[q.id]?.toString() ?? ''}
-              onValueChange={(val) => setAnswers(prev => ({ ...prev, [q.id]: Number(val) }))}
-            >
-              <div className="grid gap-3">
-                {q.options.map(opt => (
-                  <Label key={opt.id} className="flex items-center gap-3 cursor-pointer">
-                    <RadioGroupItem id={`q${q.id}-o${opt.id}`} value={opt.id.toString()} />
-                    <span>{opt.text}</span>
-                  </Label>
-                ))}
-              </div>
-            </RadioGroup>
-          </CardContent>
+    <>
+      {result && (
+        <Card className="w-full mb-6">
+          <div className="p-6 text-center">
+            <h2 className="text-2xl font-bold mb-4">
+              Your starting level: {result.level.toUpperCase()}
+            </h2>
+            <p className="mb-2">
+              Score: {result.score} / {result.total}
+            </p>
+            <p className="mb-4">
+              Suggested course: <strong>{result.suggestedCourse}</strong>
+            </p>
+            <p className="text-sm text-muted-foreground">Redirecting...</p>
+          </div>
         </Card>
-      ))}
+      )}
 
-      <div className="flex justify-end">
-        <Button disabled={!allAnswered || submitting} onClick={onSubmit}>
-          {submitting ? 'Submitting…' : 'Submit'}
-        </Button>
-      </div>
-    </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {initialQuestions.map((q, idx) => (
+          <Card key={q.id}>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Q{idx + 1}. {q.text}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Controller
+                name={`answers.${idx}.optionId`}
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <>
+                    <RadioGroup
+                      // store numbers in form; RadioGroup gives strings
+                      value={field.value === null ? "" : String(field.value)}
+                      onValueChange={(v) => field.onChange(v === "" ? null : Number(v))}
+                      disabled={form.formState.isSubmitting}
+                    >
+                      <div className="grid gap-3">
+                        {q.options.map((opt) => {
+                          const inputId = `q${q.id}-o${opt.id}`;
+                          return (
+                            <div key={opt.id} className="flex items-center gap-3">
+                              <RadioGroupItem value={String(opt.id)} id={inputId} />
+                              <Label htmlFor={inputId} className="cursor-pointer">
+                                {opt.text}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </RadioGroup>
+
+                    {/* keep questionId in the form data */}
+                    <input
+                      type="hidden"
+                      {...form.register(`answers.${idx}.questionId`, { value: q.id })}
+                    />
+
+                    {fieldState.error && (
+                      <p className="text-sm text-destructive mt-2">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
+              />
+            </CardContent>
+          </Card>
+        ))}
+
+        {form.formState.errors.root && (
+          <p className="text-sm text-destructive text-center">
+            {form.formState.errors.root.message}
+          </p>
+        )}
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Submitting..." : "Submit"}
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
-
-

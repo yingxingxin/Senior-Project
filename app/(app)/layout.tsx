@@ -42,6 +42,7 @@ export default async function AppLayout({
       onboarding_step: users.onboarding_step,
       assistant_id: users.assistant_id,
       assistant_persona: users.assistant_persona,
+      skill_level: users.skill_level,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -54,6 +55,7 @@ export default async function AppLayout({
       username: session.user.name || "",
       assistantId: userRecord?.assistant_id || null,
       assistantPersona: userRecord?.assistant_persona || null,
+      skillLevel: userRecord?.skill_level || null,
       onboardingCompletedAt: null,
       onboardingStep: userRecord?.onboarding_step || null,
     });

@@ -472,32 +472,9 @@ export const levels = pgTable('levels', {
   label: varchar('label', { length: 80 }), // "Beginner", "Intermediate", etc.
 });
 
-/**
- * Skill Quiz Tables - Simple multiple-choice quiz used during onboarding to assess initial level
- */
-export const skill_questions = pgTable('skill_questions', {
-  id: serial('id').primaryKey(),
-  order_index: integer('order_index').notNull().default(0),
-  text: text('text').notNull(),
-  // optional difficulty tag for future use
-  difficulty: difficultyEnum('difficulty'),
-}, (t) => [
-  uniqueIndex('uq_skill_questions__order').on(t.order_index),
-]);
-
-export const skill_options = pgTable('skill_options', {
-  id: serial('id').primaryKey(),
-  question_id: integer('question_id').notNull().references(() => skill_questions.id, { onDelete: 'cascade' }),
-  order_index: integer('order_index').notNull().default(0),
-  text: text('text').notNull(),
-  is_correct: boolean('is_correct').notNull().default(false),
-}, (t) => [
-  index('ix_skill_options__question').on(t.question_id),
-  uniqueIndex('uq_skill_options__question_order').on(t.question_id, t.order_index),
-  uniqueIndex('uq_skill_options__one_correct_per_question')
-    .on(t.question_id)
-    .where(sql`${t.is_correct} = true`),
-]);
+// Note: Skill quiz functionality now uses the existing quiz system
+// The skill_level enum and user.skill_level column are still used
+// but skill assessment questions are stored in the standard quiz tables
 
 /**
  * User Preferences Table - Stores personalized learning settings including difficulty, goals, and reminders
@@ -813,16 +790,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   userMusicTracks: many(user_music_tracks),
 }));
 
-export const skillQuestionsRelations = relations(skill_questions, ({ many }) => ({
-  options: many(skill_options),
-}));
-
-export const skillOptionsRelations = relations(skill_options, ({ one }) => ({
-  question: one(skill_questions, {
-    fields: [skill_options.question_id],
-    references: [skill_questions.id],
-  }),
-}));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, {

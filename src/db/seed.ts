@@ -1,7 +1,11 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options } from './index';
 import { ASSISTANT_FIXTURES } from '../lib/onboarding/fixtures';
+import * as bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
 
 type AssistantSeed = typeof assistants.$inferInsert;
+type UserSeed = typeof users.$inferInsert;
+type AccountSeed = typeof accounts.$inferInsert;
 
 export async function seed() {
   console.log("🌱 Starting database seed...");
@@ -9,8 +13,9 @@ export async function seed() {
   try {
     // Seed assistants from existing fixtures
     console.log("Creating assistants...");
+    const seedAssistants = [];
     for (const option of ASSISTANT_FIXTURES) {
-      await db
+      const [assistant] = await db
         .insert(assistants)
         .values(option as AssistantSeed)
         .onConflictDoUpdate({
@@ -23,8 +28,42 @@ export async function seed() {
             description: option.description,
             updated_at: new Date(),
           },
-        });
+        })
+        .returning();
+      seedAssistants.push(assistant);
     }
+
+    // Seed test user that has finished onboarding
+    console.log("Creating test user...");
+    const testUser: UserSeed = {
+      name: "Test User",
+      email: "test@example.com",
+      is_email_verified: true,
+      email_verified_at: new Date(),
+      assistant_id: seedAssistants[0]?.id, // Use the first assistant
+      assistant_persona: 'calm',
+      onboarding_completed_at: new Date(),
+      onboarding_step: 'guided_intro', // Last step of onboarding
+    };
+    // TODO: create password for test user
+
+    await db
+      .insert(users)
+      .values(testUser)
+      .onConflictDoUpdate({
+        target: users.email,
+        set: {
+          name: testUser.name,
+          is_email_verified: testUser.is_email_verified,
+          email_verified_at: testUser.email_verified_at,
+          assistant_id: testUser.assistant_id,
+          assistant_persona: testUser.assistant_persona,
+          onboarding_completed_at: testUser.onboarding_completed_at,
+          onboarding_step: testUser.onboarding_step,
+          skill_level: testUser.skill_level,
+          updated_at: new Date(),
+        },
+      });
 
     // Seed achievements
     console.log("Creating achievements...");
@@ -233,6 +272,93 @@ export async function seed() {
       { level: 9, xp_to_reach: 5500, label: "Expert" },
       { level: 10, xp_to_reach: 7500, label: "Master" },
     ]).onConflictDoNothing();
+
+    // Seed Skill Assessment Quiz (for onboarding)
+    console.log("Creating Skill Assessment quiz...");
+
+    // First, check if the quiz already exists
+    const existingSkillQuiz = await db
+      .select()
+      .from(quizzes)
+      .where(eq(quizzes.topic, 'Skill Assessment'))
+      .limit(1);
+
+    if (existingSkillQuiz.length === 0) {
+      // Create the skill assessment quiz
+      const [skillQuiz] = await db.insert(quizzes).values({
+        topic: 'Skill Assessment',
+        difficulty: 'standard',
+        time_limit_sec: 600,
+        passing_pct: 60,
+      }).returning();
+
+      // Add questions and options for skill assessment
+      const skillQuestions = [
+        {
+          text: 'What is the output of: print(len({"a": 1, "b": 2})) in Python?',
+          options: [
+            { text: '2', is_correct: true },
+            { text: '1', is_correct: false },
+            { text: '0', is_correct: false },
+          ]
+        },
+        {
+          text: 'Which data structure provides O(1) average-time lookup by key?',
+          options: [
+            { text: 'Hash map / dict', is_correct: true },
+            { text: 'Array list', is_correct: false },
+            { text: 'Linked list', is_correct: false },
+          ]
+        },
+        {
+          text: 'What does Big-O notation describe?',
+          options: [
+            { text: 'Upper bound on algorithm growth', is_correct: true },
+            { text: 'Exact runtime in seconds', is_correct: false },
+            { text: 'Memory address', is_correct: false },
+          ]
+        },
+        {
+          text: 'Which algorithm has O(n log n) average-case time?',
+          options: [
+            { text: 'Merge sort', is_correct: true },
+            { text: 'Bubble sort', is_correct: false },
+            { text: 'Selection sort', is_correct: false },
+          ]
+        },
+        {
+          text: 'What is a stable sorting algorithm?',
+          options: [
+            { text: 'One that preserves relative order of equal elements', is_correct: true },
+            { text: 'One that is fastest in all cases', is_correct: false },
+            { text: 'One that uses the least memory always', is_correct: false },
+          ]
+        }
+      ];
+
+      for (let i = 0; i < skillQuestions.length; i++) {
+        const q = skillQuestions[i];
+        const [question] = await db.insert(quiz_questions).values({
+          quiz_id: skillQuiz.id,
+          order_index: i + 1,
+          text: q.text,
+          points: 1,
+        }).returning();
+
+        for (let j = 0; j < q.options.length; j++) {
+          const opt = q.options[j];
+          await db.insert(quiz_options).values({
+            question_id: question.id,
+            order_index: j + 1,
+            text: opt.text,
+            is_correct: opt.is_correct,
+          });
+        }
+      }
+      console.log("  → Skill Assessment quiz created with 5 questions");
+    } else {
+      console.log("  → Skill Assessment quiz already exists, skipping");
+    }
 
     console.log("✅ Database seed completed successfully!");
   } catch (error) {
