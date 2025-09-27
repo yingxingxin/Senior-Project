@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 interface UserProfileSectionProps {
   userName: string;
   email?: string;
+  skillLevel?: string | null;
   level: number;
   points: number;
   streakDays: number;
@@ -19,6 +20,7 @@ interface UserProfileSectionProps {
 export function UserProfileSection({
   userName,
   email,
+  skillLevel,
   level,
   points,
   streakDays,
@@ -39,6 +41,11 @@ export function UserProfileSection({
             </div>
             <div>
               <h1 className="text-2xl font-bold">{userName}</h1>
+              {skillLevel && (
+                <p className="text-sm font-medium text-primary">
+                  {skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1)} Level
+                </p>
+              )}
               {assistantName && (
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Learning with {assistantName}

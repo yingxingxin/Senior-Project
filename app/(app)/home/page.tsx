@@ -16,6 +16,7 @@ export default async function HomePage() {
         <UserProfileSection
           userName={data.userName}
           email={data.email}
+          skillLevel={data.skillLevel}
           level={data.level}
           points={data.points}
           streakDays={data.streakDays}

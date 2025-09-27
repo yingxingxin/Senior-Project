@@ -23,6 +23,12 @@ export const ONBOARDING_STEPS: ReadonlyArray<OnboardingStepDefinition> = [
     segment: 'gender',
   },
   {
+    id: 'skill_quiz',
+    title: 'Quick skill check',
+    description: 'Answer a few questions so we can start at the right level.',
+    segment: 'skill-quiz',
+  },
+  {
     id: 'persona',
     title: 'Tune their personality',
     description: 'Preview how the assistant speaks and pick your tone.',

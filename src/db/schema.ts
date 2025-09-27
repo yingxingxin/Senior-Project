@@ -25,7 +25,10 @@ export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masc
 
 export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
 
-export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'persona', 'guided_intro']);
+export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro']);
+
+// Skill level for initial placement from onboarding quiz
+export const skillLevelEnum = pgEnum('skill_level', ['beginner', 'intermediate', 'advanced']);
 
 /* Events that drive the activity feed and point awards */
 export const activityEventTypeEnum = pgEnum('activity_event_type', [
@@ -84,6 +87,8 @@ export const users = pgTable('users', {
   // Assistant preferences - set during onboarding
   assistant_id: integer('assistant_id').references(() => assistants.id),
   assistant_persona: assistantPersonaEnum('assistant_persona'),
+  // Skill placement from onboarding quiz
+  skill_level: skillLevelEnum('skill_level'),
   // Onboarding tracking
   onboarding_completed_at: timestamp('onboarding_completed_at', { withTimezone: true }),
   onboarding_step: onboardingStepEnum('onboarding_step'),
@@ -467,6 +472,10 @@ export const levels = pgTable('levels', {
   label: varchar('label', { length: 80 }), // "Beginner", "Intermediate", etc.
 });
 
+// Note: Skill quiz functionality now uses the existing quiz system
+// The skill_level enum and user.skill_level column are still used
+// but skill assessment questions are stored in the standard quiz tables
+
 /**
  * User Preferences Table - Stores personalized learning settings including difficulty, goals, and reminders
  *
@@ -780,6 +789,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   // Misc
   userMusicTracks: many(user_music_tracks),
 }));
+
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, {

@@ -21,6 +21,7 @@ export interface ActiveOnboardingUser {
   username: string;
   assistantId: number | null;
   assistantPersona: AssistantPersona | null;
+  skillLevel: string | null;
   onboardingCompletedAt: Date | null;
   onboardingStep: OnboardingStep | null;
 }
@@ -42,6 +43,7 @@ export async function requireActiveOnboardingUser(): Promise<ActiveOnboardingUse
       username: users.name,
       assistantId: users.assistant_id,
       assistantPersona: users.assistant_persona,
+      skillLevel: users.skill_level,
       onboardingCompletedAt: users.onboarding_completed_at,
       onboardingStep: users.onboarding_step,
     })
@@ -62,6 +64,7 @@ export async function requireActiveOnboardingUser(): Promise<ActiveOnboardingUse
     username: record.username,
     assistantId: record.assistantId,
     assistantPersona: record.assistantPersona as AssistantPersona | null,
+    skillLevel: record.skillLevel,
     onboardingCompletedAt: record.onboardingCompletedAt,
     onboardingStep: record.onboardingStep as OnboardingStep | null,
   };
@@ -81,9 +84,24 @@ export function resolveOnboardingStep(user: ActiveOnboardingUser): OnboardingSte
     return 'gender';
   }
 
-  if (!user.assistantPersona) {
+  // Skill quiz right after assistant selection
+  if (user.assistantId && !user.onboardingStep) {
+    return 'skill_quiz';
+  }
+
+  // If we have assistant but no persona, check if we need skill quiz first
+  if (user.assistantId && !user.assistantPersona) {
+    // If onboarding_step is explicitly set to skill_quiz, go there
+    if (user.onboardingStep === 'skill_quiz') {
+      return 'skill_quiz';
+    }
+    // Otherwise go to persona (skill quiz was completed)
     return 'persona';
   }
+
+  // After quiz, if persona not set, go there next
+  // If persona is set, fall through to guided intro
+  // Note: quiz submission can set onboarding_step to 'persona'
 
   return 'guided_intro';
 }

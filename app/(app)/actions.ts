@@ -54,6 +54,7 @@ type Lesson = {
 export type DashboardData = {
   userName: string;
   email?: string;
+  skillLevel: string | null;
   level: number;
   points: number;
   streakDays: number;
@@ -308,6 +309,7 @@ export async function getExploreData(): Promise<DashboardData> {
         id: users.id,
         name: users.name,
         email: users.email,
+        skill_level: users.skill_level,
         assistant_persona: users.assistant_persona,
         assistant_id: users.assistant_id,
         // Assistant fields
@@ -425,6 +427,7 @@ export async function getExploreData(): Promise<DashboardData> {
   return {
     userName,
     email,
+    skillLevel: userData.skill_level,
     level,
     points,
     streakDays,

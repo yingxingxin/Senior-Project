@@ -26,8 +26,8 @@ export default async function OnboardingGuidedIntroPage() {
 
   // Only redirect if user is trying to skip ahead
   // Allow access if this is current step or user is going back
-  const currentIndex = ['welcome', 'gender', 'persona', 'guided_intro'].indexOf(currentStep);
-  const thisIndex = 3; // guided_intro is index 3
+  const currentIndex = ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro'].indexOf(currentStep);
+  const thisIndex = 4; // guided_intro is index 4
 
   if (currentIndex > thisIndex + 1) {
     // User has progressed beyond this step, allow them to come back
@@ -38,6 +38,12 @@ export default async function OnboardingGuidedIntroPage() {
 
   const assistantName = user.assistantId ? await getAssistantNameForUser(user.userId) : null;
   const personaLabel = PERSONA_OPTIONS.find((option) => option.id === user.assistantPersona)?.title ?? 'Custom';
+  
+  // Format skill level for display
+  const getSkillLevelLabel = (level: string | null) => {
+    if (!level) return 'Not assessed';
+    return level.charAt(0).toUpperCase() + level.slice(1);
+  };
 
   return (
     <div className="w-full">
@@ -78,6 +84,10 @@ export default async function OnboardingGuidedIntroPage() {
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
                 <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Voice</dt>
                 <dd className="text-base text-foreground">{personaLabel}</dd>
+              </div>
+              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Skill Level</dt>
+                <dd className="text-base text-foreground">{getSkillLevelLabel(user.skillLevel)}</dd>
               </div>
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
                 <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Next action</dt>
