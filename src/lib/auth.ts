@@ -1,3 +1,5 @@
+import "server-only";
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
@@ -11,8 +13,8 @@ export const auth = betterAuth({
     schema,
   }),
 
-  secret: process.env.JWT_SECRET || process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 
   // Map Better Auth's expected camelCase to our snake_case database columns
   user: {
