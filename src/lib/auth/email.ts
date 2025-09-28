@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Resend } from 'resend'
 
 const EMAIL_FROM = 'onboarding@resend.dev'; // TODO: Change to verified domain in production
