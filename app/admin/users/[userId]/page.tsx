@@ -41,9 +41,19 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/src/lib/utils";
-
 import { UserDetailShell } from "@/components/admin/users/user-detail-shell";
-import { UserActions } from "./user-actions";
+import { UserActions } from "@/components/admin/users/user-actions";
+
+function getAvatarInitials(name: string | null | undefined, fallback: string) {
+  const base = name?.trim() || fallback;
+  const words = base.split(/\s+/);
+  const initials = words
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(word => word[0]?.toUpperCase() || "")
+    .join("");
+  return initials || fallback.slice(0, 2).toUpperCase();
+}
 
 const onboardingSteps = ["welcome", "gender", "skill_quiz", "persona", "guided_intro"] as const;
 
@@ -54,61 +64,6 @@ const onboardingStepLabels: Record<typeof onboardingSteps[number], string> = {
   persona: "Assistant persona",
   guided_intro: "Guided intro",
 };
-
-const relativeTimeFormatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
-function formatDate(date: Date | null | undefined) {
-  if (!date) return "Unknown";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
-}
-
-function formatDateTime(date: Date | null | undefined) {
-  if (!date) return "Unknown";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(date);
-}
-
-function formatRelativeTime(date: Date | null | undefined) {
-  if (!date) return "No activity yet";
-  const diffSeconds = (date.getTime() - Date.now()) / 1000;
-  const divisions: Array<{ amount: number; unit: Intl.RelativeTimeFormatUnit; divisor: number }> = [
-    { amount: 60, unit: "second", divisor: 1 },
-    { amount: 3600, unit: "minute", divisor: 60 },
-    { amount: 86400, unit: "hour", divisor: 3600 },
-    { amount: 604800, unit: "day", divisor: 86400 },
-    { amount: 2629800, unit: "week", divisor: 604800 },
-    { amount: 31557600, unit: "month", divisor: 2629800 },
-  ];
-
-  for (const division of divisions) {
-    if (Math.abs(diffSeconds) < division.amount) {
-      return relativeTimeFormatter.format(Math.round(diffSeconds / division.divisor), division.unit);
-    }
-  }
-
-  return relativeTimeFormatter.format(Math.round(diffSeconds / 31557600), "year");
-}
-
-function formatDuration(seconds: number | null | undefined) {
-  if (!seconds) return "—";
-  const minutes = Math.round(seconds / 60);
-  if (minutes <= 0) return "<1 min";
-  if (minutes < 60) return `${minutes} min`;
-  const hours = minutes / 60;
-  return `${hours.toFixed(hours >= 10 ? 0 : 1)} hr`;
-}
-
-function formatEventLabel(value: string) {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function getAvatarInitials(name: string | null | undefined, fallback: string) {
-  const source = name?.trim() || fallback;
-  const parts = source.split(/\s+/).slice(0, 2);
-  return parts.map((part) => part.charAt(0).toUpperCase()).join("") || fallback.slice(0, 2).toUpperCase();
-}
 
 const activityIconConfig: Record<string, { icon: LucideIcon; tone: string }> = {
   lesson_started: { icon: BookOpen, tone: "text-sky-500 bg-sky-500/10" },
@@ -368,8 +323,8 @@ export default async function UserDetailPage({ params }: { params: { userId: str
     {
       icon: Activity,
       label: "Last activity",
-      value: lastActiveAt ? formatRelativeTime(lastActiveAt) : "No activity",
-      helper: lastActiveAt ? formatDateTime(lastActiveAt) : undefined,
+      value: lastActiveAt ? lastActiveAt.toLocaleString("en-US") : "No activity",
+      helper: lastActiveAt ? lastActiveAt.toLocaleDateString("en-US") : undefined,
       tone: "bg-indigo-500/10 text-indigo-500",
     },
   ];
@@ -386,7 +341,10 @@ export default async function UserDetailPage({ params }: { params: { userId: str
     { label: "Skill level", value: user.skill_level ?? "—" },
     { label: "Assistant persona", value: user.assistant_persona ?? "—" },
     { label: "Assistant ID", value: user.assistant_id ?? "—" },
-    { label: "Joined", value: formatDate(user.created_at) },
+    {
+      label: "Joined",
+      value: user.created_at ? user.created_at.toLocaleDateString("en-US") : "Unknown",
+    },
   ];
 
   return (
@@ -421,14 +379,14 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" aria-hidden="true" />
-              Joined {formatDate(user.created_at)}
+              Joined {user.created_at ? user.created_at.toLocaleDateString("en-US") : "Unknown"}
             </span>
             <span className="hidden sm:inline" aria-hidden="true">
               &middot;
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" aria-hidden="true" />
-              {lastActiveAt ? `Last active ${formatRelativeTime(lastActiveAt)}` : "No activity yet"}
+              {lastActiveAt ? `Last active ${lastActiveAt.toLocaleString("en-US")}` : "No activity yet"}
             </span>
           </div>
         )}
@@ -484,7 +442,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {onboardingCompleted
-                      ? `Finished ${formatDateTime(user.onboarding_completed_at)}`
+                      ? `Finished ${user.onboarding_completed_at?.toLocaleString("en-US") ?? "Unknown"}`
                       : currentStep
                         ? `Currently at ${onboardingStepLabels[currentStep as typeof onboardingSteps[number]]}`
                         : "Awaiting first step"}
@@ -592,10 +550,10 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-semibold text-foreground">
-                              {formatEventLabel(event.eventType)}
+                              {event.eventType.replace(/_/g, " ")}
                             </p>
                             <span className="text-xs text-muted-foreground">
-                              {event.occurredAt ? formatRelativeTime(event.occurredAt) : "Unknown"}
+                              {event.occurredAt ? event.occurredAt.toLocaleString("en-US") : "Unknown"}
                             </span>
                           </div>
                           {context ? (
@@ -642,13 +600,13 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                           {lesson.lessonTitle || `Lesson ${lesson.lessonId}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Last touched {lesson.lastAccessedAt ? formatRelativeTime(lesson.lastAccessedAt) : "Unknown"}
+                          Last touched {lesson.lastAccessedAt ? lesson.lastAccessedAt.toLocaleString("en-US") : "Unknown"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {lesson.estimatedDurationSec ? (
                           <Badge variant="outline" className="text-xs">
-                            {formatDuration(lesson.estimatedDurationSec)}
+                            {`${Math.max(1, Math.round(lesson.estimatedDurationSec / 60))} min`}
                           </Badge>
                         ) : null}
                         {lesson.isCompleted ? (
@@ -698,7 +656,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                           {attempt.quizTopic || `Quiz ${attempt.quizId}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Attempt #{attempt.attemptNumber} • Started {attempt.startedAt ? formatRelativeTime(attempt.startedAt) : "Unknown"}
+                          Attempt #{attempt.attemptNumber} • Started {attempt.startedAt ? attempt.startedAt.toLocaleString("en-US") : "Unknown"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -723,10 +681,14 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <span>
-                        {attempt.durationSec ? `Duration ${formatDuration(attempt.durationSec)}` : "Duration unknown"}
+                        {attempt.durationSec
+                          ? `Duration ${Math.max(1, Math.round(attempt.durationSec / 60))} min`
+                          : "Duration unknown"}
                       </span>
                       {attempt.submittedAt ? (
-                        <span>Submitted {formatDateTime(attempt.submittedAt)}</span>
+                        <span>
+                          Submitted {attempt.submittedAt ? attempt.submittedAt.toLocaleString("en-US") : "Unknown"}
+                        </span>
                       ) : null}
                     </div>
                   </div>

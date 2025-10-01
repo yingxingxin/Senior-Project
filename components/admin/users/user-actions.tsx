@@ -18,8 +18,9 @@ import {
   resetUserOnboarding,
   setUserOnboardingStep,
   updateUserRole,
-} from "./actions";
+} from "../../../app/admin/users/[userId]/actions";
 
+// TODO: Import from schema.ts
 type OnboardingStep = "welcome" | "gender" | "skill_quiz" | "persona" | "guided_intro";
 
 interface UserActionsProps {

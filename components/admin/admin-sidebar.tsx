@@ -13,21 +13,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/src/lib/utils";
-import {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  Brain,
-  MessageSquare,
-  Palette,
-  Music,
-  Trophy,
-  BarChart3,
-  Settings,
-  ChevronDown,
-  LogOut,
-  Menu,
-} from "lucide-react";
+import { LayoutDashboard, Users, ChevronDown, LogOut, Menu } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavItem {
   title: string;
@@ -47,40 +34,20 @@ const ADMIN_NAV: NavItem[] = [
     href: "/admin/users",
     icon: Users,
   },
-  {
-    title: "Content",
-    href: "/admin/content",
-    icon: BookOpen,
-    children: [
-      { title: "Lessons", href: "/admin/content/lessons", icon: BookOpen },
-      { title: "Quizzes", href: "/admin/content/quizzes", icon: Brain },
-      { title: "Assistants", href: "/admin/content/assistants", icon: MessageSquare },
-      { title: "Dialogues", href: "/admin/content/dialogues", icon: MessageSquare },
-      { title: "Themes", href: "/admin/content/themes", icon: Palette },
-      { title: "Music", href: "/admin/content/music", icon: Music },
-      { title: "Achievements", href: "/admin/content/achievements", icon: Trophy },
-    ],
-  },
-  {
-    title: "Analytics",
-    href: "/admin/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "System",
-    href: "/admin/system",
-    icon: Settings,
-  },
 ];
 
-const DEFAULT_EXPANDED_TITLES = ["Content"] as const;
+const DEFAULT_EXPANDED_TITLES: string[] = [];
 const DEPTH_PADDING = ["", "pl-6", "pl-9", "pl-12"];
 
 interface AdminSidebarProps {
-  userEmail: string;
+  user: {
+    name: string | null;
+    email: string;
+    imageUrl?: string | null;
+  };
 }
 
-export function AdminSidebar({ userEmail }: AdminSidebarProps) {
+export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -148,7 +115,7 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
       if (hasChildren) {
         const expanded = expandedSections.has(item.title);
         const groupId = `${navId}-${item.title.replace(/\s+/g, "-").toLowerCase()}`;
-        const active = item.children.some((child) => isActive(child.href));
+        const active = item.children?.some((child) => isActive(child.href)) ?? false;
 
         return (
           <li key={item.title}>
@@ -200,7 +167,7 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
                 role="group"
                 className="mt-1 space-y-1 border-l border-border/40 pl-4"
               >
-                {item.children.map((child) => renderNavItem(child, depth + 1))}
+                {item.children?.map((child) => renderNavItem(child, depth + 1))}
               </ul>
             )}
           </li>
@@ -241,6 +208,9 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
     },
     [collapsed, expandedSections, getDepthPadding, isActive, navId, toggleSection]
   );
+
+  const displayName = user.name?.trim() || user.email.split("@")[0] || "Admin";
+  const avatarInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <aside
@@ -288,35 +258,42 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
         </nav>
       </ScrollArea>
 
-      <footer className="border-t px-4 py-4">
+      <footer className="border-t px-3 py-4">
         <div
           className={cn(
-            "overflow-hidden text-xs text-muted-foreground transition-[height,opacity] duration-200",
-            collapsed ? "h-0 opacity-0" : "h-4 opacity-100"
+            "flex items-center gap-3",
+            collapsed ? "justify-center" : "justify-start"
           )}
         >
-          <span className="block truncate">{userEmail}</span>
+          <Avatar className="h-9 w-9">
+            {user.imageUrl ? (
+              <AvatarImage src={user.imageUrl} alt={displayName} />
+            ) : null}
+            <AvatarFallback className="text-xs font-medium">
+              {avatarInitial}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-none">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          )}
         </div>
-        <Link
-          href="/home"
-          title="Exit Admin"
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
           className={cn(
-            "mt-3 flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-            collapsed && "gap-1 px-2"
+            "mt-4 w-full justify-center gap-2",
+            collapsed && "px-0"
           )}
         >
-          <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span
-            className={cn(
-              "truncate transition-[opacity,transform] duration-200",
-              collapsed
-                ? "pointer-events-none opacity-0 -translate-x-2"
-                : "opacity-100 translate-x-0"
-            )}
-          >
-            Exit Admin
-          </span>
-        </Link>
+          <Link href="/home" title="Exit admin">
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            <span className={cn("text-sm font-medium", collapsed && "sr-only")}>Exit admin</span>
+          </Link>
+        </Button>
       </footer>
     </aside>
   );
