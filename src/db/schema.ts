@@ -21,6 +21,9 @@ import { relations, sql } from 'drizzle-orm';
 // ============ ENUMS ============
 // These define the allowed values for certain fields
 
+// User role for admin access control
+export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
+
 export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masculine', 'androgynous']);
 
 export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
@@ -92,6 +95,8 @@ export const users = pgTable('users', {
   // Onboarding tracking
   onboarding_completed_at: timestamp('onboarding_completed_at', { withTimezone: true }),
   onboarding_step: onboardingStepEnum('onboarding_step'),
+  // Role for admin access (defaults to 'user')
+  role: userRoleEnum('role').notNull().default('user'),
 });
 
 /**
@@ -747,6 +752,113 @@ export const user_achievements = pgTable('user_achievements', {
   primaryKey({ columns: [t.user_id, t.achievement_id] }),
   index('ix_user_achievements__unlocked_at').on(t.unlocked_at),
 ]);
+
+
+// ============ TABLE TYPES & ENUM HELPERS ============
+
+// Enum helper exports for form and validation layers
+export const userRoleValues = userRoleEnum.enumValues;
+export type UserRole = (typeof userRoleValues)[number];
+
+export const assistantGenderValues = assistantGenderEnum.enumValues;
+export type AssistantGender = (typeof assistantGenderValues)[number];
+
+export const assistantPersonaValues = assistantPersonaEnum.enumValues;
+export type AssistantPersona = (typeof assistantPersonaValues)[number];
+
+export const onboardingStepValues = onboardingStepEnum.enumValues;
+export type OnboardingStep = (typeof onboardingStepValues)[number];
+
+export const skillLevelValues = skillLevelEnum.enumValues;
+export type SkillLevel = (typeof skillLevelValues)[number];
+
+export const activityEventTypeValues = activityEventTypeEnum.enumValues;
+export type ActivityEventType = (typeof activityEventTypeValues)[number];
+
+export const achievementRarityValues = achievementRarityEnum.enumValues;
+export type AchievementRarity = (typeof achievementRarityValues)[number];
+
+export const difficultyValues = difficultyEnum.enumValues;
+export type Difficulty = (typeof difficultyValues)[number];
+
+export const dialogueRoleValues = ['assistant', 'user', 'system'] as const;
+export type DialogueRole = (typeof dialogueRoleValues)[number];
+
+// Table model helpers (select & insert)
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+export type Account = typeof accounts.$inferSelect;
+export type NewAccount = typeof accounts.$inferInsert;
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+
+export type Verification = typeof verifications.$inferSelect;
+export type NewVerification = typeof verifications.$inferInsert;
+
+export type Assistant = typeof assistants.$inferSelect;
+export type NewAssistant = typeof assistants.$inferInsert;
+
+export type Lesson = typeof lessons.$inferSelect;
+export type NewLesson = typeof lessons.$inferInsert;
+
+export type LessonSection = typeof lesson_sections.$inferSelect;
+export type NewLessonSection = typeof lesson_sections.$inferInsert;
+
+export type MusicTrack = typeof music_tracks.$inferSelect;
+export type NewMusicTrack = typeof music_tracks.$inferInsert;
+
+export type Dialogue = typeof dialogues.$inferSelect;
+export type NewDialogue = typeof dialogues.$inferInsert;
+
+export type Theme = typeof themes.$inferSelect;
+export type NewTheme = typeof themes.$inferInsert;
+
+export type UserThemeSetting = typeof user_theme_settings.$inferSelect;
+export type NewUserThemeSetting = typeof user_theme_settings.$inferInsert;
+
+export type Quiz = typeof quizzes.$inferSelect;
+export type NewQuiz = typeof quizzes.$inferInsert;
+
+export type QuizQuestion = typeof quiz_questions.$inferSelect;
+export type NewQuizQuestion = typeof quiz_questions.$inferInsert;
+
+export type QuizOption = typeof quiz_options.$inferSelect;
+export type NewQuizOption = typeof quiz_options.$inferInsert;
+
+export type Level = typeof levels.$inferSelect;
+export type NewLevel = typeof levels.$inferInsert;
+
+export type UserPreference = typeof user_preferences.$inferSelect;
+export type NewUserPreference = typeof user_preferences.$inferInsert;
+
+export type StudySetting = typeof study_settings.$inferSelect;
+export type NewStudySetting = typeof study_settings.$inferInsert;
+
+export type UserLessonProgress = typeof user_lesson_progress.$inferSelect;
+export type NewUserLessonProgress = typeof user_lesson_progress.$inferInsert;
+
+export type UserLessonSection = typeof user_lesson_sections.$inferSelect;
+export type NewUserLessonSection = typeof user_lesson_sections.$inferInsert;
+
+export type UserMusicTrack = typeof user_music_tracks.$inferSelect;
+export type NewUserMusicTrack = typeof user_music_tracks.$inferInsert;
+
+export type QuizAttempt = typeof quiz_attempts.$inferSelect;
+export type NewQuizAttempt = typeof quiz_attempts.$inferInsert;
+
+export type QuizAttemptAnswer = typeof quiz_attempt_answers.$inferSelect;
+export type NewQuizAttemptAnswer = typeof quiz_attempt_answers.$inferInsert;
+
+export type ActivityEvent = typeof activity_events.$inferSelect;
+export type NewActivityEvent = typeof activity_events.$inferInsert;
+
+export type Achievement = typeof achievements.$inferSelect;
+export type NewAchievement = typeof achievements.$inferInsert;
+
+export type UserAchievement = typeof user_achievements.$inferSelect;
+export type NewUserAchievement = typeof user_achievements.$inferInsert;
 
 
 // ============ TABLE RELATIONSHIPS ============
