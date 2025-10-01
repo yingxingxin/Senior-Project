@@ -74,10 +74,10 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
               <div className="rounded-[18px] border border-border bg-accent px-5 py-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <p className="text-base leading-relaxed flex-1">{speech}</p>
-                  <AudioPlayer 
+                  <AudioPlayer
                     text={speech}
                     persona={persona}
-                    gender={assistant.gender}
+                    gender={assistant.gender ?? undefined}
                     size="sm"
                     className="shrink-0 mt-1"
                   />
