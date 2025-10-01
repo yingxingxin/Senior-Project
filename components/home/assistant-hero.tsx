@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Play, BookOpen, Sparkles, MessageSquare, Bot, Swords } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { AudioPlayer } from "@/components/ui/audio-player";
 
 type Persona = "kind" | "direct" | "calm";
 type Gender = "feminine" | "masculine" | "androgynous";
@@ -71,7 +72,16 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
 
             <div className="relative inline-block max-w-full mb-4">
               <div className="rounded-[18px] border border-border bg-accent px-5 py-4 shadow-sm">
-                <p className="text-base leading-relaxed">{speech}</p>
+                <div className="flex items-start gap-3">
+                  <p className="text-base leading-relaxed flex-1">{speech}</p>
+                  <AudioPlayer
+                    text={speech}
+                    persona={persona}
+                    gender={assistant.gender ?? undefined}
+                    size="sm"
+                    className="shrink-0 mt-1"
+                  />
+                </div>
               </div>
               {/* tail */}
               <div className="absolute -left-2 top-6 h-3 w-3 rotate-45 border-l border-t bg-accent border-border" />
