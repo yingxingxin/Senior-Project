@@ -19,6 +19,7 @@ import {
   InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot,
 } from "@/components/ui/input-otp"
 import { Heading, Muted } from "@/components/ui/typography"
+import { Stack, Inline } from "@/components/ui/spacing"
 
 const OTP_CODE_LENGTH = 6
 
@@ -48,9 +49,9 @@ export function OtpForm({
   }
 
   return (
-    <div className="space-y-6" aria-live="polite">
+    <Stack gap="default" aria-live="polite">
       {/* Header */}
-      <div className="flex items-center gap-3 text-foreground">
+      <Inline gap="default" align="center" className="text-foreground">
         {headerIcon}
         <div>
           <Heading level={4}>{headerTitle}</Heading>
@@ -58,7 +59,7 @@ export function OtpForm({
             {headerDescription || <>We sent a verification code to <strong>{email}</strong>.</>}
           </Muted>
         </div>
-      </div>
+      </Inline>
 
       {/* Server message */}
       {message && (
@@ -83,7 +84,7 @@ export function OtpForm({
           </Button>
         </div>
       )}
-    </div>
+    </Stack>
   )
 }
 

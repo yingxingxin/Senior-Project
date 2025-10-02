@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
 import { Heading, Muted } from "@/components/ui/typography"
+import { Stack } from "@/components/ui/spacing"
 
 type AuthSuccessProps = {
   icon?: React.ReactNode
@@ -26,13 +27,13 @@ export function AuthSuccess({
   secondaryAction,
 }: AuthSuccessProps) {
   return (
-    <div className="space-y-6" aria-live="polite">
-      <div className="flex flex-col items-center space-y-4">
+    <Stack gap="default" aria-live="polite">
+      <Stack gap="tight" className="flex flex-col items-center">
         {icon}
         <Heading level={2} className="text-center">
           {title}
         </Heading>
-      </div>
+      </Stack>
 
       {message && (
         <Muted variant="small" className="text-center">
@@ -41,7 +42,7 @@ export function AuthSuccess({
       )}
 
       {(primaryAction || secondaryAction) && (
-        <div className="space-y-3">
+        <Stack gap="tight">
           {primaryAction && (
             <Button onClick={primaryAction.onClick} className="w-full">
               {primaryAction.label}
@@ -52,8 +53,8 @@ export function AuthSuccess({
               {secondaryAction.label}
             </Button>
           )}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Stack>
   )
 }

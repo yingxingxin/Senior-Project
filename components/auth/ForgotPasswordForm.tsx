@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AuthCard } from "@/components/auth/shared/AuthCard";
 import { AuthForm } from "@/components/auth/shared/AuthForm";
 import { OtpForm } from "@/components/auth/shared/OtpForm";
 import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
@@ -15,7 +14,8 @@ import {
   passwordResetRequestSchema,
   passwordResetSchema,
 } from "@/src/lib/auth/schemas";
-import { Muted } from "@/components/ui/typography";
+import { Heading, Muted } from "@/components/ui/typography";
+import { Stack } from "@/components/ui/spacing";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -147,10 +147,10 @@ export default function ForgotPasswordForm() {
   if (step === "password") {
     return (
       <>
-        <AuthCard.Header>
-          <AuthCard.Title>Set New Password</AuthCard.Title>
-          <AuthCard.Description>Choose a strong password for your account</AuthCard.Description>
-        </AuthCard.Header>
+        <Stack gap="tight">
+          <Heading level={1}>Set New Password</Heading>
+          <Muted variant="small" as="p">Choose a strong password for your account</Muted>
+        </Stack>
 
         <AuthForm {...pwForm}>
           <form onSubmit={onSavePassword} noValidate aria-busy={pwForm.formState.isSubmitting}>
@@ -192,12 +192,12 @@ export default function ForgotPasswordForm() {
   // email
   return (
     <>
-      <AuthCard.Header>
-        <AuthCard.Title>Forgot Password?</AuthCard.Title>
-        <AuthCard.Description>We&apos;ll send a verification code if your email exists</AuthCard.Description>
-      </AuthCard.Header>
+      <Stack gap="tight">
+        <Heading level={1}>Forgot Password?</Heading>
+        <Muted variant="small" as="p">We&apos;ll send a verification code if your email exists</Muted>
+      </Stack>
 
-      <div className="space-y-6">
+      <Stack gap="default">
         <AuthForm {...emailForm}>
           <form onSubmit={onSendCode} noValidate aria-busy={emailForm.formState.isSubmitting}>
             <AuthForm.Body>
@@ -233,7 +233,7 @@ export default function ForgotPasswordForm() {
             </AuthForm.Body>
           </form>
         </AuthForm>
-      </div>
+      </Stack>
     </>
   );
 }

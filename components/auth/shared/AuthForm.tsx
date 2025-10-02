@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Stack } from "@/components/ui/spacing"
 import { cn } from "@/lib/utils"
 
 function withAuthLabel(children?: React.ReactNode) {
@@ -104,16 +105,22 @@ const AuthFormRootError = ({ message }: { message?: string }) => {
   )
 }
 
-const AuthFormFieldset = ({ className, ...props }: React.FieldsetHTMLAttributes<HTMLFieldSetElement>) => (
-  <fieldset className={cn("space-y-5", className)} {...props} />
+const AuthFormFieldset = ({ children, ...props }: React.FieldsetHTMLAttributes<HTMLFieldSetElement>) => (
+  <Stack gap="tight" as="fieldset" {...props}>
+    {children}
+  </Stack>
 )
 
-const AuthFormActions = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-4", className)} {...props} />
+const AuthFormActions = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <Stack gap="tight" {...props}>
+    {children}
+  </Stack>
 )
 
-const AuthFormBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-6", className)} {...props} />
+const AuthFormBody = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <Stack gap="default" {...props}>
+    {children}
+  </Stack>
 )
 
 interface AuthFormButtonProps extends ButtonProps {

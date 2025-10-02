@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { submitSkillQuizAnswers } from "@/app/onboarding/actions";
 import { Heading, Muted } from "@/components/ui/typography";
+import { Stack, Grid, Inline } from "@/components/ui/spacing";
 
 // TODO: these probably could come from the db schema
 type Question = {
@@ -117,7 +118,8 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
         </Card>
       )}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Stack gap="default">
         {initialQuestions.map((q, idx) => (
           <Card key={q.id}>
             <CardHeader>
@@ -137,19 +139,19 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
                       onValueChange={(v) => field.onChange(v === "" ? null : Number(v))}
                       disabled={form.formState.isSubmitting}
                     >
-                      <div className="grid gap-3">
+                      <Grid gap="tight">
                         {q.options.map((opt) => {
                           const inputId = `q${q.id}-o${opt.id}`;
                           return (
-                            <div key={opt.id} className="flex items-center gap-3">
+                            <Inline key={opt.id} gap="default" align="center">
                               <RadioGroupItem value={String(opt.id)} id={inputId} />
                               <Label htmlFor={inputId} className="cursor-pointer">
                                 {opt.text}
                               </Label>
-                            </div>
+                            </Inline>
                           );
                         })}
-                      </div>
+                      </Grid>
                     </RadioGroup>
 
                     {/* keep questionId in the form data */}
@@ -181,6 +183,7 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
             {form.formState.isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </div>
+        </Stack>
       </form>
     </>
   );

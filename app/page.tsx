@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { db, users } from "@/src/db";
 import { eq } from "drizzle-orm";
 import { Display, Heading, Body, Muted } from "@/components/ui/typography";
+import { Stack } from "@/components/ui/spacing";
 
 async function getAuthState() {
   const session = await auth.api.getSession({
@@ -74,7 +75,7 @@ export default async function LandingPage() {
 
       {/* Hero Section */}
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+        <Stack gap="loose" className="max-w-4xl mx-auto text-center">
           <Display level={1} className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Learn with Your Personal AI Assistant
           </Display>
@@ -112,11 +113,11 @@ export default async function LandingPage() {
               </>
             )}
           </div>
-        </div>
+        </Stack>
 
         {/* Feature Cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-16 sm:mt-20 max-w-5xl mx-auto">
-          <div className="rounded-lg border bg-card p-6 space-y-3">
+          <Stack gap="tight" className="rounded-lg border bg-card p-6">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
@@ -124,9 +125,9 @@ export default async function LandingPage() {
             <Muted variant="small">
               Choose your assistant&apos;s appearance and personality to match your learning style.
             </Muted>
-          </div>
+          </Stack>
 
-          <div className="rounded-lg border bg-card p-6 space-y-3">
+          <Stack gap="tight" className="rounded-lg border bg-card p-6">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <BookOpen className="h-6 w-6 text-primary" />
             </div>
@@ -134,9 +135,9 @@ export default async function LandingPage() {
             <Muted variant="small">
               Engage with dynamic content, quizzes, and real-time feedback from your assistant.
             </Muted>
-          </div>
+          </Stack>
 
-          <div className="rounded-lg border bg-card p-6 space-y-3">
+          <Stack gap="tight" className="rounded-lg border bg-card p-6">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Brain className="h-6 w-6 text-primary" />
             </div>
@@ -144,7 +145,7 @@ export default async function LandingPage() {
             <Muted variant="small">
               Monitor your learning journey with detailed analytics and achievement tracking.
             </Muted>
-          </div>
+          </Stack>
         </div>
       </main>
     </div>

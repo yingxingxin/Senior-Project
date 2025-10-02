@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Heading, Muted, Caption, Body } from '@/components/ui/typography';
+import { Stack } from '@/components/ui/spacing';
 
 interface PersonaSelectionFormProps {
   options: ReadonlyArray<PersonaOption>;
@@ -80,7 +81,7 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
   };
 
   return (
-    <div className="space-y-8">
+    <Stack gap="loose">
       {error ? (
         <Alert variant="destructive" className="border-red-400/40 bg-red-500/10 text-red-100">
           <AlertDescription>{error}</AlertDescription>
@@ -294,6 +295,6 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
           )}
         </Button>
       </div>
-    </div>
+    </Stack>
   );
 }

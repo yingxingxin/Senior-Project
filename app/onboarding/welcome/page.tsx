@@ -8,6 +8,7 @@ import {
 import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
 import { persistOnboardingStep } from '@/app/onboarding/actions';
 import { Display, Body, Caption, Heading, Muted } from '@/components/ui/typography';
+import { Stack, Grid, Inline } from '@/components/ui/spacing';
 
 export default async function OnboardingWelcomePage() {
   const user = await requireActiveOnboardingUser();
@@ -72,44 +73,44 @@ export default async function OnboardingWelcomePage() {
                 </Body>
 
                 {/* What to expect section */}
-                <div className="mt-12 space-y-4">
+                <Stack gap="tight" className="mt-12">
                   <Caption variant="uppercase">
                     What to expect
                   </Caption>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
+                  <Grid cols={4} gap="tight">
+                    <Inline gap="default" align="start" className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
                         <Heading level={6} className="mb-1">Step 1: Choose Your Assistant</Heading>
                         <Muted variant="small">Pick the visual style that feels most comfortable for your study sessions.</Muted>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
+                    </Inline>
+                    <Inline gap="default" align="start" className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
                         <Heading level={6} className="mb-1">Step 2: Quick Skill Check</Heading>
                         <Muted variant="small">Answer a few questions so we can start you at the right learning level.</Muted>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
+                    </Inline>
+                    <Inline gap="default" align="start" className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
                         <Heading level={6} className="mb-1">Step 3: Set Their Voice</Heading>
                         <Muted variant="small">Preview how they&apos;ll respond and choose the coaching tone that motivates you.</Muted>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-4 rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
+                    </Inline>
+                    <Inline gap="default" align="start" className="rounded-2xl border border-border bg-muted/30 p-4 backdrop-blur">
                       <span className="mt-1 size-2 rounded-full bg-primary" aria-hidden />
                       <div className="flex-1">
                         <Heading level={6} className="mb-1">Step 4: Guided Tour</Heading>
                         <Muted variant="small">Launch straight into a dashboard tour with your new companion.</Muted>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                    </Inline>
+                  </Grid>
+                </Stack>
 
                 {/* CTA section */}
-                <div className="mt-12 flex flex-col items-center gap-6">
+                <Stack gap="default" className="mt-12 flex flex-col items-center">
                   <form action={handleStartOnboarding}>
                     <button
                       type="submit"
@@ -122,7 +123,7 @@ export default async function OnboardingWelcomePage() {
                   <Muted variant="small" className="text-center">
                     Takes about 3 minutes to complete
                   </Muted>
-                </div>
+                </Stack>
               </div>
             </div>
           </div>

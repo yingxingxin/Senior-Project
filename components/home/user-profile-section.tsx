@@ -1,6 +1,7 @@
 import { Trophy, Flame, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Heading, Muted } from "@/components/ui/typography";
+import { Inline } from "@/components/ui/spacing";
 
 interface UserProfileSectionProps {
   userName: string;
@@ -34,7 +35,7 @@ export function UserProfileSection({
       <div className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           {/* User Info */}
-          <div className="flex items-center gap-4">
+          <Inline gap="default" align="center">
             <div className="h-16 w-16 rounded-2xl bg-primary grid place-items-center text-primary-foreground shadow-lg">
               <span className="text-2xl font-bold">
                 {userName.charAt(0).toUpperCase()}
@@ -56,15 +57,15 @@ export function UserProfileSection({
                 <Muted variant="tiny">{email}</Muted>
               )}
             </div>
-          </div>
+          </Inline>
 
           {/* Level Progress */}
           <div className="flex-1 max-w-md min-w-[250px]">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+              <Inline gap="tight" align="center">
                 <Trophy className="h-4 w-4 text-primary" />
                 <Heading level={6} as="span">Level {level}</Heading>
-              </div>
+              </Inline>
               <Muted variant="small" as="span">
                 {points.toLocaleString()} points
               </Muted>
@@ -82,7 +83,7 @@ export function UserProfileSection({
           </div>
 
           {/* Quick Stats */}
-          <div className="flex items-center gap-6">
+          <Inline gap="loose" align="center">
             <div className="text-center">
               <div className="flex items-center gap-1 mb-1">
                 <Flame className="h-4 w-4 text-orange-500" />
@@ -97,7 +98,7 @@ export function UserProfileSection({
               </div>
               <Muted variant="tiny" as="span">Badges</Muted>
             </div>
-          </div>
+          </Inline>
         </div>
       </div>
     </Card>

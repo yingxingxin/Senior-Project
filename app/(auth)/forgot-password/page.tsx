@@ -1,5 +1,5 @@
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm"
-import { AuthCard } from "@/components/auth/shared/AuthCard"
+import { Stack } from "@/components/ui/spacing"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthCard>
+    <Stack gap="loose">
       <ForgotPasswordForm />
-    </AuthCard>
+    </Stack>
   )
 }

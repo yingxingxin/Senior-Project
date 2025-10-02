@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthForm } from "@/components/auth/shared/AuthForm";
 import { OtpForm } from "@/components/auth/shared/OtpForm";
 import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
+import { Stack, Grid } from "@/components/ui/spacing";
 
 import {
   signupSchema,
@@ -147,7 +148,7 @@ export default function SignupForm() {
             </AuthForm.Actions>
 
             {/* Social sign-in */}
-            <div className="space-y-4">
+            <Stack gap="tight">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-border" />
@@ -157,7 +158,7 @@ export default function SignupForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              <Grid cols={2} gap="tight">
                 <AuthForm.Button
                   type="button"
                   variant="outline"
@@ -185,8 +186,8 @@ export default function SignupForm() {
                   </svg>
                   <span className="ml-2">GitHub</span>
                 </AuthForm.Button>
-              </div>
-            </div>
+              </Grid>
+            </Stack>
           </AuthForm.Body>
         </form>
       </AuthForm>

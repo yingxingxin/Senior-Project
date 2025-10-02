@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { AchievementTile } from "./achievement-tile";
 import { Heading } from "@/components/ui/typography";
+import { Grid } from "@/components/ui/spacing";
 
 export type Badge = {
   id: string;
@@ -28,11 +29,11 @@ export function AchievementsSection({ badges }: AchievementsSectionProps) {
             View all →
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <Grid cols={2} gap="tight">
           {badges.slice(0, 6).map((badge) => (
             <AchievementTile key={badge.id} badge={badge} compact />
           ))}
-        </div>
+        </Grid>
       </div>
     </Card>
   );

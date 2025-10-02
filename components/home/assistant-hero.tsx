@@ -4,6 +4,7 @@ import { ArrowRight, Play, BookOpen, Sparkles, MessageSquare, Bot, Swords } from
 import { Card } from "@/components/ui/card";
 import { AudioPlayer } from "@/components/ui/audio-player";
 import { Heading, Muted, Body } from "@/components/ui/typography";
+import { Inline } from "@/components/ui/spacing";
 
 type Persona = "kind" | "direct" | "calm";
 type Gender = "feminine" | "masculine" | "androgynous";
@@ -73,7 +74,7 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
 
             <div className="relative inline-block max-w-full mb-4">
               <div className="rounded-[18px] border border-border bg-accent px-5 py-4 shadow-sm">
-                <div className="flex items-start gap-3">
+                <Inline gap="default" align="start">
                   <Body className="flex-1">{speech}</Body>
                   <AudioPlayer
                     text={speech}
@@ -82,13 +83,13 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                     size="sm"
                     className="shrink-0 mt-1"
                   />
-                </div>
+                </Inline>
               </div>
               {/* tail */}
               <div className="absolute -left-2 top-6 h-3 w-3 rotate-45 border-l border-t bg-accent border-border" />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <Inline gap="default" align="center">
               <Link
                 href={primaryAction.href}
                 className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition shadow-sm"
@@ -98,7 +99,7 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                 <ArrowRight className="h-4 w-4" />
               </Link>
 
-              <div className="flex gap-2">
+              <Inline gap="tight">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
                   return (
@@ -112,8 +113,8 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                     </Link>
                   );
                 })}
-              </div>
-            </div>
+              </Inline>
+            </Inline>
           </div>
         </div>
       </div>

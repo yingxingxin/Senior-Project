@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Heading, Muted } from "@/components/ui/typography";
+import { Grid } from "@/components/ui/spacing";
 
 type Lesson = {
   id: number;
@@ -51,7 +52,7 @@ export function ExploreSection({ lessons }: ExploreSectionProps) {
   return (
     <section>
       <Heading level={5} className="mb-3">Explore</Heading>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Grid cols={3} gap="tight">
         {lessons.map((lesson) => {
           const duration = formatDuration(lesson.estimatedDurationSec);
           const difficulty = getDifficultyLabel(lesson.difficulty);
@@ -76,7 +77,7 @@ export function ExploreSection({ lessons }: ExploreSectionProps) {
             </Card>
           );
         })}
-      </div>
+      </Grid>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import SignupForm from "@/components/auth/SignupForm"
-import { AuthCard } from "@/components/auth/shared/AuthCard"
+import { Heading, Muted } from "@/components/ui/typography"
+import { Stack } from "@/components/ui/spacing"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -10,18 +11,17 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <AuthCard
-      title="Create an account"
-      subtitle={
-        <span className="text-base sm:text-sm text-muted-foreground">
+    <Stack gap="loose">
+      <Stack gap="tight">
+        <Heading level={1}>Create an account</Heading>
+        <Muted variant="small" as="p">
           Already have an account?{" "}
           <Link href="/login" className="font-medium text-foreground underline hover:no-underline">
             Log in
           </Link>
-        </span>
-      }
-    >
+        </Muted>
+      </Stack>
       <SignupForm />
-    </AuthCard>
+    </Stack>
   )
 }

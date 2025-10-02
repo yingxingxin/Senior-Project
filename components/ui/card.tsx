@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Muted } from "./typography"
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -44,12 +45,16 @@ CardTitle.displayName = "CardTitle"
 const CardDescription = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
+>(({ className, children, ...props }, ref) => (
+  <div ref={ref} {...props}>
+    <Muted
+      variant="small"
+      as="div"
+      className={className}
+    >
+      {children}
+    </Muted>
+  </div>
 ))
 CardDescription.displayName = "CardDescription"
 

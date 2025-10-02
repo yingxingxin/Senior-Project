@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Heading, Muted, Caption } from '@/components/ui/typography';
+import { Stack, Grid } from '@/components/ui/spacing';
 
 interface AssistantSelectionFormProps {
   options: ReadonlyArray<AssistantOption>;
@@ -51,7 +52,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
   };
 
   return (
-    <div className="space-y-6">
+    <Stack gap="default">
       {error ? (
         <Alert variant="destructive" className="border-red-400/40 bg-red-500/10 text-red-100">
           <AlertDescription>{error}</AlertDescription>
@@ -62,8 +63,9 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
         value={localSelection?.toString()}
         onValueChange={(value) => setLocalSelection(Number(value))}
         disabled={pending}
-        className="grid gap-6 lg:grid-cols-3"
+        asChild
       >
+        <Grid cols={3} gap="default">
         {options.map((option) => {
           const isSelected = localSelection === option.id;
           const isHovered = hoveredCard === option.id;
@@ -178,7 +180,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                 )}
 
                 {/* Footer section */}
-                <div className="mt-6 flex flex-col gap-3">
+                <Stack gap="tight" className="mt-6 flex flex-col">
                   {/* Gender label */}
                   <div className="flex justify-center">
                     <Caption variant="uppercase" className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-muted-foreground">
@@ -209,16 +211,17 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
                       </div>
                     )}
                   </div>
-                </div>
+                </Stack>
               </div>
               </label>
             </div>
           );
         })}
+        </Grid>
       </RadioGroup>
 
       {/* Status and Continue button */}
-      <div className="mt-8 flex flex-col items-center gap-4">
+      <Stack gap="tight" className="mt-8 flex flex-col items-center">
         {localSelection && (
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2">
             <span className="size-2 rounded-full bg-cyan-300" />
@@ -249,7 +252,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
             Select an assistant to continue
           </Muted>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }

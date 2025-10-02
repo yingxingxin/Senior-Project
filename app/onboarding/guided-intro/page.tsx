@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 import { GuidedIntroCompletion } from '@/components/onboarding/GuidedIntroCompletion';
 import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
-import { BackButton } from '@/components/onboarding/BackButton';
+import { Button } from '@/components/ui/button';
 import { getAssistantNameForUser } from '@/src/db/queries/onboarding';
 import { PERSONA_OPTIONS } from '@/src/lib/onboarding/fixtures';
 import {
@@ -11,6 +13,7 @@ import {
 } from '@/src/lib/onboarding/server';
 import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
 import { Display, Body, Caption, Heading } from '@/components/ui/typography';
+import { Stack, Grid } from '@/components/ui/spacing';
 
 export default async function OnboardingGuidedIntroPage() {
   const user = await requireActiveOnboardingUser();
@@ -52,7 +55,12 @@ export default async function OnboardingGuidedIntroPage() {
 
       {/* Back navigation */}
       <div className="mb-6">
-        <BackButton href={getOnboardingStepHref('persona')} label="Back to Personality" />
+        <Link href={getOnboardingStepHref('persona')}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Personality
+          </Button>
+        </Link>
       </div>
 
       {/* Full-width header section */}
@@ -67,38 +75,38 @@ export default async function OnboardingGuidedIntroPage() {
 
       {/* Centered content grid */}
       <div className="mx-auto max-w-5xl animate-fade-in-up">
-        <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
+        <Grid gap="loose" className="lg:grid-cols-[1.5fr_1fr]">
         <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-lg backdrop-blur-2xl sm:p-8 animate-scale-in">
-          <div className="relative flex flex-col gap-6">
+          <Stack gap="default" className="relative flex flex-col">
             <div>
               <Caption variant="uppercase" className="text-muted-foreground">Summary</Caption>
               <Heading level={3} className="mt-2">Your companion is ready to launch</Heading>
             </div>
 
-            <dl className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
-              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+            <Grid cols={2} gap="tight" className="text-sm text-muted-foreground">
+              <Stack gap="tight" as="div" className="rounded-2xl border border-border bg-muted/30 p-4">
                 <dt><Caption variant="uppercase" className="text-muted-foreground">Companion</Caption></dt>
                 <dd className="text-base text-foreground">
                   {assistantName ? assistantName : `Assistant #${user.assistantId}`}
                 </dd>
-              </div>
-              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+              </Stack>
+              <Stack gap="tight" as="div" className="rounded-2xl border border-border bg-muted/30 p-4">
                 <dt><Caption variant="uppercase" className="text-muted-foreground">Voice</Caption></dt>
                 <dd className="text-base text-foreground">{personaLabel}</dd>
-              </div>
-              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+              </Stack>
+              <Stack gap="tight" as="div" className="rounded-2xl border border-border bg-muted/30 p-4">
                 <dt><Caption variant="uppercase" className="text-muted-foreground">Skill Level</Caption></dt>
                 <dd className="text-base text-foreground">{getSkillLevelLabel(user.skillLevel)}</dd>
-              </div>
-              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+              </Stack>
+              <Stack gap="tight" as="div" className="rounded-2xl border border-border bg-muted/30 p-4">
                 <dt><Caption variant="uppercase" className="text-muted-foreground">Next action</Caption></dt>
                 <dd className="text-base text-foreground">Guided dashboard tour</dd>
-              </div>
-              <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
+              </Stack>
+              <Stack gap="tight" as="div" className="rounded-2xl border border-border bg-muted/30 p-4">
                 <dt><Caption variant="uppercase" className="text-muted-foreground">Runtime</Caption></dt>
                 <dd className="text-base text-foreground">Under 2 minutes</dd>
-              </div>
-            </dl>
+              </Stack>
+            </Grid>
 
             <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-sm text-muted-foreground animate-glow-pulse">
               <p className="flex items-start gap-2">
@@ -106,20 +114,20 @@ export default async function OnboardingGuidedIntroPage() {
                 Look for the neon highlights—they&apos;ll guide you through Study Queue, Practice Arena, and your Progress Pulse.
               </p>
             </div>
-          </div>
+          </Stack>
         </section>
 
-        <aside className="flex flex-col justify-between gap-6 rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-lg backdrop-blur-2xl animate-slide-in-left">
-          <div className="space-y-3">
+        <Stack gap="default" as="aside" className="flex flex-col justify-between rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-lg backdrop-blur-2xl animate-slide-in-left">
+          <Stack gap="tight">
             <h3><Caption variant="uppercase" className="text-muted-foreground">Final check</Caption></h3>
             <Body variant="small" className="leading-relaxed text-muted-foreground">
               We saved your setup. Kick off the guided intro whenever you&apos;re ready—we&apos;ll keep the welcome tour on standby if you need a refresher later.
             </Body>
-          </div>
+          </Stack>
 
           <GuidedIntroCompletion />
-        </aside>
-        </div>
+        </Stack>
+        </Grid>
       </div>
     </div>
   );

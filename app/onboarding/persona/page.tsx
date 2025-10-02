@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 import {
   requireActiveOnboardingUser,
@@ -8,7 +10,7 @@ import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
 import { PERSONA_OPTIONS } from '@/src/lib/onboarding/fixtures';
 import { PersonaSelectionForm } from '@/components/onboarding/PersonaSelectionForm';
 import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
-import { BackButton } from '@/components/onboarding/BackButton';
+import { Button } from '@/components/ui/button';
 import { Display, Body } from '@/components/ui/typography';
 
 export default async function OnboardingPersonaPage() {
@@ -38,7 +40,12 @@ export default async function OnboardingPersonaPage() {
 
       {/* Back navigation */}
       <div className="mb-6">
-        <BackButton href={getOnboardingStepHref('gender')} label="Back to Assistant Selection" />
+        <Link href={getOnboardingStepHref('gender')}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Assistant Selection
+          </Button>
+        </Link>
       </div>
 
       {/* Full-width header section */}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Sparkles, Swords } from "lucide-react";
 import type { Activity } from "./recent-activities";
 import { Heading } from "@/components/ui/typography";
+import { Inline } from "@/components/ui/spacing";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -12,7 +13,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const isQuiz = activity.kind === "quiz";
 
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-accent transition">
+    <Inline gap="default" align="center" className="p-4 rounded-xl border border-border hover:bg-accent transition">
       <div className="shrink-0">
         <div className="h-12 w-12 rounded-xl bg-muted grid place-items-center">
           {isLesson ? (
@@ -65,6 +66,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         {isQuiz ? "Review" : "Resume"}
         <ArrowRight className="h-3.5 w-3.5" />
       </Link>
-    </div>
+    </Inline>
   );
 }
