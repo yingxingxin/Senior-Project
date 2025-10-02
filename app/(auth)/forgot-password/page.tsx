@@ -9,11 +9,10 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    // We don't provide a header or footer here because 
-    // forgotpasswordform is a multi-step form, 
-    // each step defines its own header and footer
-    <AuthCard>
-      <ForgotPasswordForm />
-    </AuthCard>
+    <div className="w-full max-w-md">
+      <AuthCard>
+        <ForgotPasswordForm />
+      </AuthCard>
+    </div>
   )
 }

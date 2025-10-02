@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -192,7 +193,7 @@ export default function ForgotPasswordForm() {
     <>
       <AuthCard.Header>
         <AuthCard.Title>Forgot Password?</AuthCard.Title>
-        <AuthCard.Description>Enter your email and we will send a verification code</AuthCard.Description>
+        <AuthCard.Description>We&apos;ll send a verification code if your email exists</AuthCard.Description>
       </AuthCard.Header>
 
       <div className="space-y-6">
@@ -220,16 +221,18 @@ export default function ForgotPasswordForm() {
                 >
                   Send code
                 </AuthForm.Button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  Remember your password?{" "}
+                  <Link href="/login" className="font-medium text-foreground underline hover:no-underline">
+                    Log in
+                  </Link>
+                </p>
               </AuthForm.Actions>
             </AuthForm.Body>
           </form>
         </AuthForm>
       </div>
-
-      <AuthCard.Footer>
-        Remember your password?{" "}
-        <AuthCard.FooterLink href="/login">Back to login</AuthCard.FooterLink>
-      </AuthCard.Footer>
     </>
   );
 }

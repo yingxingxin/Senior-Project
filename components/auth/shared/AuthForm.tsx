@@ -49,7 +49,7 @@ const AuthFormEmailField = <TFieldValues extends FieldValues>({
             type="email"
             placeholder={placeholder}
             autoComplete={autoComplete}
-            className=""
+            className="h-14 sm:h-12 px-4 text-lg sm:text-base"
             {...field}
           />
         </FormControl>
@@ -79,7 +79,7 @@ const AuthFormPasswordField = <TFieldValues extends FieldValues>({
           <Input
             type="password"
             autoComplete={autoComplete}
-            className=""
+            className="h-14 sm:h-12 px-4 text-lg sm:text-base"
             {...field}
           />
         </FormControl>
@@ -105,15 +105,15 @@ const AuthFormRootError = ({ message }: { message?: string }) => {
 }
 
 const AuthFormFieldset = ({ className, ...props }: React.FieldsetHTMLAttributes<HTMLFieldSetElement>) => (
-  <fieldset className={cn("space-y-5 sm:space-y-4", className)} {...props} />
+  <fieldset className={cn("space-y-5", className)} {...props} />
 )
 
 const AuthFormActions = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-4 sm:space-y-3", className)} {...props} />
+  <div className={cn("space-y-4", className)} {...props} />
 )
 
 const AuthFormBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-5 sm:space-y-4", className)} {...props} />
+  <div className={cn("space-y-6", className)} {...props} />
 )
 
 interface AuthFormButtonProps extends ButtonProps {
@@ -122,8 +122,8 @@ interface AuthFormButtonProps extends ButtonProps {
 }
 
 const AuthFormButton = React.forwardRef<HTMLButtonElement, AuthFormButtonProps>(
-  ({ isLoading, loadingText, children, disabled, ...props }, ref) => (
-    <Button ref={ref} className="w-full" disabled={disabled || isLoading} {...props}>
+  ({ isLoading, loadingText, children, disabled, className, ...props }, ref) => (
+    <Button ref={ref} className={cn("w-full h-14 sm:h-12 text-lg sm:text-base font-medium", className)} disabled={disabled || isLoading} {...props}>
       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {isLoading ? (loadingText || children) : children}
     </Button>

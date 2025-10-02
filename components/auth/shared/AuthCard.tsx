@@ -16,19 +16,19 @@ type AuthCardProps = React.ComponentPropsWithoutRef<"div"> & {
 }
 
 const AuthCardHeader = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("space-y-2 text-center", className)} {...props}>
+  <div className={cn("space-y-4 sm:space-y-3", className)} {...props}>
     {children}
   </div>
 )
 
 const AuthCardTitle = ({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h1 className={cn("text-3xl sm:text-2xl font-bold", className)} {...props}>
+  <h1 className={cn("text-4xl font-semibold tracking-tight", className)} {...props}>
     {children}
   </h1>
 )
 
 const AuthCardDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("mt-2 text-base sm:text-sm text-muted-foreground", className)} {...props}>
+  <p className={cn("text-base sm:text-sm text-muted-foreground", className)} {...props}>
     {children}
   </p>
 )
@@ -40,13 +40,13 @@ const AuthCardBody = ({ children, className, ...props }: React.HTMLAttributes<HT
 )
 
 const AuthCardFooter = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-center text-sm text-muted-foreground", className)} {...props}>
+  <p className={cn("text-center text-sm text-foreground", className)} {...props}>
     {children}
   </p>
 )
 
 const AuthCardFooterLink = ({ className, ...props }: LinkProps & { className?: string; children: React.ReactNode }) => (
-  <Link className={cn("text-primary hover:underline", className)} {...props} />
+  <Link className={cn("font-medium underline hover:no-underline", className)} {...props} />
 )
 
 const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
@@ -55,11 +55,7 @@ const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
 
     return (
       <div ref={ref} className={cn(
-        "w-full space-y-6 bg-card",
-        // Mobile-first responsive design
-        "px-4 py-6",                    // Mobile padding
-        "sm:max-w-md sm:rounded-lg sm:border sm:px-6 sm:py-8 sm:shadow-lg",  // Small screens and up
-        "md:px-8",                       // Medium screens
+        "w-full max-w-md space-y-8",
         className
       )} {...props}>
         {hasHeaderContent ? (

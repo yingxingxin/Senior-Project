@@ -1,5 +1,6 @@
 import LoginForm from "@/components/auth/LoginForm"
 import { AuthCard } from "@/components/auth/shared/AuthCard"
+import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -9,16 +10,20 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <AuthCard
-      title="Welcome back"
-      subtitle="Sign in to your account"
-      footer={{
-        text: "Don't have an account?",
-        linkText: "Sign up",
-        linkHref: "/signup"
-      }}
-    >
-      <LoginForm />
-    </AuthCard>
+    <div className="w-full max-w-md">
+      <AuthCard
+        title="Welcome back"
+        subtitle={
+          <span className="text-base sm:text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-medium text-foreground underline hover:no-underline">
+              Sign up
+            </Link>
+          </span>
+        }
+      >
+        <LoginForm />
+      </AuthCard>
+    </div>
   )
 }
