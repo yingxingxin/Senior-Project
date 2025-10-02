@@ -47,11 +47,7 @@ const CardDescription = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
   <div ref={ref} {...props}>
-    <Muted
-      variant="small"
-      as="div"
-      className={className}
-    >
+    <Muted variant="small" as="div" className={className}>
       {children}
     </Muted>
   </div>

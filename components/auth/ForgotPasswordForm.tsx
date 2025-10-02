@@ -154,11 +154,11 @@ export default function ForgotPasswordForm() {
 
         <AuthForm {...pwForm}>
           <form onSubmit={onSavePassword} noValidate aria-busy={pwForm.formState.isSubmitting}>
-            <AuthForm.Body>
+            <Stack gap="default">
               {pwForm.formState.errors.root && (
                 <AuthForm.RootError message={pwForm.formState.errors.root.message} />
               )}
-              <AuthForm.Fieldset disabled={pwForm.formState.isSubmitting}>
+              <Stack gap="tight" as="fieldset" {...({ disabled: pwForm.formState.isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
                 <AuthForm.PasswordField
                   control={pwForm.control}
                   name="password"
@@ -171,9 +171,9 @@ export default function ForgotPasswordForm() {
                   label="Confirm password"
                   autoComplete="new-password"
                 />
-              </AuthForm.Fieldset>
+              </Stack>
 
-              <AuthForm.Actions>
+              <Stack gap="tight">
                 <AuthForm.Button
                   type="submit"
                   isLoading={pwForm.formState.isSubmitting}
@@ -181,8 +181,8 @@ export default function ForgotPasswordForm() {
                 >
                   Save new password
                 </AuthForm.Button>
-              </AuthForm.Actions>
-            </AuthForm.Body>
+              </Stack>
+            </Stack>
           </form>
         </AuthForm>
       </>
@@ -200,21 +200,21 @@ export default function ForgotPasswordForm() {
       <Stack gap="default">
         <AuthForm {...emailForm}>
           <form onSubmit={onSendCode} noValidate aria-busy={emailForm.formState.isSubmitting}>
-            <AuthForm.Body>
+            <Stack gap="default">
               {emailForm.formState.errors.root && (
                 <AuthForm.RootError message={emailForm.formState.errors.root.message} />
               )}
 
-              <AuthForm.Fieldset disabled={emailForm.formState.isSubmitting}>
+              <Stack gap="tight" as="fieldset" {...({ disabled: emailForm.formState.isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
                 <AuthForm.EmailField
                   control={emailForm.control}
                   name="email"
                   label="Email address"
                   placeholder="you@example.com"
                 />
-              </AuthForm.Fieldset>
+              </Stack>
 
-              <AuthForm.Actions>
+              <Stack gap="tight">
                 <AuthForm.Button
                   type="submit"
                   isLoading={emailForm.formState.isSubmitting}
@@ -229,8 +229,8 @@ export default function ForgotPasswordForm() {
                     Log in
                   </Link>
                 </Muted>
-              </AuthForm.Actions>
-            </AuthForm.Body>
+              </Stack>
+            </Stack>
           </form>
         </AuthForm>
       </Stack>

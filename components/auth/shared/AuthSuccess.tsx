@@ -20,7 +20,7 @@ type AuthSuccessProps = {
 }
 
 export function AuthSuccess({
-  icon = <CheckCircle className="size-16 text-green-500" aria-hidden />,
+  icon = <CheckCircle className="size-16 text-success" aria-hidden />,
   title,
   message,
   primaryAction,

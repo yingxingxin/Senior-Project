@@ -55,8 +55,8 @@ export default function LoginForm() {
 
       <AuthForm {...form}>
         <form onSubmit={onSubmit} noValidate aria-busy={isSubmitting}>
-          <AuthForm.Body>
-            <AuthForm.Fieldset disabled={isSubmitting}>
+          <Stack gap="default">
+            <Stack gap="tight" as="fieldset" {...({ disabled: isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
               <AuthForm.EmailField control={control} name="email" label="Email" />
 
               <AuthForm.PasswordField
@@ -75,18 +75,18 @@ export default function LoginForm() {
                   </div>
                 }
               />
-            </AuthForm.Fieldset>
+            </Stack>
 
-            <AuthForm.Actions>
+            <Stack gap="tight">
               <AuthForm.Button
                 type="submit"
                 isLoading={isSubmitting}
                 loadingText="Signing in..."
               >
-                <LogIn aria-hidden className="size-4" /> 
+                <LogIn aria-hidden className="size-4" />
                 Sign In
               </AuthForm.Button>
-            </AuthForm.Actions>
+            </Stack>
 
             {/* Social sign-in */}
             <Stack gap="tight">
@@ -129,7 +129,7 @@ export default function LoginForm() {
                 </AuthForm.Button>
               </Grid>
             </Stack>
-          </AuthForm.Body>
+          </Stack>
         </form>
       </AuthForm>
     </>

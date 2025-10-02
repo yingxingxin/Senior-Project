@@ -54,7 +54,7 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
   return (
     <Stack gap="default">
       {error ? (
-        <Alert variant="destructive" className="border-red-400/40 bg-red-500/10 text-red-100">
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}

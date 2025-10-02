@@ -133,19 +133,19 @@ export default function SignupForm() {
 
       <AuthForm {...signupForm}>
         <form onSubmit={submitSignup} noValidate aria-busy={isSubmitting}>
-          <AuthForm.Body>
-            <AuthForm.Fieldset disabled={isSubmitting}>
+          <Stack gap="default">
+            <Stack gap="tight" as="fieldset" {...({ disabled: isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
               <AuthForm.EmailField control={control} name="email" label="Email" />
               <AuthForm.EmailField control={control} name="confirmEmail" label="Confirm Email" />
               <AuthForm.PasswordField control={control} name="password" label="Password" autoComplete="new-password" />
               <AuthForm.PasswordField control={control} name="confirmPassword" label="Confirm Password" autoComplete="new-password" />
-            </AuthForm.Fieldset>
-            <AuthForm.Actions>
+            </Stack>
+            <Stack gap="tight">
               <AuthForm.Button type="submit" isLoading={isSubmitting} loadingText="Creating account...">
                 <UserPlus aria-hidden className="size-4" />
                 Create Account
               </AuthForm.Button>
-            </AuthForm.Actions>
+            </Stack>
 
             {/* Social sign-in */}
             <Stack gap="tight">
@@ -188,7 +188,7 @@ export default function SignupForm() {
                 </AuthForm.Button>
               </Grid>
             </Stack>
-          </AuthForm.Body>
+          </Stack>
         </form>
       </AuthForm>
     </>

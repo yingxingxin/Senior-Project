@@ -14,12 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Stack } from "@/components/ui/spacing"
 import { cn } from "@/lib/utils"
-
-function withAuthLabel(children?: React.ReactNode) {
-  return children ? <FormLabel className="text-base sm:text-sm font-medium text-foreground">{children}</FormLabel> : null
-}
 
 type AuthFormFieldProps<TFieldValues extends FieldValues> = {
   control: Control<TFieldValues>
@@ -44,7 +39,7 @@ const AuthFormEmailField = <TFieldValues extends FieldValues>({
     name={name}
     render={({ field }) => (
       <FormItem>
-        {withAuthLabel(label)}
+        {label && <FormLabel>{label}</FormLabel>}
         <FormControl>
           <Input
             type="email"
@@ -75,7 +70,7 @@ const AuthFormPasswordField = <TFieldValues extends FieldValues>({
     name={name}
     render={({ field }) => (
       <FormItem>
-        {withAuthLabel(label)}
+        {label && <FormLabel>{label}</FormLabel>}
         <FormControl>
           <Input
             type="password"
@@ -105,24 +100,6 @@ const AuthFormRootError = ({ message }: { message?: string }) => {
   )
 }
 
-const AuthFormFieldset = ({ children, ...props }: React.FieldsetHTMLAttributes<HTMLFieldSetElement>) => (
-  <Stack gap="tight" as="fieldset" {...props}>
-    {children}
-  </Stack>
-)
-
-const AuthFormActions = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <Stack gap="tight" {...props}>
-    {children}
-  </Stack>
-)
-
-const AuthFormBody = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <Stack gap="default" {...props}>
-    {children}
-  </Stack>
-)
-
 interface AuthFormButtonProps extends ButtonProps {
   isLoading?: boolean
   loadingText?: React.ReactNode
@@ -141,10 +118,7 @@ AuthFormButton.displayName = "AuthFormButton"
 const AuthFormRoot = Form
 
 const AuthForm = Object.assign(AuthFormRoot, {
-  Body: AuthFormBody,
   Button: AuthFormButton,
-  Fieldset: AuthFormFieldset,
-  Actions: AuthFormActions,
   RootError: AuthFormRootError,
   EmailField: AuthFormEmailField,
   PasswordField: AuthFormPasswordField,

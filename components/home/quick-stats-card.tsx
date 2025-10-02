@@ -45,7 +45,7 @@ export function QuickStatsCard({
               <Muted variant="tiny" as="div">Earned</Muted>
             </div>
             <div className="text-center p-3 rounded-xl bg-muted">
-              <Star className="h-5 w-5 mx-auto mb-1 text-yellow-600" />
+              <Star className="h-5 w-5 mx-auto mb-1 text-warning" />
               <div className="text-lg font-bold">{totalBadgesCount}</div>
               <Muted variant="tiny" as="div">Total</Muted>
             </div>

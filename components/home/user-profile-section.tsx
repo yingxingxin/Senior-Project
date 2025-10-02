@@ -86,7 +86,7 @@ export function UserProfileSection({
           <Inline gap="loose" align="center">
             <div className="text-center">
               <div className="flex items-center gap-1 mb-1">
-                <Flame className="h-4 w-4 text-orange-500" />
+                <Flame className="h-4 w-4 text-warning" />
                 <Heading level={2} as="span">{streakDays}</Heading>
               </div>
               <Muted variant="tiny" as="span">Day Streak</Muted>

@@ -63,7 +63,7 @@ export function OtpForm({
 
       {/* Server message */}
       {message && (
-        <div className="rounded border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">
+        <div className="rounded border border-success/50 bg-success/10 p-3 text-sm text-success">
           {message}
         </div>
       )}

@@ -65,7 +65,7 @@ export default function Navbar({ data }: NavbarProps) {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-white/80 dark:bg-zinc-950/80 backdrop-blur-lg">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Left: Logo and Navigation */}
@@ -112,8 +112,8 @@ export default function Navbar({ data }: NavbarProps) {
           <div className="flex items-center gap-3">
             {/* Quick Stats - Simplified */}
             <div className="hidden lg:flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-                <Flame className="h-4 w-4 text-orange-500" />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-warning/10 border border-warning/30">
+                <Flame className="h-4 w-4 text-warning" />
                 <span className="text-sm font-bold text-primary">
                   {userStats.streak}
                 </span>
@@ -160,7 +160,7 @@ export default function Navbar({ data }: NavbarProps) {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Streak</span>
                     <span className="text-sm font-bold flex items-center gap-1">
-                      <Flame className="h-3.5 w-3.5 text-orange-500" />
+                      <Flame className="h-3.5 w-3.5 text-warning" />
                       {userStats.streak} days
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export default function Navbar({ data }: NavbarProps) {
                 <div className="border-t border-border py-1">
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="px-3 py-2 flex items-center gap-2.5 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    className="px-3 py-2 flex items-center gap-2.5 text-destructive focus:text-destructive"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign out</span>
