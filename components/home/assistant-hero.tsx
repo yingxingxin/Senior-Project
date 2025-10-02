@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight, Play, BookOpen, Sparkles, MessageSquare, Bot, Swords } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { AudioPlayer } from "@/components/ui/audio-player";
+import { Heading, Muted, Body } from "@/components/ui/typography";
 
 type Persona = "kind" | "direct" | "calm";
 type Gender = "feminine" | "masculine" | "androgynous";
@@ -64,16 +65,16 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
           <div className="flex-1">
             {/* Assistant Info */}
             <div className="mb-3">
-              <h3 className="text-lg font-bold">{assistant.name}</h3>
+              <Heading level={5}>{assistant.name}</Heading>
               {assistant.tagline && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 italic">{assistant.tagline}</p>
+                <Muted variant="small" className="italic">{assistant.tagline}</Muted>
               )}
             </div>
 
             <div className="relative inline-block max-w-full mb-4">
               <div className="rounded-[18px] border border-border bg-accent px-5 py-4 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <p className="text-base leading-relaxed flex-1">{speech}</p>
+                  <Body className="flex-1">{speech}</Body>
                   <AudioPlayer
                     text={speech}
                     persona={persona}
@@ -104,10 +105,10 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                     <Link
                       key={action.label}
                       href={action.href}
-                      className="rounded-[14px] border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition flex items-center gap-2"
+                      className="rounded-[14px] border border-border px-4 py-2.5 hover:bg-muted transition flex items-center gap-2"
                     >
                       <Icon className="h-4 w-4" />
-                      <span className="text-sm font-medium">{action.label}</span>
+                      <Body variant="small" as="span" className="font-medium">{action.label}</Body>
                     </Link>
                   );
                 })}

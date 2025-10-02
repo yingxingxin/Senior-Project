@@ -10,20 +10,18 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <div className="w-full max-w-md">
-      <AuthCard
-        title="Create an account"
-        subtitle={
-          <span className="text-base sm:text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="font-medium text-foreground underline hover:no-underline">
-              Log in
-            </Link>
-          </span>
-        }
-      >
-        <SignupForm />
-      </AuthCard>
-    </div>
+    <AuthCard
+      title="Create an account"
+      subtitle={
+        <span className="text-base sm:text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-foreground underline hover:no-underline">
+            Log in
+          </Link>
+        </span>
+      }
+    >
+      <SignupForm />
+    </AuthCard>
   )
 }

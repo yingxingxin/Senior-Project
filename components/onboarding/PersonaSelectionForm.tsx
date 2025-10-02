@@ -9,6 +9,7 @@ import { cn } from '@/src/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Heading, Muted, Caption, Body } from '@/components/ui/typography';
 
 interface PersonaSelectionFormProps {
   options: ReadonlyArray<PersonaOption>;
@@ -146,22 +147,22 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
                         )}>
                           {icon}
                         </span>
-                        <h3 className="text-lg font-bold text-foreground">
+                        <Heading level={5}>
                           {option.title}
-                        </h3>
+                        </Heading>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <Muted variant="small">
                         {option.subtitle}
-                      </p>
+                      </Muted>
                     </div>
 
                     {isSelected && (
-                      <span className={cn(
-                        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      <Caption variant="badge" className={cn(
+                        "inline-flex items-center rounded-full border px-2.5 py-0.5",
                         scheme.activeBadge
                       )}>
                         Active
-                      </span>
+                      </Caption>
                     )}
                   </div>
 
@@ -174,20 +175,20 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
                           style={{ backgroundColor: scheme.glowColor }}
                           aria-hidden
                         />
-                        <span className="text-muted-foreground leading-relaxed">{highlight}</span>
+                        <Muted variant="tiny" as="span" className="leading-relaxed">{highlight}</Muted>
                       </li>
                     ))}
                   </ul>
 
                   {/* Footer */}
                   <div className="mt-5 flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    <Caption variant="badge" className="text-muted-foreground">
                       {option.id}
-                    </span>
+                    </Caption>
                     {!isSelected && (
-                      <span className="text-xs text-muted-foreground transition-transform duration-300 group-hover:translate-x-1">
+                      <Muted variant="tiny" as="span" className="transition-transform duration-300 group-hover:translate-x-1">
                         Select →
-                      </span>
+                      </Muted>
                     )}
                   </div>
                 </div>
@@ -202,10 +203,10 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
           <div className="overflow-hidden rounded-3xl border border-border bg-card backdrop-blur-2xl shadow-2xl">
             {/* Header */}
             <div className="border-b border-border bg-muted/20 px-6 py-4">
-              <h3 className="text-sm font-bold uppercase tracking-[0.25em] text-muted-foreground">
+              <Caption variant="uppercase">
                 Live Preview
-              </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              </Caption>
+              <Muted variant="tiny" as="p" className="mt-1">
                 {previewPersona ? (
                   <>
                     <span className="inline-flex items-center gap-1">
@@ -223,7 +224,7 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
                 ) : (
                   'Hover to preview personas'
                 )}
-              </p>
+              </Muted>
             </div>
 
             {/* Preview content */}
@@ -231,24 +232,24 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
               {/* Sample message bubble */}
               <div className="relative">
                 <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-                  <p className="text-sm italic text-muted-foreground mb-2">Your assistant says:</p>
-                  <p className="text-base leading-relaxed text-foreground whitespace-pre-line">
+                  <Muted variant="small" as="p" className="italic mb-2">Your assistant says:</Muted>
+                  <Body className="whitespace-pre-line">
                     {activePreviewCopy?.preview || 'Hover over a persona card to preview their communication style.'}
-                  </p>
+                  </Body>
                 </div>
               </div>
 
               {/* Additional preview examples if we have space */}
               <div className="space-y-2 pt-4 border-t border-border">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
+                <Caption variant="uppercase" className="mb-3">
                   Communication traits
-                </p>
+                </Caption>
                 {activePreviewCopy?.highlights.map((trait, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <span className="size-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 grid place-items-center text-[10px] font-bold text-primary">
+                    <Caption variant="badge" className="size-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 grid place-items-center text-primary">
                       {idx + 1}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{trait}</span>
+                    </Caption>
+                    <Muted variant="tiny" as="span">{trait}</Muted>
                   </div>
                 ))}
               </div>
@@ -258,16 +259,16 @@ export function PersonaSelectionForm({ options, selectedPersona }: PersonaSelect
             <div className="border-t border-border bg-muted/20 px-6 py-3">
               <div className="space-y-2">
                 {/* Main status */}
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-2">
                   <span className={cn(
                     "size-2 rounded-full",
                     localPersona ? "bg-primary" : "bg-muted"
                   )} />
-                  <span className="text-muted-foreground font-medium">
+                  <Muted variant="tiny" as="span" className="font-medium">
                     {localPersona
                       ? `✓ ${personaLookup[localPersona]?.title} will be saved`
                       : 'Select a persona to continue'}
-                  </span>
+                  </Muted>
                 </div>
               </div>
             </div>

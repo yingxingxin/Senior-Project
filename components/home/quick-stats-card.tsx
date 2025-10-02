@@ -1,5 +1,6 @@
 import { Trophy, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Heading, Muted } from "@/components/ui/typography";
 
 interface QuickStatsCardProps {
   points: number;
@@ -19,16 +20,16 @@ export function QuickStatsCard({
   return (
     <Card>
       <div className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Next Milestone</h3>
+        <Heading level={5} className="mb-4">Next Milestone</Heading>
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">Points Progress</span>
+              <Muted variant="small" as="span">Points Progress</Muted>
               <span className="text-sm font-semibold">
                 {points.toLocaleString()} / {nextMilestonePoints.toLocaleString()}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-zinc-100 dark:bg-zinc-900">
+            <div className="h-2 rounded-full bg-muted">
               <div
                 className="h-2 rounded-full bg-primary"
                 style={{ width: `${progress}%` }}
@@ -37,15 +38,15 @@ export function QuickStatsCard({
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="text-center p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900">
+            <div className="text-center p-3 rounded-xl bg-muted">
               <Trophy className="h-5 w-5 mx-auto mb-1 text-primary" />
               <div className="text-lg font-bold">{earnedBadgesCount}</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Earned</div>
+              <Muted variant="tiny" as="div">Earned</Muted>
             </div>
-            <div className="text-center p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900">
+            <div className="text-center p-3 rounded-xl bg-muted">
               <Star className="h-5 w-5 mx-auto mb-1 text-yellow-600" />
               <div className="text-lg font-bold">{totalBadgesCount}</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">Total</div>
+              <Muted variant="tiny" as="div">Total</Muted>
             </div>
           </div>
         </div>

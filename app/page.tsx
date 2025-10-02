@@ -7,6 +7,7 @@ import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { db, users } from "@/src/db";
 import { eq } from "drizzle-orm";
+import { Display, Heading, Body, Muted } from "@/components/ui/typography";
 
 async function getAuthState() {
   const session = await auth.api.getSession({
@@ -48,7 +49,7 @@ export default async function LandingPage() {
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          <span className="text-lg sm:text-xl font-bold">Sprite.exe</span>
+          <Heading level={4} as="span">Sprite.exe</Heading>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           {isAuthenticated ? (
@@ -74,14 +75,14 @@ export default async function LandingPage() {
       {/* Hero Section */}
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
         <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <Display level={1} className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Learn with Your Personal AI Assistant
-          </h1>
+          </Display>
 
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <Body variant="large" className="text-muted-foreground max-w-2xl mx-auto">
             Sprite.exe pairs you with a customizable AI companion to make learning engaging,
             personalized, and fun. Choose your assistant&apos;s personality and start your journey.
-          </p>
+          </Body>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4 w-full max-w-sm sm:max-w-none mx-auto">
             {isAuthenticated ? (
@@ -119,30 +120,30 @@ export default async function LandingPage() {
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg">Personalized Assistant</h3>
-            <p className="text-sm text-muted-foreground">
+            <Heading level={5}>Personalized Assistant</Heading>
+            <Muted variant="small">
               Choose your assistant&apos;s appearance and personality to match your learning style.
-            </p>
+            </Muted>
           </div>
 
           <div className="rounded-lg border bg-card p-6 space-y-3">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <BookOpen className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg">Interactive Lessons</h3>
-            <p className="text-sm text-muted-foreground">
+            <Heading level={5}>Interactive Lessons</Heading>
+            <Muted variant="small">
               Engage with dynamic content, quizzes, and real-time feedback from your assistant.
-            </p>
+            </Muted>
           </div>
 
           <div className="rounded-lg border bg-card p-6 space-y-3">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg">Track Progress</h3>
-            <p className="text-sm text-muted-foreground">
+            <Heading level={5}>Track Progress</Heading>
+            <Muted variant="small">
               Monitor your learning journey with detailed analytics and achievement tracking.
-            </p>
+            </Muted>
           </div>
         </div>
       </main>

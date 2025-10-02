@@ -59,7 +59,9 @@ export default async function AuthLayout({
 
         {/* Right side - Auth content - Full width on mobile */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 md:px-8 md:py-12 lg:px-16 lg:py-16">
-          {children}
+          <div className="w-full max-w-md">
+            {children}
+          </div>
         </div>
       </div>
     </div>

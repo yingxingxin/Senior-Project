@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ActivityCard } from "./activity-card";
+import { Heading } from "@/components/ui/typography";
 
 export type Activity = {
   id: string;
@@ -19,7 +20,7 @@ export function RecentActivities({ activities }: RecentActivitiesProps) {
   return (
     <Card>
       <div className="p-6">
-        <h2 className="mb-4 text-lg font-semibold">Recent Activities</h2>
+        <Heading level={5} className="mb-4">Recent Activities</Heading>
         <div className="space-y-3">
           {activities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />

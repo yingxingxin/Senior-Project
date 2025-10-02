@@ -9,6 +9,7 @@ import { getAssistantOptions } from '@/src/db/queries/onboarding';
 import { AssistantSelectionForm } from '@/components/onboarding/AssistantSelectionForm';
 import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
 import { BackButton } from '@/components/onboarding/BackButton';
+import { Display, Body } from '@/components/ui/typography';
 
 export default async function OnboardingGenderPage() {
   const user = await requireActiveOnboardingUser();
@@ -39,12 +40,12 @@ export default async function OnboardingGenderPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
+        <Display level={1} className="mb-4">
           Choose Your Assistant
-        </h1>
-        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
+        </Display>
+        <Body variant="large" className="mx-auto max-w-3xl text-muted-foreground">
           These portraits shape the energy your companion brings to every study session. Pick the style that keeps you inspired.
-        </p>
+        </Body>
       </div>
 
       {/* Full-width assistant selection */}

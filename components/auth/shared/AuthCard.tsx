@@ -2,6 +2,7 @@ import Link, { type LinkProps } from "next/link"
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { Heading, Muted } from "@/components/ui/typography"
 
 type AuthCardFooterConfig = {
   text?: React.ReactNode
@@ -9,10 +10,13 @@ type AuthCardFooterConfig = {
   linkHref: LinkProps["href"]
 }
 
+type CardWidth = "sm" | "md" | "lg" | "xl" | "2xl" | "full"
+
 type AuthCardProps = React.ComponentPropsWithoutRef<"div"> & {
   title?: React.ReactNode
   subtitle?: React.ReactNode
   footer?: AuthCardFooterConfig
+  width?: CardWidth
 }
 
 const AuthCardHeader = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -22,15 +26,15 @@ const AuthCardHeader = ({ children, className, ...props }: React.HTMLAttributes<
 )
 
 const AuthCardTitle = ({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h1 className={cn("text-4xl font-semibold tracking-tight", className)} {...props}>
+  <Heading level={1} className={className} {...props}>
     {children}
-  </h1>
+  </Heading>
 )
 
 const AuthCardDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-base sm:text-sm text-muted-foreground", className)} {...props}>
+  <Muted variant="small" as="p" className={className} {...props}>
     {children}
-  </p>
+  </Muted>
 )
 
 const AuthCardBody = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -40,9 +44,9 @@ const AuthCardBody = ({ children, className, ...props }: React.HTMLAttributes<HT
 )
 
 const AuthCardFooter = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-center text-sm text-foreground", className)} {...props}>
+  <Muted variant="small" as="p" className={cn("text-center text-foreground", className)} {...props}>
     {children}
-  </p>
+  </Muted>
 )
 
 const AuthCardFooterLink = ({ className, ...props }: LinkProps & { className?: string; children: React.ReactNode }) => (
@@ -50,12 +54,22 @@ const AuthCardFooterLink = ({ className, ...props }: LinkProps & { className?: s
 )
 
 const AuthCardRoot = React.forwardRef<HTMLDivElement, AuthCardProps>(
-  ({ title, subtitle, footer, children, className, ...props }, ref) => {
+  ({ title, subtitle, footer, width = "md", children, className, ...props }, ref) => {
     const hasHeaderContent = title || subtitle
+
+    const widthClasses: Record<CardWidth, string> = {
+      sm: "max-w-sm",
+      md: "max-w-md",
+      lg: "max-w-lg",
+      xl: "max-w-xl",
+      "2xl": "max-w-2xl",
+      full: "max-w-full",
+    }
 
     return (
       <div ref={ref} className={cn(
-        "w-full max-w-md space-y-8",
+        "w-full space-y-8",
+        widthClasses[width],
         className
       )} {...props}>
         {hasHeaderContent ? (

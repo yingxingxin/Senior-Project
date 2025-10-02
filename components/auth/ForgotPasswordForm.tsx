@@ -15,6 +15,7 @@ import {
   passwordResetRequestSchema,
   passwordResetSchema,
 } from "@/src/lib/auth/schemas";
+import { Muted } from "@/components/ui/typography";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -222,12 +223,12 @@ export default function ForgotPasswordForm() {
                   Send code
                 </AuthForm.Button>
 
-                <p className="text-center text-sm text-muted-foreground">
+                <Muted variant="small" className="text-center">
                   Remember your password?{" "}
                   <Link href="/login" className="font-medium text-foreground underline hover:no-underline">
                     Log in
                   </Link>
-                </p>
+                </Muted>
               </AuthForm.Actions>
             </AuthForm.Body>
           </form>

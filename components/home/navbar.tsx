@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 import { NavbarData } from "@/app/(app)/actions";
+import { Heading, Muted } from "@/components/ui/typography";
 
 interface NavbarProps {
   data: NavbarData | null;
@@ -64,7 +65,7 @@ export default function Navbar({ data }: NavbarProps) {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-lg">
+    <nav className="sticky top-0 z-50 border-b border-border bg-white/80 dark:bg-zinc-950/80 backdrop-blur-lg">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Left: Logo and Navigation */}
@@ -76,9 +77,9 @@ export default function Navbar({ data }: NavbarProps) {
               <div className="h-9 w-9 rounded-xl bg-primary grid place-items-center shadow-sm">
                 <Bot className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-primary">
-                LearnQuest
-              </span>
+              <Heading level={4} as="span" className="text-primary">
+                Sprite.exe
+              </Heading>
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
@@ -95,7 +96,7 @@ export default function Navbar({ data }: NavbarProps) {
                       transition-all duration-200
                       ${isActive
                         ? "bg-accent text-accent-foreground"
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
                       }
                     `}
                   >
@@ -113,7 +114,7 @@ export default function Navbar({ data }: NavbarProps) {
             <div className="hidden lg:flex items-center gap-2">
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
                 <Flame className="h-4 w-4 text-orange-500" />
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                <span className="text-sm font-bold text-primary">
                   {userStats.streak}
                 </span>
               </div>
@@ -127,7 +128,7 @@ export default function Navbar({ data }: NavbarProps) {
             </div>
 
             {/* Notifications */}
-            <button className="relative p-2 rounded-xl text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
+            <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
             </button>
@@ -135,8 +136,8 @@ export default function Navbar({ data }: NavbarProps) {
             {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="relative flex items-center gap-2 p-1 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
-                  <Avatar className="h-9 w-9 ring-2 ring-zinc-200 dark:ring-zinc-800">
+                <button className="relative flex items-center gap-2 p-1 rounded-full hover:bg-accent transition-all">
+                  <Avatar className="h-9 w-9 ring-2 ring-border">
                     <AvatarImage src={userData.avatarUrl || undefined} alt={userData.name} />
                     <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                       {userData.initials}
@@ -144,27 +145,27 @@ export default function Navbar({ data }: NavbarProps) {
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl border-zinc-200 dark:border-zinc-800">
-                <div className="px-3 py-2 border-b border-zinc-200 dark:border-zinc-800">
-                  <p className="text-sm font-semibold">{userData.name}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{userData.email}</p>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border">
+                <div className="px-3 py-2 border-b border-border">
+                  <Heading level={6} as="div">{userData.name}</Heading>
+                  <Muted variant="tiny">{userData.email}</Muted>
                 </div>
 
                 {/* Mobile Stats */}
-                <div className="lg:hidden px-3 py-3 space-y-2.5 border-b border-zinc-200 dark:border-zinc-800">
+                <div className="lg:hidden px-3 py-3 space-y-2.5 border-b border-border">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Level</span>
+                    <span className="text-sm text-muted-foreground">Level</span>
                     <span className="text-sm font-bold">{userStats.level}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Streak</span>
+                    <span className="text-sm text-muted-foreground">Streak</span>
                     <span className="text-sm font-bold flex items-center gap-1">
                       <Flame className="h-3.5 w-3.5 text-orange-500" />
                       {userStats.streak} days
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Points</span>
+                    <span className="text-sm text-muted-foreground">Points</span>
                     <span className="text-sm font-bold">{userStats.points.toLocaleString()}</span>
                   </div>
                 </div>
@@ -190,7 +191,7 @@ export default function Navbar({ data }: NavbarProps) {
                   </DropdownMenuItem>
                 </div>
 
-                <div className="border-t border-zinc-200 dark:border-zinc-800 py-1">
+                <div className="border-t border-border py-1">
                   <DropdownMenuItem
                     onClick={handleSignOut}
                     className="px-3 py-2 flex items-center gap-2.5 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"

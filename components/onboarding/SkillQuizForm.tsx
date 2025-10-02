@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { submitSkillQuizAnswers } from "@/app/onboarding/actions";
+import { Heading, Muted } from "@/components/ui/typography";
 
 // TODO: these probably could come from the db schema
 type Question = {
@@ -102,16 +103,16 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
       {result && (
         <Card className="w-full mb-6">
           <div className="p-6 text-center">
-            <h2 className="text-2xl font-bold mb-4">
+            <Heading level={2} className="mb-4">
               Your starting level: {result.level.toUpperCase()}
-            </h2>
+            </Heading>
             <p className="mb-2">
               Score: {result.score} / {result.total}
             </p>
             <p className="mb-4">
               Suggested course: <strong>{result.suggestedCourse}</strong>
             </p>
-            <p className="text-sm text-muted-foreground">Redirecting...</p>
+            <Muted variant="small">Redirecting...</Muted>
           </div>
         </Card>
       )}
@@ -158,9 +159,9 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
                     />
 
                     {fieldState.error && (
-                      <p className="text-sm text-destructive mt-2">
+                      <Muted variant="small" className="text-destructive mt-2">
                         {fieldState.error.message}
-                      </p>
+                      </Muted>
                     )}
                   </>
                 )}
@@ -170,9 +171,9 @@ export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
         ))}
 
         {form.formState.errors.root && (
-          <p className="text-sm text-destructive text-center">
+          <Muted variant="small" className="text-destructive text-center">
             {form.formState.errors.root.message}
-          </p>
+          </Muted>
         )}
 
         <div className="flex justify-end">

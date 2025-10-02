@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { AchievementTile } from "./achievement-tile";
+import { Heading } from "@/components/ui/typography";
 
 export type Badge = {
   id: string;
@@ -19,7 +20,7 @@ export function AchievementsSection({ badges }: AchievementsSectionProps) {
     <Card>
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Achievements</h2>
+          <Heading level={5}>Achievements</Heading>
           <Link
             href="/achievements"
             className="text-sm text-primary hover:underline"

@@ -10,20 +10,18 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="w-full max-w-md">
-      <AuthCard
-        title="Welcome back"
-        subtitle={
-          <span className="text-base sm:text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-medium text-foreground underline hover:no-underline">
-              Sign up
-            </Link>
-          </span>
-        }
-      >
-        <LoginForm />
-      </AuthCard>
-    </div>
+    <AuthCard
+      title="Welcome back"
+      subtitle={
+        <span className="text-base sm:text-sm text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="font-medium text-foreground underline hover:no-underline">
+            Sign up
+          </Link>
+        </span>
+      }
+    >
+      <LoginForm />
+    </AuthCard>
   )
 }

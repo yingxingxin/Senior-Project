@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Heading, Muted } from "@/components/ui/typography";
 
 type Lesson = {
   id: number;
@@ -37,7 +38,7 @@ export function ExploreSection({ lessons }: ExploreSectionProps) {
   if (!lessons || lessons.length === 0) {
     return (
       <section>
-        <h2 className="mb-3 text-lg font-semibold">Explore</h2>
+        <Heading level={5} className="mb-3">Explore</Heading>
         <Card>
           <div className="p-8 text-center text-muted-foreground">
             <p>No lessons available yet. Check back soon!</p>
@@ -49,7 +50,7 @@ export function ExploreSection({ lessons }: ExploreSectionProps) {
 
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">Explore</h2>
+      <Heading level={5} className="mb-3">Explore</Heading>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {lessons.map((lesson) => {
           const duration = formatDuration(lesson.estimatedDurationSec);
@@ -60,13 +61,13 @@ export function ExploreSection({ lessons }: ExploreSectionProps) {
             <Card key={lesson.id}>
               <div className="p-4">
                 <div className="h-28 w-full rounded-[16px] bg-muted mb-3" />
-                <div className="text-sm font-semibold">{lesson.title}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                <Heading level={6} as="div">{lesson.title}</Heading>
+                <Muted variant="tiny" as="div">
                   {meta || lesson.description?.slice(0, 50) || "Start learning"}
-                </div>
+                </Muted>
                 <Link
                   href={`/learn/lesson/${lesson.slug}`}
-                  className="mt-3 inline-flex items-center gap-2 rounded-[12px] border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition"
+                  className="mt-3 inline-flex items-center gap-2 rounded-[12px] border border-border px-3 py-2 text-sm hover:bg-accent transition"
                 >
                   Learn more
                   <ArrowRight className="h-4 w-4" />

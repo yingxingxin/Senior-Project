@@ -9,6 +9,7 @@ import { PERSONA_OPTIONS } from '@/src/lib/onboarding/fixtures';
 import { PersonaSelectionForm } from '@/components/onboarding/PersonaSelectionForm';
 import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
 import { BackButton } from '@/components/onboarding/BackButton';
+import { Display, Body } from '@/components/ui/typography';
 
 export default async function OnboardingPersonaPage() {
   const user = await requireActiveOnboardingUser();
@@ -42,12 +43,12 @@ export default async function OnboardingPersonaPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
+        <Display level={1} className="mb-4">
           Set Your Assistant&apos;s Voice
-        </h1>
-        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
+        </Display>
+        <Body variant="large" className="mx-auto max-w-3xl text-muted-foreground">
           Every persona nudges your study partner&apos;s coaching style. Preview their voice and lock in the tone that helps you stay focused.
-        </p>
+        </Body>
       </div>
 
       {/* Full-width persona selection */}

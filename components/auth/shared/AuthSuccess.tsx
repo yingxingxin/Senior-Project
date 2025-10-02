@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
+import { Heading, Muted } from "@/components/ui/typography"
 
 type AuthSuccessProps = {
   icon?: React.ReactNode
@@ -28,15 +29,15 @@ export function AuthSuccess({
     <div className="space-y-6" aria-live="polite">
       <div className="flex flex-col items-center space-y-4">
         {icon}
-        <h2 className="text-3xl sm:text-2xl font-semibold text-foreground">
+        <Heading level={2} className="text-center">
           {title}
-        </h2>
+        </Heading>
       </div>
 
       {message && (
-        <p className="text-center text-base sm:text-sm text-muted-foreground">
+        <Muted variant="small" className="text-center">
           {message}
-        </p>
+        </Muted>
       )}
 
       {(primaryAction || secondaryAction) && (

@@ -30,7 +30,7 @@ export function AchievementTile({ badge, compact = false }: AchievementTileProps
         compact ? "p-3" : "p-4",
         earned
           ? "border-border bg-accent"
-          : "border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900"
+          : "border-border bg-card hover:bg-muted/50"
       )}
       title={earned ? "Unlocked" : badge.hint ?? "Keep going"}
     >
@@ -39,7 +39,7 @@ export function AchievementTile({ badge, compact = false }: AchievementTileProps
         className={cn(
           "mx-auto mb-2 rounded-full grid place-items-center",
           compact ? "h-10 w-10" : "h-14 w-14",
-          earned ? "bg-white dark:bg-zinc-950" : "bg-zinc-100 dark:bg-zinc-900"
+          earned ? "bg-background" : "bg-muted"
         )}
       >
         <BadgeIcon

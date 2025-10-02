@@ -4,6 +4,7 @@ import type { OnboardingStep, OnboardingStepDefinition } from '@/src/lib/onboard
 import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
 import { cn } from '@/src/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { Caption, Muted, Heading } from '@/components/ui/typography';
 
 export function OnboardingProgress({
   steps,
@@ -32,19 +33,19 @@ export function OnboardingProgress({
         {/* Header with integrated branding */}
         <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-primary/30 bg-gradient-to-r from-primary/20 to-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-primary shadow-[0_4px_20px_rgba(34,211,238,0.25)]">
+            <Caption variant="uppercase" className="inline-flex items-center rounded-full border border-primary/30 bg-gradient-to-r from-primary/20 to-primary/10 px-4 py-1.5 text-primary shadow-[0_4px_20px_rgba(34,211,238,0.25)]">
               Personalize Sprite.exe
-            </span>
-            <span className="text-sm text-muted-foreground">
-              Step <span className="font-semibold text-foreground">{currentIndex + 1}</span> of {steps.length}
-            </span>
+            </Caption>
+            <Muted variant="small" as="span">
+              Step <Heading level={6} as="span">{currentIndex + 1}</Heading> of {steps.length}
+            </Muted>
           </div>
 
           {/* Current step title on desktop */}
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-foreground">
+            <Muted variant="small" as="p" className="font-medium text-foreground">
               {steps[currentIndex]?.title}
-            </p>
+            </Muted>
           </div>
         </div>
 
@@ -119,20 +120,20 @@ export function OnboardingProgress({
                     >
                       {isComplete ? '✓' : index + 1}
                     </span>
-                    <div className="text-sm font-semibold text-foreground">
+                    <Heading level={6} as="div" className="text-sm">
                       {step.title}
-                    </div>
+                    </Heading>
                   </div>
 
-                  <div className="text-xs text-muted-foreground line-clamp-2">
+                  <Muted variant="tiny" className="line-clamp-2">
                     {step.description}
-                  </div>
+                  </Muted>
 
                   {isCurrent && (
-                    <div className="mt-2 flex items-center gap-1 text-xs font-medium text-cyan-200">
+                    <Caption variant="default" className="mt-2 flex items-center gap-1 font-medium text-cyan-200">
                       <span className="size-1.5 rounded-full bg-cyan-300 animate-pulse" />
                       Current Step
-                    </div>
+                    </Caption>
                   )}
                 </div>
               </div>
@@ -159,12 +160,12 @@ export function OnboardingProgress({
 
         {/* Mobile current step indicator */}
         <div className="mt-4 text-center sm:hidden">
-          <p className="text-sm font-medium text-foreground">
+          <Muted variant="small" as="p" className="font-medium text-foreground">
             {steps[currentIndex]?.title}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          </Muted>
+          <Muted variant="tiny" as="p" className="mt-1">
             {steps[currentIndex]?.description}
-          </p>
+          </Muted>
         </div>
       </div>
 

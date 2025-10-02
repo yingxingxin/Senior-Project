@@ -10,6 +10,7 @@ import {
   resolveOnboardingStep,
 } from '@/src/lib/onboarding/server';
 import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
+import { Display, Body, Caption, Heading } from '@/components/ui/typography';
 
 export default async function OnboardingGuidedIntroPage() {
   const user = await requireActiveOnboardingUser();
@@ -56,12 +57,12 @@ export default async function OnboardingGuidedIntroPage() {
 
       {/* Full-width header section */}
       <div className="mb-12 text-center">
-        <h1 className="mb-4 text-3xl font-bold text-foreground sm:text-4xl lg:text-5xl">
+        <Display level={1} className="mb-4">
           Welcome Aboard!
-        </h1>
-        <p className="mx-auto max-w-3xl text-lg text-muted-foreground sm:text-xl">
+        </Display>
+        <Body variant="large" className="mx-auto max-w-3xl text-muted-foreground">
           You&apos;re one tap away from meeting your assistant inside Sprite.exe. We&apos;ll walk you through the dashboard and highlight the tools that matter most.
-        </p>
+        </Body>
       </div>
 
       {/* Centered content grid */}
@@ -70,31 +71,31 @@ export default async function OnboardingGuidedIntroPage() {
         <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-lg backdrop-blur-2xl sm:p-8 animate-scale-in">
           <div className="relative flex flex-col gap-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.38em] text-muted-foreground">Summary</p>
-              <h3 className="mt-2 text-xl font-semibold text-foreground">Your companion is ready to launch</h3>
+              <Caption variant="uppercase" className="text-muted-foreground">Summary</Caption>
+              <Heading level={3} className="mt-2">Your companion is ready to launch</Heading>
             </div>
 
             <dl className="grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
-                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Companion</dt>
+                <dt><Caption variant="uppercase" className="text-muted-foreground">Companion</Caption></dt>
                 <dd className="text-base text-foreground">
                   {assistantName ? assistantName : `Assistant #${user.assistantId}`}
                 </dd>
               </div>
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
-                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Voice</dt>
+                <dt><Caption variant="uppercase" className="text-muted-foreground">Voice</Caption></dt>
                 <dd className="text-base text-foreground">{personaLabel}</dd>
               </div>
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
-                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Skill Level</dt>
+                <dt><Caption variant="uppercase" className="text-muted-foreground">Skill Level</Caption></dt>
                 <dd className="text-base text-foreground">{getSkillLevelLabel(user.skillLevel)}</dd>
               </div>
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
-                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Next action</dt>
+                <dt><Caption variant="uppercase" className="text-muted-foreground">Next action</Caption></dt>
                 <dd className="text-base text-foreground">Guided dashboard tour</dd>
               </div>
               <div className="space-y-1 rounded-2xl border border-border bg-muted/30 p-4">
-                <dt className="text-xs uppercase tracking-[0.32em] text-muted-foreground">Runtime</dt>
+                <dt><Caption variant="uppercase" className="text-muted-foreground">Runtime</Caption></dt>
                 <dd className="text-base text-foreground">Under 2 minutes</dd>
               </div>
             </dl>
@@ -110,10 +111,10 @@ export default async function OnboardingGuidedIntroPage() {
 
         <aside className="flex flex-col justify-between gap-6 rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-lg backdrop-blur-2xl animate-slide-in-left">
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">Final check</h3>
-            <p className="leading-relaxed text-muted-foreground">
+            <h3><Caption variant="uppercase" className="text-muted-foreground">Final check</Caption></h3>
+            <Body variant="small" className="leading-relaxed text-muted-foreground">
               We saved your setup. Kick off the guided intro whenever you&apos;re ready—we&apos;ll keep the welcome tour on standby if you need a refresher later.
-            </p>
+            </Body>
           </div>
 
           <GuidedIntroCompletion />

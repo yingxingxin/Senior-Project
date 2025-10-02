@@ -11,6 +11,7 @@ import { cn } from '@/src/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Heading, Muted, Caption } from '@/components/ui/typography';
 
 interface AssistantSelectionFormProps {
   options: ReadonlyArray<AssistantOption>;
@@ -159,30 +160,30 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
 
                 {/* Name and tagline */}
                 <div className="mb-4 text-center">
-                  <h3 className="text-xl font-bold text-foreground mb-1">
+                  <Heading level={4} className="mb-1">
                     {option.name}
-                  </h3>
+                  </Heading>
                   {option.tagline && (
-                    <p className="text-sm text-muted-foreground italic">
+                    <Muted variant="small" className="italic">
                       {option.tagline}
-                    </p>
+                    </Muted>
                   )}
                 </div>
 
                 {/* Description */}
                 {option.description && (
-                  <p className="flex-1 text-sm leading-relaxed text-muted-foreground text-center">
+                  <Muted variant="small" className="flex-1 leading-relaxed text-center">
                     {option.description}
-                  </p>
+                  </Muted>
                 )}
 
                 {/* Footer section */}
                 <div className="mt-6 flex flex-col gap-3">
                   {/* Gender label */}
                   <div className="flex justify-center">
-                    <span className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                    <Caption variant="uppercase" className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-muted-foreground">
                       {option.gender || 'Custom'}
-                    </span>
+                    </Caption>
                   </div>
 
                   {/* Selection button/status */}
@@ -219,11 +220,11 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
       {/* Status and Continue button */}
       <div className="mt-8 flex flex-col items-center gap-4">
         {localSelection && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2 text-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2">
             <span className="size-2 rounded-full bg-cyan-300" />
-            <span className="text-muted-foreground">
+            <Muted variant="small">
               {assistantById.get(localSelection)?.name ?? 'Assistant'} selected
-            </span>
+            </Muted>
           </div>
         )}
 
@@ -244,9 +245,9 @@ export function AssistantSelectionForm({ options, selectedAssistantId }: Assista
         </Button>
 
         {!localSelection && (
-          <p className="text-sm text-muted-foreground">
+          <Muted variant="small">
             Select an assistant to continue
-          </p>
+          </Muted>
         )}
       </div>
     </div>

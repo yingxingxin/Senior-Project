@@ -9,10 +9,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="w-full max-w-md">
-      <AuthCard>
-        <ForgotPasswordForm />
-      </AuthCard>
-    </div>
+    <AuthCard>
+      <ForgotPasswordForm />
+    </AuthCard>
   )
 }

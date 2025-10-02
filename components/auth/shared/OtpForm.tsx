@@ -18,6 +18,7 @@ import {
 import {
   InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot,
 } from "@/components/ui/input-otp"
+import { Heading, Muted } from "@/components/ui/typography"
 
 const OTP_CODE_LENGTH = 6
 
@@ -52,10 +53,10 @@ export function OtpForm({
       <div className="flex items-center gap-3 text-foreground">
         {headerIcon}
         <div>
-          <h2 className="text-xl sm:text-lg font-semibold">{headerTitle}</h2>
-          <p className="text-base sm:text-sm text-muted-foreground">
+          <Heading level={4}>{headerTitle}</Heading>
+          <Muted variant="small">
             {headerDescription || <>We sent a verification code to <strong>{email}</strong>.</>}
-          </p>
+          </Muted>
         </div>
       </div>
 
@@ -71,8 +72,8 @@ export function OtpForm({
 
       {/* Resend */}
       {onResend && (
-        <div className="text-center text-sm text-muted-foreground">
-          <p>Didn&apos;t get a code?</p>
+        <div className="text-center">
+          <Muted variant="small" as="p">Didn&apos;t get a code?</Muted>
           <Button
             type="button"
             variant="link"

@@ -1,5 +1,6 @@
 import { Trophy, Flame, Award } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Heading, Muted } from "@/components/ui/typography";
 
 interface UserProfileSectionProps {
   userName: string;
@@ -40,19 +41,19 @@ export function UserProfileSection({
               </span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{userName}</h1>
+              <Heading level={2} as="h1">{userName}</Heading>
               {skillLevel && (
-                <p className="text-sm font-medium text-primary">
+                <Muted variant="small" className="text-primary">
                   {skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1)} Level
-                </p>
+                </Muted>
               )}
               {assistantName && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <Muted variant="small">
                   Learning with {assistantName}
-                </p>
+                </Muted>
               )}
               {email && (
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{email}</p>
+                <Muted variant="tiny">{email}</Muted>
               )}
             </div>
           </div>
@@ -62,21 +63,21 @@ export function UserProfileSection({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-primary" />
-                <span className="font-semibold">Level {level}</span>
+                <Heading level={6} as="span">Level {level}</Heading>
               </div>
-              <span className="text-sm text-zinc-600 dark:text-zinc-300">
+              <Muted variant="small" as="span">
                 {points.toLocaleString()} points
-              </span>
+              </Muted>
             </div>
-            <div className="h-3 rounded-full bg-zinc-100 dark:bg-zinc-900">
+            <div className="h-3 rounded-full bg-muted">
               <div
                 className="h-3 rounded-full bg-primary transition-all duration-500"
                 style={{ width: `${levelProgress.percent}%` }}
               />
             </div>
-            <div className="mt-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-              <span>{levelProgress.percent}% to Level {level + 1}</span>
-              <span>{levelProgress.pointsToNext.toLocaleString()} pts needed</span>
+            <div className="mt-1 flex items-center justify-between">
+              <Muted variant="tiny" as="span">{levelProgress.percent}% to Level {level + 1}</Muted>
+              <Muted variant="tiny" as="span">{levelProgress.pointsToNext.toLocaleString()} pts needed</Muted>
             </div>
           </div>
 
@@ -85,16 +86,16 @@ export function UserProfileSection({
             <div className="text-center">
               <div className="flex items-center gap-1 mb-1">
                 <Flame className="h-4 w-4 text-orange-500" />
-                <span className="text-2xl font-bold">{streakDays}</span>
+                <Heading level={2} as="span">{streakDays}</Heading>
               </div>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">Day Streak</span>
+              <Muted variant="tiny" as="span">Day Streak</Muted>
             </div>
             <div className="text-center">
               <div className="flex items-center gap-1 mb-1">
                 <Award className="h-4 w-4 text-primary" />
-                <span className="text-2xl font-bold">{earnedBadgesCount}</span>
+                <Heading level={2} as="span">{earnedBadgesCount}</Heading>
               </div>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">Badges</span>
+              <Muted variant="tiny" as="span">Badges</Muted>
             </div>
           </div>
         </div>
