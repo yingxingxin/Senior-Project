@@ -1,5 +1,5 @@
 import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options } from './index';
-import { ASSISTANT_FIXTURES } from '../lib/onboarding/fixtures';
+import { ASSISTANT_FIXTURES } from '@/app/onboarding/_lib/fixtures';
 import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 

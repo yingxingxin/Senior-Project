@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { OnboardingStep } from '@/src/lib/onboarding/steps';
+import type { OnboardingStep } from '@/app/onboarding/_lib/steps';
 import { updateOnboardingStepAction } from '@/app/onboarding/actions';
 
 interface PersistOnboardingStepProps {

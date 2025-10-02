@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
+import { OnboardingProgress } from '@/app/onboarding/_components/OnboardingProgress';
 import { ModeToggle } from '@/components/ui/mode-toggle';
-import type { OnboardingStep, OnboardingStepDefinition } from '@/src/lib/onboarding/steps';
-import { ONBOARDING_STEPS } from '@/src/lib/onboarding/steps';
+import type { OnboardingStep, OnboardingStepDefinition } from '@/app/onboarding/_lib/steps';
+import { ONBOARDING_STEPS } from '@/app/onboarding/_lib/steps';
 import {
   requireActiveOnboardingUser,
   resolveOnboardingStep,
-} from '@/src/lib/onboarding/server';
+} from '@/app/onboarding/_lib/server';
 
 export const metadata = {
   title: 'Assistant Onboarding',

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-import type { OnboardingStep, OnboardingStepDefinition } from '@/src/lib/onboarding/steps';
-import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
+import type { OnboardingStep, OnboardingStepDefinition } from '@/app/onboarding/_lib/steps';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { cn } from '@/src/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Caption, Muted, Heading } from '@/components/ui/typography';

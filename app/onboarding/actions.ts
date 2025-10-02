@@ -16,8 +16,8 @@ import {
   quiz_attempt_answers,
   activity_events
 } from '@/src/db';
-import type { ActiveOnboardingUser, AssistantPersona } from '@/src/lib/onboarding/server';
-import { getOnboardingStepHref, OnboardingStep, ONBOARDING_STEPS } from '@/src/lib/onboarding/steps';
+import type { ActiveOnboardingUser, AssistantPersona } from '@/app/onboarding/_lib/server';
+import { getOnboardingStepHref, OnboardingStep, ONBOARDING_STEPS } from '@/app/onboarding/_lib/steps';
 
 async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
   const session = await auth.api.getSession({

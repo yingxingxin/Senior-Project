@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 
 import { selectAssistantPersonaAction } from '@/app/onboarding/actions';
-import type { AssistantPersona, PersonaOption } from '@/src/lib/onboarding/fixtures';
+import type { AssistantPersona, PersonaOption } from '@/app/onboarding/_lib/fixtures';
 import { cn } from '@/src/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';

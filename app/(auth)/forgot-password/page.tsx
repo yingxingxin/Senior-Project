@@ -1,4 +1,4 @@
-import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm"
+import { ForgotPasswordForm } from "./forgot-password-form"
 import { Stack } from "@/components/ui/spacing"
 import type { Metadata } from "next"
 

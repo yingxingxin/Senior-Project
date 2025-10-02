@@ -4,8 +4,8 @@ import Image from 'next/image';
 import {
   requireActiveOnboardingUser,
   resolveOnboardingStep,
-} from '@/src/lib/onboarding/server';
-import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
+} from '@/app/onboarding/_lib/server';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { persistOnboardingStep } from '@/app/onboarding/actions';
 import { Display, Body, Caption, Heading, Muted } from '@/components/ui/typography';
 import { Stack, Grid, Inline } from '@/components/ui/spacing';

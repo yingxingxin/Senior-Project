@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import {
   getOnboardingRedirectTarget,
   requireActiveOnboardingUser,
-} from '@/src/lib/onboarding/server';
+} from '@/app/onboarding/_lib/server';
 
 export default async function OnboardingEntryPage() {
   const user = await requireActiveOnboardingUser();

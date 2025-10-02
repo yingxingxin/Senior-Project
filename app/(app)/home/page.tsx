@@ -1,10 +1,10 @@
 import { getExploreData } from "../actions";
-import { UserProfileSection } from "@/components/home/user-profile-section";
-import { AssistantHero } from "@/components/home/assistant-hero";
-import { AchievementsSection } from "@/components/home/achievements-section";
-import { QuickStatsCard } from "@/components/home/quick-stats-card";
-import { RecentActivities } from "@/components/home/recent-activities";
-import { ExploreSection } from "@/components/home/explore-section";
+import { UserProfileSection } from "@/app/(app)/home/_components/user-profile-section";
+import { AssistantHero } from "@/app/(app)/home/_components/assistant-hero";
+import { AchievementsSection } from "@/app/(app)/home/_components/achievements-section";
+import { QuickStatsCard } from "@/app/(app)/home/_components/quick-stats-card";
+import { RecentActivities } from "@/app/(app)/home/_components/recent-activities";
+import { ExploreSection } from "@/app/(app)/home/_components/explore-section";
 import { Stack, Grid } from "@/components/ui/spacing";
 
 export default async function HomePage() {

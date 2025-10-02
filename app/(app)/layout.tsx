@@ -3,9 +3,9 @@ import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { db, users } from "@/src/db";
 import { eq } from "drizzle-orm";
-import Navbar from "@/components/home/navbar";
+import Navbar from "@/app/(app)/home/_components/navbar";
 import { getUserNavbarData } from "./actions";
-import { getOnboardingRedirectTarget } from "@/src/lib/onboarding/server";
+import { getOnboardingRedirectTarget } from "@/app/onboarding/_lib/server";
 
 export default async function AppLayout({
   children,

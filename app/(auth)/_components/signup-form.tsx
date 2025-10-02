@@ -7,20 +7,20 @@ import { UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { AuthForm } from "@/components/auth/shared/AuthForm";
-import { OtpForm } from "@/components/auth/shared/OtpForm";
-import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
+import { AuthForm } from "@/app/(auth)/_components/auth-form";
+import { OtpForm } from "@/app/(auth)/_components/otp-form";
+import { AuthSuccess } from "@/app/(auth)/_components/auth-success";
 import { Stack, Grid } from "@/components/ui/spacing";
 
 import {
   signupSchema,
   type SignupInput,
-} from "@/lib/auth/schemas";
+} from "@/app/(auth)/_lib/schemas";
 import { authClient } from "@/lib/auth-client";
 
 type Step = "form" | "otp" | "verified";
 
-export default function SignupForm() {
+export function SignupForm() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("form");
   const [pendingEmail, setPendingEmail] = useState<string>("");

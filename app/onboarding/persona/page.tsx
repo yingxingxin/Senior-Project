@@ -5,11 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 import {
   requireActiveOnboardingUser,
   resolveOnboardingStep,
-} from '@/src/lib/onboarding/server';
-import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
-import { PERSONA_OPTIONS } from '@/src/lib/onboarding/fixtures';
-import { PersonaSelectionForm } from '@/components/onboarding/PersonaSelectionForm';
-import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
+} from '@/app/onboarding/_lib/server';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
+import { PERSONA_OPTIONS } from '@/app/onboarding/_lib/fixtures';
+import { PersonaSelectionForm } from './persona-selection-form';
+import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { Display, Body } from '@/components/ui/typography';
 

@@ -7,12 +7,12 @@ import { LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { AuthForm } from "@/components/auth/shared/AuthForm";
+import { AuthForm } from "@/app/(auth)/_components/auth-form";
 import { Stack, Grid } from "@/components/ui/spacing";
-import { loginSchema, type LoginInput } from "@/lib/auth/schemas";
+import { loginSchema, type LoginInput } from "@/app/(auth)/_lib/schemas";
 import { authClient } from "@/lib/auth-client";
 
-export default function LoginForm() {
+export function LoginForm() {
   const router = useRouter();
 
   const form = useForm<LoginInput>({

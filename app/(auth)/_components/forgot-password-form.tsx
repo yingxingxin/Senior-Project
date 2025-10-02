@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AuthForm } from "@/components/auth/shared/AuthForm";
-import { OtpForm } from "@/components/auth/shared/OtpForm";
-import { AuthSuccess } from "@/components/auth/shared/AuthSuccess";
-import { authClient } from "@/src/lib/auth-client";
+import { AuthForm } from "@/app/(auth)/_components/auth-form";
+import { OtpForm } from "@/app/(auth)/_components/otp-form";
+import { AuthSuccess } from "@/app/(auth)/_components/auth-success";
+import { authClient } from "@/lib/auth-client";
 import {
   passwordResetRequestSchema,
   passwordResetSchema,
-} from "@/src/lib/auth/schemas";
+} from "@/app/(auth)/_lib/schemas";
 import { Heading, Muted } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
 
@@ -23,7 +23,7 @@ type EmailForm = z.infer<typeof passwordResetRequestSchema>;
 type PasswordForm = z.infer<typeof passwordResetSchema>;
 
 
-export default function ForgotPasswordForm() {
+export function ForgotPasswordForm() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   // we store email in state to track the email getting password reset

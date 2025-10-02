@@ -2,16 +2,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import { GuidedIntroCompletion } from '@/components/onboarding/GuidedIntroCompletion';
-import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
+import { GuidedIntroCompletion } from './guided-intro-completion';
+import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { getAssistantNameForUser } from '@/src/db/queries/onboarding';
-import { PERSONA_OPTIONS } from '@/src/lib/onboarding/fixtures';
+import { PERSONA_OPTIONS } from '@/app/onboarding/_lib/fixtures';
 import {
   requireActiveOnboardingUser,
   resolveOnboardingStep,
-} from '@/src/lib/onboarding/server';
-import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
+} from '@/app/onboarding/_lib/server';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { Display, Body, Caption, Heading } from '@/components/ui/typography';
 import { Stack, Grid } from '@/components/ui/spacing';
 

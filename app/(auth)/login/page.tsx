@@ -1,4 +1,4 @@
-import LoginForm from "@/components/auth/LoginForm"
+import { LoginForm } from "./login-form"
 import { Heading, Muted } from "@/components/ui/typography"
 import { Stack } from "@/components/ui/spacing"
 import Link from "next/link"

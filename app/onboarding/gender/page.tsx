@@ -5,11 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 import {
   requireActiveOnboardingUser,
   resolveOnboardingStep,
-} from '@/src/lib/onboarding/server';
-import { getOnboardingStepHref } from '@/src/lib/onboarding/steps';
+} from '@/app/onboarding/_lib/server';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { getAssistantOptions } from '@/src/db/queries/onboarding';
-import { AssistantSelectionForm } from '@/components/onboarding/AssistantSelectionForm';
-import { PersistOnboardingStep } from '@/components/onboarding/PersistOnboardingStep';
+import { AssistantSelectionForm } from './assistant-selection-form';
+import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { Display, Body } from '@/components/ui/typography';
 
