@@ -66,7 +66,7 @@ Our design system is built on five foundational principles:
 #### Use Design System Components When:
 - ✅ Building page layouts (Stack, Grid, Inline)
 - ✅ Adding text content (Display, Heading, Body, Muted, Caption)
-- ✅ Structuring forms (AuthForm utilities)
+- ✅ Structuring forms (Form primitives)
 - ✅ Creating consistent UI (Button, Card, Alert from shadcn)
 
 #### Use Raw Tailwind When:
@@ -1477,8 +1477,11 @@ app/
     └── ...
 
 components/
+├── ui/
+│   ├── form.tsx             ← Shared form primitives
+│   ├── button.tsx           ← Design system button
+│   └── ...
 ├── auth/
-│   ├── auth-form.tsx        ← Shared form utilities
 │   ├── otp-form.tsx         ← Shared OTP component
 │   └── auth-success.tsx     ← Shared success state
 └── onboarding/
@@ -1488,62 +1491,75 @@ components/
 
 ### Shared Form Utilities
 
-#### AuthForm Component
+#### Form Primitives
 
-**File:** `components/auth/auth-form.tsx`
-**Purpose:** Reusable form field components for auth flows
+**File:** `components/ui/form.tsx`
+**Purpose:** Reusable form field primitives for auth flows and beyond
 
-**Components:**
-- `AuthForm.EmailField` — Email input with validation
-- `AuthForm.PasswordField` — Password input with optional extras (forgot link)
-- `AuthForm.Button` — Submit button with loading states
-- `AuthForm.RootError` — Top-level error display
+**Exports:**
+- `Form` — Provider wrapper around `FormProvider`
+- `EmailField` — Context-aware email input with validation wiring
+- `PasswordField` — Password input with toggleable visibility
+- `RootError` — Top-level error display bound to `root.serverError`
+- `FormField`, `FormItem`, etc. — shadcn/ui form building blocks
 
 **Usage Example:**
 ```tsx
-import { AuthForm } from "@/components/auth/auth-form"
+import Link from "next/link"
+import { Loader2, LogIn } from "lucide-react"
 import { useForm } from "react-hook-form"
+
+import { Button } from "@/components/ui/button"
+import { Form, EmailField, PasswordField, RootError } from "@/components/ui/form"
+import { Stack } from "@/components/ui/spacing"
 
 export function LoginForm() {
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   })
 
+  const { formState } = form
+
   return (
-    <AuthForm {...form}>
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Stack gap="default">
-          <AuthForm.RootError message={form.formState.errors.root?.message} />
+          <RootError />
 
-          <Stack gap="tight" as="fieldset" disabled={form.formState.isSubmitting}>
-            <AuthForm.EmailField
-              control={form.control}
-              name="email"
-              label="Email"
-            />
+          <Stack gap="tight" as="fieldset" disabled={formState.isSubmitting}>
+            <EmailField name="email" label="Email" />
 
-            <AuthForm.PasswordField
-              control={form.control}
+            <PasswordField
               name="password"
               label="Password"
               extra={
-                <Link href="/forgot-password" className="text-sm text-primary">
+                <Link href="/forgot-password" className="text-sm text-primary underline">
                   Forgot password?
                 </Link>
               }
             />
           </Stack>
 
-          <AuthForm.Button
+          <Button
             type="submit"
-            isLoading={form.formState.isSubmitting}
-            loadingText="Signing in..."
+            className="w-full h-14 sm:h-12 text-lg sm:text-base font-medium"
+            disabled={formState.isSubmitting}
           >
-            Sign In
-          </AuthForm.Button>
+            {formState.isSubmitting ? (
+              <>
+                <Loader2 aria-hidden className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn aria-hidden className="size-4" />
+                Sign In
+              </>
+            )}
+          </Button>
         </Stack>
       </form>
-    </AuthForm>
+    </Form>
   )
 }
 ```
@@ -1679,25 +1695,25 @@ export function MultiStepForm() {
 #### Form with Semantic Stack Pattern
 
 ```tsx
-<AuthForm {...form}>
+<Form {...form}>
   <form onSubmit={handleSubmit}>
     <Stack gap="default">
       {/* Error display */}
-      <AuthForm.RootError message={errors.root?.message} />
+      <RootError />
 
       {/* Form fields - grouped as fieldset for accessibility */}
       <Stack gap="tight" as="fieldset" disabled={isSubmitting}>
-        <AuthForm.EmailField control={control} name="email" />
-        <AuthForm.PasswordField control={control} name="password" />
+        <EmailField name="email" />
+        <PasswordField name="password" />
       </Stack>
 
       {/* Submit button */}
-      <AuthForm.Button type="submit" isLoading={isSubmitting}>
-        Submit
-      </AuthForm.Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit"}
+      </Button>
     </Stack>
   </form>
-</AuthForm>
+</Form>
 ```
 
 ### Form Anti-Patterns
@@ -1709,8 +1725,8 @@ export function MultiStepForm() {
   <Input type="email" />
 </FormField>
 
-// Right - use shared AuthForm component
-<AuthForm.EmailField control={control} name="email" />
+// Right - use shared EmailField primitive
+<EmailField name="email" />
 ```
 
 #### ❌ Don't put page-specific forms in components/
@@ -1849,7 +1865,7 @@ components/
 
 Extract to `components/` when:
 - ✅ Used in 2+ different page routes
-- ✅ Truly reusable utility (AuthForm fields)
+- ✅ Truly reusable utility (form field primitives)
 - ✅ Design system primitive (Button, Input)
 
 Keep in page directory when:
@@ -1875,24 +1891,26 @@ import { Stack } from "@/components/ui/spacing"
 
 ### Component Composition Patterns
 
-#### Compound Component Pattern
+#### Module Export Pattern
 
-Used in `AuthForm`:
+Used in `components/ui/form.tsx`:
 ```tsx
-// Export related components as properties
-const AuthForm = Object.assign(AuthFormRoot, {
-  Button: AuthFormButton,
-  EmailField: AuthFormEmailField,
-  PasswordField: AuthFormPasswordField,
-  RootError: AuthFormRootError,
-})
+// Group related primitives in a single module
+export {
+  Form,
+  FormField,
+  FormItem,
+  EmailField,
+  PasswordField,
+  RootError,
+} from "./form"
 
 // Usage
-<AuthForm>
-  <AuthForm.EmailField />
-  <AuthForm.PasswordField />
-  <AuthForm.Button />
-</AuthForm>
+<Form {...form}>
+  <EmailField name="email" />
+  <PasswordField name="password" />
+  <RootError />
+</Form>
 ```
 
 #### Slot Pattern with `as` Prop
@@ -1955,9 +1973,11 @@ export default function DashboardPage() {
 ### Auth Form Layout
 
 ```tsx
-import { Stack, Inline, Grid } from "@/components/ui/spacing"
+import { Stack, Grid } from "@/components/ui/spacing"
 import { Heading, Muted } from "@/components/ui/typography"
-import { AuthForm } from "@/components/auth/auth-form"
+import { Button } from "@/components/ui/button"
+import { Form, EmailField, PasswordField, RootError } from "@/components/ui/form"
+import { SocialButtons } from "@/app/(auth)/_components/social-buttons"
 
 export function LoginForm() {
   return (
@@ -1969,26 +1989,23 @@ export function LoginForm() {
       </Stack>
 
       {/* Form */}
-      <AuthForm {...form}>
+      <Form {...form}>
         <form onSubmit={handleSubmit}>
           <Stack gap="default">
             <Stack gap="tight" as="fieldset" disabled={isSubmitting}>
-              <AuthForm.EmailField control={control} name="email" />
-              <AuthForm.PasswordField control={control} name="password" />
+              <EmailField name="email" />
+              <PasswordField name="password" />
             </Stack>
 
-            <AuthForm.Button type="submit" isLoading={isSubmitting}>
-              Sign In
-            </AuthForm.Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Signing in..." : "Sign In"}
+            </Button>
 
             {/* Social sign-in */}
-            <Grid cols={2} gap="tight">
-              <AuthForm.Button variant="outline">Google</AuthForm.Button>
-              <AuthForm.Button variant="outline">GitHub</AuthForm.Button>
-            </Grid>
+            <SocialButtons disabled={isSubmitting} />
           </Stack>
         </form>
-      </AuthForm>
+      </Form>
     </Stack>
   )
 }
@@ -2100,7 +2117,7 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm }) {
 - **Typography:** `components/ui/typography.tsx`
 - **Spacing:** `components/ui/spacing.tsx`
 - **Colors:** `app/globals.css`
-- **Auth Forms:** `components/auth/auth-form.tsx`, `otp-form.tsx`, `auth-success.tsx`
+- **Auth Forms:** `components/ui/form.tsx`, `components/auth/otp-form.tsx`, `components/auth/auth-success.tsx`
 - **Design Docs:** `DESIGN_SYSTEM.md` (this file)
 - **Development Guidelines:** `CLAUDE.md`
 

@@ -8,7 +8,7 @@ import {
 } from '@/app/onboarding/_lib/server';
 import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { PERSONA_OPTIONS } from '@/app/onboarding/_lib/fixtures';
-import { PersonaSelectionForm } from './persona-selection-form';
+import { PersonaSelectionForm } from '../_components/persona-selection-form';
 import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { Display, Body } from '@/components/ui/typography';

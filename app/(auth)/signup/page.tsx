@@ -1,4 +1,4 @@
-import { SignupForm } from "./signup-form"
+import { SignupForm } from "../_components/signup-form"
 import { Heading, Muted } from "@/components/ui/typography"
 import { Stack } from "@/components/ui/spacing"
 import Link from "next/link"

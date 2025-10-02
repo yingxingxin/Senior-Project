@@ -272,9 +272,9 @@ export function ThemeProvider({ ... }) { ... }
 
 #### Feature-Shared Component (Reusable)
 ```tsx
-// ✅ app/(auth)/_components/auth-form.tsx
-// Shared form primitives used by multiple auth pages
-export const AuthForm = { ... }
+// ✅ app/(auth)/_components/social-buttons.tsx
+// Shared auth-only UI reused by multiple auth pages
+export function SocialButtons({ disabled }) { ... }
 ```
 
 #### Feature Component (Page-Specific)
@@ -308,7 +308,6 @@ All imports use the `@/` alias configured in `tsconfig.json`:
 ```tsx
 // ✅ Good
 import { Button } from "@/components/ui/button"
-import { AuthForm } from "@/app/(auth)/_components/auth-form"
 import { loginSchema } from "@/app/(auth)/_lib/schemas"
 
 // ❌ Bad (relative paths)
@@ -328,7 +327,7 @@ import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
 
 // Feature components
-import { AuthForm } from "@/app/(auth)/_components/auth-form"
+import { SocialButtons } from "@/app/(auth)/_components/social-buttons"
 import { OtpForm } from "@/app/(auth)/_components/otp-form"
 
 // Feature logic
@@ -357,10 +356,11 @@ import { authClient } from "@/lib/auth-client"
 
 // 4. Design system
 import { Button } from "@/components/ui/button"
+import { Form } from "@/components/ui/form"
 import { Stack } from "@/components/ui/spacing"
 
 // 5. Feature components/logic
-import { AuthForm } from "@/app/(auth)/_components/auth-form"
+import { SocialButtons } from "@/app/(auth)/_components/social-buttons"
 import { loginSchema } from "@/app/(auth)/_lib/schemas"
 
 // 6. Relative imports
@@ -484,7 +484,7 @@ app/(auth)/
 
 **Why this works:**
 - All auth components centralized in `_components/`
-- Shared utilities (`AuthForm`, `OtpForm`) are reused
+- Shared utilities (form primitives, `OtpForm`) are reused
 - Page-specific forms (`login-form`, `signup-form`) live in same directory
 - All auth code is colocated in one feature
 

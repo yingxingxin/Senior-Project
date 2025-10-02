@@ -8,7 +8,7 @@ import {
 } from '@/app/onboarding/_lib/server';
 import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { getAssistantOptions } from '@/src/db/queries/onboarding';
-import { AssistantSelectionForm } from './assistant-selection-form';
+import { AssistantSelectionForm } from '../_components/assistant-selection-form';
 import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { Display, Body } from '@/components/ui/typography';

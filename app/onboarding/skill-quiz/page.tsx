@@ -1,5 +1,5 @@
 import { requireActiveOnboardingUser } from '@/app/onboarding/_lib/server';
-import { SkillQuizForm } from './skill-quiz-form';
+import { SkillQuizForm } from '../_components/skill-quiz-form';
 import { getSkillQuizQuestions } from '../actions';
 import { Heading, Muted } from '@/components/ui/typography';
 import { Stack } from '@/components/ui/spacing';

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-import { GuidedIntroCompletion } from './guided-intro-completion';
+import { GuidedIntroCompletion } from '../_components/guided-intro-completion';
 import { PersistOnboardingStep } from '@/app/onboarding/_components/PersistOnboardingStep';
 import { Button } from '@/components/ui/button';
 import { getAssistantNameForUser } from '@/src/db/queries/onboarding';

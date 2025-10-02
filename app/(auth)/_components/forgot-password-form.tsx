@@ -3,10 +3,10 @@
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AuthForm } from "@/app/(auth)/_components/auth-form";
 import { OtpForm } from "@/app/(auth)/_components/otp-form";
 import { AuthSuccess } from "@/app/(auth)/_components/auth-success";
 import { authClient } from "@/lib/auth-client";
@@ -14,6 +14,8 @@ import {
   passwordResetRequestSchema,
   passwordResetSchema,
 } from "@/app/(auth)/_lib/schemas";
+import { Button } from "@/components/ui/button";
+import { Form, EmailField, PasswordField, RootError } from "@/components/ui/form";
 import { Heading, Muted } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
 
@@ -65,7 +67,7 @@ export function ForgotPasswordForm() {
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") return;
       const message = e instanceof Error ? e.message : "Failed to send code";
-      emailForm.setError("root", { type: "server", message });
+      emailForm.setError("root.serverError", { type: "server", message });
     }
   });
 
@@ -109,7 +111,7 @@ export function ForgotPasswordForm() {
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") return;
       const message = e instanceof Error ? e.message : "Failed to reset password";
-      pwForm.setError("root", { type: "server", message });
+      pwForm.setError("root.serverError", { type: "server", message });
     }
   });
 
@@ -152,21 +154,17 @@ export function ForgotPasswordForm() {
           <Muted variant="small" as="p">Choose a strong password for your account</Muted>
         </Stack>
 
-        <AuthForm {...pwForm}>
+        <Form {...pwForm}>
           <form onSubmit={onSavePassword} noValidate aria-busy={pwForm.formState.isSubmitting}>
             <Stack gap="default">
-              {pwForm.formState.errors.root && (
-                <AuthForm.RootError message={pwForm.formState.errors.root.message} />
-              )}
+              <RootError />
               <Stack gap="tight" as="fieldset" {...({ disabled: pwForm.formState.isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
-                <AuthForm.PasswordField
-                  control={pwForm.control}
+                <PasswordField
                   name="password"
                   label="New password"
                   autoComplete="new-password"
                 />
-                <AuthForm.PasswordField
-                  control={pwForm.control}
+                <PasswordField
                   name="confirmPassword"
                   label="Confirm password"
                   autoComplete="new-password"
@@ -174,17 +172,24 @@ export function ForgotPasswordForm() {
               </Stack>
 
               <Stack gap="tight">
-                <AuthForm.Button
+                <Button
                   type="submit"
-                  isLoading={pwForm.formState.isSubmitting}
-                  loadingText="Saving..."
+                  className="w-full h-14 sm:h-12 text-lg sm:text-base font-medium"
+                  disabled={pwForm.formState.isSubmitting}
                 >
-                  Save new password
-                </AuthForm.Button>
+                  {pwForm.formState.isSubmitting ? (
+                    <>
+                      <Loader2 aria-hidden className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save new password"
+                  )}
+                </Button>
               </Stack>
             </Stack>
           </form>
-        </AuthForm>
+        </Form>
       </>
     );
   }
@@ -198,16 +203,13 @@ export function ForgotPasswordForm() {
       </Stack>
 
       <Stack gap="default">
-        <AuthForm {...emailForm}>
+        <Form {...emailForm}>
           <form onSubmit={onSendCode} noValidate aria-busy={emailForm.formState.isSubmitting}>
             <Stack gap="default">
-              {emailForm.formState.errors.root && (
-                <AuthForm.RootError message={emailForm.formState.errors.root.message} />
-              )}
+              <RootError />
 
               <Stack gap="tight" as="fieldset" {...({ disabled: emailForm.formState.isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
-                <AuthForm.EmailField
-                  control={emailForm.control}
+                <EmailField
                   name="email"
                   label="Email address"
                   placeholder="you@example.com"
@@ -215,13 +217,20 @@ export function ForgotPasswordForm() {
               </Stack>
 
               <Stack gap="tight">
-                <AuthForm.Button
+                <Button
                   type="submit"
-                  isLoading={emailForm.formState.isSubmitting}
-                  loadingText="Sending..."
+                  className="w-full h-14 sm:h-12 text-lg sm:text-base font-medium"
+                  disabled={emailForm.formState.isSubmitting}
                 >
-                  Send code
-                </AuthForm.Button>
+                  {emailForm.formState.isSubmitting ? (
+                    <>
+                      <Loader2 aria-hidden className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send code"
+                  )}
+                </Button>
 
                 <Muted variant="small" className="text-center">
                   Remember your password?{" "}
@@ -232,7 +241,7 @@ export function ForgotPasswordForm() {
               </Stack>
             </Stack>
           </form>
-        </AuthForm>
+        </Form>
       </Stack>
     </>
   );
