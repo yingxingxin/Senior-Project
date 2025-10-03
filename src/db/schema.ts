@@ -22,13 +22,17 @@ import { relations, sql } from 'drizzle-orm';
 // These define the allowed values for certain fields
 
 export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masculine', 'androgynous']);
+export type AssistantGender = (typeof assistantGenderEnum.enumValues)[number];
 
 export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
+export type AssistantPersona = (typeof assistantPersonaEnum.enumValues)[number];
 
 export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro']);
+export type OnboardingStep = (typeof onboardingStepEnum.enumValues)[number];
 
 // Skill level for initial placement from onboarding quiz
 export const skillLevelEnum = pgEnum('skill_level', ['beginner', 'intermediate', 'advanced']);
+export type SkillLevel = (typeof skillLevelEnum.enumValues)[number];
 
 /* Events that drive the activity feed and point awards */
 export const activityEventTypeEnum = pgEnum('activity_event_type', [
@@ -93,6 +97,8 @@ export const users = pgTable('users', {
   onboarding_completed_at: timestamp('onboarding_completed_at', { withTimezone: true }),
   onboarding_step: onboardingStepEnum('onboarding_step'),
 });
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 /**
  * Account Table - Manages OAuth provider connections and credential-based authentication for each user

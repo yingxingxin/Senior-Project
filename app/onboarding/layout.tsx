@@ -1,107 +1,84 @@
+/**
+ * app/onboarding/layout.tsx
+ *
+ * Creates a consistent layout for the onboarding pages
+ */
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-import { OnboardingProgress } from '@/app/onboarding/_components/OnboardingProgress';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import type { OnboardingStep, OnboardingStepDefinition } from '@/app/onboarding/_lib/steps';
-import { ONBOARDING_STEPS } from '@/app/onboarding/_lib/steps';
-import {
-  requireActiveOnboardingUser,
-  resolveOnboardingStep,
-} from '@/app/onboarding/_lib/server';
+import { auth } from '@/src/lib/auth';
+import { OnboardingProvider } from '@/app/onboarding/_context/onboarding-context';
+import { loadActiveUser } from '@/app/onboarding/_lib/guard';
+import { Stack } from '@/components/ui/spacing';
+import { OnboardingRail } from '@/app/onboarding/_components/onboarding-sidebar';
+import { cn } from '@/src/lib/utils';
 
 export const metadata = {
-  title: 'Assistant Onboarding',
+  title: 'Onboarding - Sprite.exe',
 };
 
-export default async function OnboardingLayout({
-  children,
-}: {
+type Props = {
   children: ReactNode;
-}) {
-  const user = await requireActiveOnboardingUser();
-  const currentStep = resolveOnboardingStep(user);
+};
 
-  // Welcome page has its own layout
-  if (currentStep === 'welcome') {
-    return <>{children}</>;
+export default async function OnboardingLayout({ children }: Props) {
+  console.log('[ONBOARDING LAYOUT] Starting...');
+
+  // 1. Auth check
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    console.log('[ONBOARDING LAYOUT] No session, redirecting to login');
+    redirect('/login?next=/onboarding');
   }
 
+  const userId = Number(session.user.id);
+  console.log('[ONBOARDING LAYOUT] User ID:', userId);
+
+  // 2. Load user data
+  const user = await loadActiveUser(userId);
+  console.log('[ONBOARDING LAYOUT] User data:', {
+    currentStep: user.currentStep,
+    assistantId: user.assistantId,
+    assistantPersona: user.assistantPersona,
+    completedAt: user.completedAt,
+  });
+
+  // 3. Check if onboarding is already completed
+  if (user.completedAt) {
+    console.log('[ONBOARDING LAYOUT] Onboarding completed, redirecting to /home');
+    redirect('/home');
+  }
+
+  // 4. Prepare bootstrap data for provider
+  // Note: Step validation and access control is handled in the page component
+  const bootstrap = {
+    currentStep: user.currentStep || 'gender',
+    assistantId: user.assistantId,
+    assistantPersona: user.assistantPersona,
+    skillLevel: user.skillLevel,
+  };
+
   return (
-    <OnboardingLayoutShell
-      steps={ONBOARDING_STEPS}
-      currentStep={currentStep}
-    >
-      {children}
-    </OnboardingLayoutShell>
-  );
-}
+    <OnboardingProvider bootstrap={bootstrap}>
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="flex min-h-screen flex-col md:flex-row">
+          <OnboardingRail />
 
-function OnboardingLayoutShell({
-  children,
-  steps,
-  currentStep,
-}: {
-  children: ReactNode;
-  steps: ReadonlyArray<OnboardingStepDefinition>;
-  currentStep: OnboardingStep;
-}) {
-  // Filter out welcome step from progress indicator
-  const progressSteps = steps.filter(step => step.id !== 'welcome');
-
-  return (
-    <div className="relative min-h-screen overflow-hidden text-foreground">
-      {/* Theme toggle in top-right corner */}
-      <div className="absolute top-4 right-4 z-50">
-        <ModeToggle />
-      </div>
-
-      {/* Simple gradient background */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-gradient-to-br from-background to-muted" />
-      </div>
-
-      <div className="relative flex min-h-screen flex-col">
-        {/* Header with progress indicator */}
-        <header className="relative z-20 border-b border-border bg-background/80 backdrop-blur-xl">
-          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <OnboardingProgress steps={progressSteps} currentStep={currentStep} />
-          </div>
-        </header>
-
-        {/* Main content area - Full width */}
-        <main className="relative flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
-          <div className="w-full max-w-6xl">
-            {/* Content container with full viewport utilization */}
-            <div className="animate-fade-in-up">
-              {children}
+          <main className="flex-1">
+            <div
+              className={cn(
+                'mx-auto w-full px-6 py-10 sm:px-8 sm:py-14 lg:px-12',
+                'max-w-5xl'
+              )}
+            >
+              <Stack gap="loose">
+                {children}
+              </Stack>
             </div>
-          </div>
-        </main>
-
-        {/* Mobile navigation helpers */}
-        <footer className="relative z-10 border-t border-border bg-background/80 backdrop-blur-xl lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-muted-foreground">
-                Step {progressSteps.findIndex(s => s.id === currentStep) + 1} of {progressSteps.length}
-              </div>
-              <div className="flex gap-2">
-                {progressSteps.map((step, index) => (
-                  <span
-                    key={step.id}
-                    className={`h-1 w-8 rounded-full transition-colors ${
-                      index <= progressSteps.findIndex(s => s.id === currentStep)
-                        ? 'bg-primary'
-                        : 'bg-muted'
-                    }`}
-                    aria-hidden
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
+          </main>
+        </div>
       </div>
-    </div>
+    </OnboardingProvider>
   );
 }

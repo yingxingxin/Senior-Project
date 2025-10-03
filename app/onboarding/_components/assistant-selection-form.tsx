@@ -1,258 +1,53 @@
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
-
-import { useRouter } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
-
-import { selectAssistantGenderAction } from '@/app/onboarding/actions';
-import type { AssistantOption } from '@/src/db/queries/onboarding';
-import { cn } from '@/src/lib/utils';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useState } from 'react';
+import { useOnboarding } from '@/app/onboarding/_context/onboarding-context';
+import type { AssistantOption } from '@/app/onboarding/_lib/guard';
+import { CharacterChooser } from '@/app/onboarding/_components/character-chooser';
+import { Stack, Inline } from '@/components/ui/spacing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Heading, Muted, Caption } from '@/components/ui/typography';
-import { Stack, Grid } from '@/components/ui/spacing';
 
-interface AssistantSelectionFormProps {
+export function AssistantSelectionForm({
+  options
+}: {
   options: ReadonlyArray<AssistantOption>;
-  selectedAssistantId: number | null;
-}
+}) {
+  const { selectAssistant, assistantId, pending, error, setError } = useOnboarding();
+  const [localSelection, setLocalSelection] = useState<number | null>(assistantId);
 
-export function AssistantSelectionForm({ options, selectedAssistantId }: AssistantSelectionFormProps) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [localSelection, setLocalSelection] = useState<number | null>(selectedAssistantId);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const assistantById = useMemo(() => {
-    const map = new Map<number, AssistantOption>();
-    for (const option of options) {
-      map.set(option.id, option);
-    }
-    return map;
-  }, [options]);
-
-  const handleContinue = () => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!localSelection) {
       setError('Please select an assistant to continue');
       return;
     }
-
     setError(null);
-    startTransition(async () => {
-      try {
-        const result = await selectAssistantGenderAction(localSelection);
-        router.push(result.nextHref);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save selection');
-      }
-    });
+    await selectAssistant(localSelection);
   };
 
   return (
-    <Stack gap="default">
-      {error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      <RadioGroup
-        value={localSelection?.toString()}
-        onValueChange={(value) => setLocalSelection(Number(value))}
-        disabled={pending}
-        asChild
-      >
-        <Grid cols={3} gap="default">
-        {options.map((option) => {
-          const isSelected = localSelection === option.id;
-          const isHovered = hoveredCard === option.id;
-          const fallbackInitial = option.name?.at(0)?.toUpperCase() ?? '?';
-
-          // Define personality-based color schemes
-          const colorScheme = {
-            feminine: {
-              gradient: 'from-pink-500/20 via-rose-400/15 to-violet-500/20 dark:from-pink-500/30 dark:via-rose-400/20 dark:to-violet-500/30',
-              borderHover: 'hover:border-pink-400/50 dark:hover:border-pink-300/50',
-              selectedBorder: 'border-pink-400/60 dark:border-pink-300/60',
-              selectedGlow: 'shadow-pink-400/25 dark:shadow-pink-300/35',
-              glowColor: 'rgba(236, 72, 153, 0.35)',
-              accentBg: 'bg-gradient-to-br from-pink-400/30 to-rose-500/25',
-            },
-            masculine: {
-              gradient: 'from-blue-500/20 via-indigo-400/15 to-cyan-500/20 dark:from-blue-500/30 dark:via-indigo-400/20 dark:to-cyan-500/30',
-              borderHover: 'hover:border-blue-400/50 dark:hover:border-blue-300/50',
-              selectedBorder: 'border-blue-400/60 dark:border-blue-300/60',
-              selectedGlow: 'shadow-blue-400/25 dark:shadow-blue-300/35',
-              glowColor: 'rgba(59, 130, 246, 0.35)',
-              accentBg: 'bg-gradient-to-br from-blue-400/30 to-indigo-500/25',
-            },
-            androgynous: {
-              gradient: 'from-emerald-500/20 via-teal-400/15 to-cyan-500/20 dark:from-emerald-500/30 dark:via-teal-400/20 dark:to-cyan-500/30',
-              borderHover: 'hover:border-emerald-400/50 dark:hover:border-emerald-300/50',
-              selectedBorder: 'border-emerald-400/60 dark:border-emerald-300/60',
-              selectedGlow: 'shadow-emerald-400/25 dark:shadow-emerald-300/35',
-              glowColor: 'rgba(16, 185, 129, 0.35)',
-              accentBg: 'bg-gradient-to-br from-emerald-400/30 to-teal-500/25',
-            },
-          };
-
-          const scheme = colorScheme[option.gender as keyof typeof colorScheme] || colorScheme.androgynous;
-
-          return (
-            <div key={option.id} className="relative h-full">
-              <RadioGroupItem value={option.id.toString()} id={`assistant-${option.id}`} className="sr-only absolute" />
-              <label
-                htmlFor={`assistant-${option.id}`}
-                onMouseEnter={() => setHoveredCard(option.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className={cn(
-                  'group relative flex h-full min-h-[320px] flex-col overflow-hidden rounded-3xl border bg-card bg-gradient-to-br text-left transition-all duration-500 cursor-pointer',
-                  isSelected
-                    ? `${scheme.selectedBorder} shadow-2xl scale-[1.02] ${scheme.selectedGlow}`
-                    : `border-border ${scheme.borderHover} hover:scale-[1.01] hover:shadow-2xl`,
-                  pending && 'opacity-70 pointer-events-none',
-                  scheme.gradient,
-                )}
-                style={{
-                  boxShadow: isHovered && !isSelected
-                    ? `0 20px 60px ${scheme.glowColor}`
-                    : undefined,
-                }}
-              >
-              {/* Enhanced gradient overlay */}
-              <div
-                className="absolute inset-0 opacity-60 transition-opacity duration-500 group-hover:opacity-100"
-                style={{
-                  background: `radial-gradient(circle at 30% 0%, ${scheme.glowColor}, transparent 60%)`
-                }}
-                aria-hidden
-              />
-
-              {/* Card content */}
-              <div className="relative flex h-full flex-col p-6">
-                {/* Avatar section - now larger and at the top */}
-                <div className="mb-5 flex justify-center">
-                  <div className={cn(
-                    "relative grid size-24 place-items-center overflow-hidden rounded-2xl border border-white/20 shadow-2xl transition-all duration-300",
-                    scheme.accentBg,
-                    "group-hover:scale-110 group-hover:border-white/30"
-                  )}>
-                    {option.avatarUrl ? (
-                      <img
-                        src={option.avatarUrl}
-                        alt={`${option.name} avatar`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl font-bold text-foreground">{fallbackInitial}</span>
-                    )}
-
-                    {/* Glow effect on avatar */}
-                    <div
-                      className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                      style={{
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%)'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Name and tagline */}
-                <div className="mb-4 text-center">
-                  <Heading level={4} className="mb-1">
-                    {option.name}
-                  </Heading>
-                  {option.tagline && (
-                    <Muted variant="small" className="italic">
-                      {option.tagline}
-                    </Muted>
-                  )}
-                </div>
-
-                {/* Description */}
-                {option.description && (
-                  <Muted variant="small" className="flex-1 leading-relaxed text-center">
-                    {option.description}
-                  </Muted>
-                )}
-
-                {/* Footer section */}
-                <Stack gap="tight" className="mt-6 flex flex-col">
-                  {/* Gender label */}
-                  <div className="flex justify-center">
-                    <Caption variant="uppercase" className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-muted-foreground">
-                      {option.gender || 'Custom'}
-                    </Caption>
-                  </div>
-
-                  {/* Selection button/status */}
-                  <div className="relative">
-                    {isSelected ? (
-                      <div className="flex items-center justify-center gap-2 rounded-xl border border-cyan-300/50 bg-cyan-400/20 py-2.5 px-4">
-                        <span className="size-2 rounded-full bg-cyan-300 animate-pulse" />
-                        <span className="text-sm font-semibold text-cyan-100">
-                          Selected
-                        </span>
-                      </div>
-                    ) : (
-                      <div className={cn(
-                        "flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 py-2.5 px-4",
-                        "transition-all duration-300 group-hover:border-white/40 group-hover:bg-white/10"
-                      )}>
-                        <span className="text-sm font-medium text-foreground">
-                          Choose {option.name}
-                        </span>
-                        <span className="text-muted-foreground transition-transform duration-300 group-hover:translate-x-1">
-                          →
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </Stack>
-              </div>
-              </label>
-            </div>
-          );
-        })}
-        </Grid>
-      </RadioGroup>
-
-      {/* Status and Continue button */}
-      <Stack gap="tight" className="mt-8 flex flex-col items-center">
-        {localSelection && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-500/10 px-4 py-2">
-            <span className="size-2 rounded-full bg-cyan-300" />
-            <Muted variant="small">
-              {assistantById.get(localSelection)?.name ?? 'Assistant'} selected
-            </Muted>
-          </div>
+    <form onSubmit={onSubmit}>
+      <Stack gap="default">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <Button
-          onClick={handleContinue}
-          disabled={!localSelection || pending}
-          size="lg"
-          className="min-w-[200px] bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {pending ? (
-            <span className="flex items-center gap-2">
-              <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Saving...
-            </span>
-          ) : (
-            'Continue to Personality'
-          )}
-        </Button>
+        <CharacterChooser
+          items={options}
+          value={localSelection}
+          onChange={(id) => { setError(null); setLocalSelection(id); }}
+          disabled={pending}
+        />
 
-        {!localSelection && (
-          <Muted variant="small">
-            Select an assistant to continue
-          </Muted>
-        )}
+        <Inline gap="default" align="center" className="justify-center">
+          <Button type="submit" disabled={!localSelection || pending} size="lg" className="min-w-48">
+            {pending ? 'Saving...' : 'Continue'}
+          </Button>
+        </Inline>
       </Stack>
-    </Stack>
+    </form>
   );
 }

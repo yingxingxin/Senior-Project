@@ -16,8 +16,19 @@ import {
   quiz_attempt_answers,
   activity_events
 } from '@/src/db';
-import type { ActiveOnboardingUser, AssistantPersona } from '@/app/onboarding/_lib/server';
-import { getOnboardingStepHref, OnboardingStep, ONBOARDING_STEPS } from '@/app/onboarding/_lib/steps';
+import type { AssistantPersona } from '@/app/onboarding/_lib/guard';
+import { getOnboardingStepHref, type OnboardingStep } from '@/app/onboarding/_lib/steps';
+
+// Internal type for actions
+type ActiveOnboardingUser = {
+  userId: number;
+  username: string;
+  assistantId: number | null;
+  assistantPersona: AssistantPersona | null;
+  skillLevel: string | null;
+  onboardingCompletedAt: Date | null;
+  onboardingStep: OnboardingStep | null;
+};
 
 async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
   const session = await auth.api.getSession({
@@ -120,65 +131,6 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
   };
 }
 
-export async function updateOnboardingStepAction(step: OnboardingStep) {
-  const user = await loadActiveOnboardingUser();
-
-  await db
-    .update(users)
-    .set({ onboarding_step: step })
-    .where(eq(users.id, user.userId));
-
-  revalidatePath('/onboarding');
-
-  return { ok: true } as const;
-}
-
-// Alias for consistency with naming convention
-export const persistOnboardingStep = updateOnboardingStepAction;
-
-export async function navigateToOnboardingStep(targetStep: OnboardingStep) {
-  const user = await loadActiveOnboardingUser();
-
-  // Find the index of current and target steps
-  const currentStepIndex = ONBOARDING_STEPS.findIndex(s => s.id === user.onboardingStep);
-  const targetStepIndex = ONBOARDING_STEPS.findIndex(s => s.id === targetStep);
-
-  // Prevent skipping ahead
-  if (targetStepIndex > currentStepIndex + 1) {
-    throw new Error('Cannot skip ahead in onboarding');
-  }
-
-  // Allow navigation to current or previous steps
-  if (targetStepIndex <= currentStepIndex) {
-    // Don't update the database step, just return the navigation target
-    return {
-      allowed: true,
-      nextHref: getOnboardingStepHref(targetStep),
-    };
-  }
-
-  // For forward navigation to the immediate next step
-  if (targetStepIndex === currentStepIndex + 1) {
-    // Check prerequisites
-    if (targetStep === 'skill_quiz' && !user.assistantId) {
-      throw new Error('Please select an assistant first');
-    }
-    if (targetStep === 'persona' && !user.assistantId) {
-      throw new Error('Please select an assistant first');
-    }
-    if (targetStep === 'guided_intro' && (!user.assistantId || !user.assistantPersona)) {
-      throw new Error('Please complete previous steps first');
-    }
-
-    return {
-      allowed: true,
-      nextHref: getOnboardingStepHref(targetStep),
-    };
-  }
-
-  throw new Error('Invalid navigation request');
-}
-
 export async function completeOnboardingAction() {
   const user = await loadActiveOnboardingUser();
 
@@ -267,22 +219,31 @@ function suggestedCourseFor(level: 'beginner' | 'intermediate' | 'advanced') {
 }
 
 export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
+  console.log('[Server Action] submitSkillQuizAnswers called with:', submission);
+
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
+    console.error('[Server Action] Unauthorized - no session');
     throw new Error('Unauthorized');
   }
 
   const userId = Number(session.user.id);
+  console.log('[Server Action] User ID:', userId);
   const answers = submission.answers;
+  console.log('[Server Action] Processing answers:', answers);
 
   // Find the skill assessment quiz
+  console.log('[Server Action] Finding skill assessment quiz...');
   const skillQuiz = await db.query.quizzes.findFirst({
     where: eq(quizzes.topic, 'Skill Assessment'),
   });
 
   if (!skillQuiz) {
+    console.error('[Server Action] Skill assessment quiz not found');
     throw new Error('Skill assessment quiz not found. Please run migrations and seed.');
   }
+
+  console.log('[Server Action] Found quiz:', skillQuiz.id);
 
   // Check how many attempts the user has made
   const existingAttempts = await db
@@ -334,7 +295,15 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
   const score = answers.reduce((acc, a) => acc + (correctSet.has(a.optionId) ? 1 : 0), 0);
   const level = mapScoreToLevel(score, answers.length);
 
+  console.log('[Server Action] Quiz results:', {
+    score,
+    total: answers.length,
+    level,
+    percentage: (score / answers.length) * 100,
+  });
+
   // Update user's skill level and onboarding step
+  console.log('[Server Action] Updating user skill level and onboarding step...');
   await db.update(users)
     .set({
       skill_level: level,
@@ -368,11 +337,14 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
   revalidatePath('/onboarding/skill-quiz');
   revalidatePath('/onboarding/persona');
 
-  return {
+  const result = {
     score,
     total: answers.length,
     level,
     suggestedCourse: suggestedCourseFor(level),
     next: '/onboarding/persona',
   };
+
+  console.log('[Server Action] Returning result:', result);
+  return result;
 }

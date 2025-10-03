@@ -1,55 +1,42 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState, useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { submitSkillQuizAnswers } from "@/app/onboarding/actions";
-import { Heading, Muted } from "@/components/ui/typography";
-import { Stack, Grid, Inline } from "@/components/ui/spacing";
+import { useOnboarding } from '@/app/onboarding/_context/onboarding-context';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Stack, Inline } from '@/components/ui/spacing';
+import { Heading, Body, Muted, Caption } from '@/components/ui/typography';
+import { Progress } from '@/components/ui/progress';
 
-// TODO: these probably could come from the db schema
 type Question = {
   id: number;
   text: string;
-  orderIndex: number;
-  options: { id: number; text: string; orderIndex: number }[];
-};
-
-type SkillQuizFormProps = {
-  initialQuestions: Question[];
-};
-
-type ServerResult = {
-  level: string;
-  score: number;
-  total: number;
-  suggestedCourse: string;
-  next: string;
+  options: { id: number; text: string }[];
 };
 
 const AnswerSchema = z.object({
   questionId: z.number(),
-  optionId: z.number().nullable(), // allow empty in UI; we'll enforce selection below
+  optionId: z.number().nullable(),
 });
 
 const FormSchema = z
   .object({
     answers: z.array(AnswerSchema),
   })
-  .superRefine((data, ctx) => {
-    data.answers.forEach((a, idx) => {
+  .superRefine((d, ctx) => {
+    d.answers.forEach((a, i) => {
       if (a.optionId === null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["answers", idx, "optionId"],
-          message: "Please answer this question",
+          path: ['answers', i, 'optionId'],
+          message: 'Please answer this question',
         });
       }
     });
@@ -57,134 +44,210 @@ const FormSchema = z
 
 type FormData = z.infer<typeof FormSchema>;
 
-export function SkillQuizForm({ initialQuestions }: SkillQuizFormProps) {
-  const router = useRouter();
-  // we need this state to show the result of the quiz
-  const [result, setResult] = useState<ServerResult | null>(null);
+export function SkillQuizForm({ questions }: { questions: Question[] }) {
+  const { submitQuiz, pending, error, setError } = useOnboarding();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      answers: initialQuestions.map((q) => ({
-        questionId: q.id,
-        optionId: null,
-      })),
+      answers: questions.map(q => ({ questionId: q.id, optionId: null })),
     },
-    mode: "onSubmit",
-    reValidateMode: "onChange",
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    shouldUnregister: false,
   });
 
+  // Ensure all questionIds are always set correctly
   useEffect(() => {
-    if (!result) return;
-    const id = setTimeout(() => router.push(result.next), 2000);
-    return () => clearTimeout(id);
-  }, [result, router]);
+    questions.forEach((q, i) => {
+      form.setValue(`answers.${i}.questionId`, q.id, { shouldValidate: false });
+    });
+  }, [questions, form]);
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      // Zod already ensured optionId != null, but TS still sees nullable.
-      // We need to convert the string to a number.
-      const answers = data.answers.map((a) => ({
-        questionId: a.questionId,
-        optionId: Number(a.optionId),
-      }));
+  const currentQuestion = questions[currentQuestionIndex];
+  const isFirstQuestion = currentQuestionIndex === 0;
+  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
-      const res = await submitSkillQuizAnswers({ answers });
-      setResult(res as ServerResult);
-    } catch (error) {
-      console.error("Failed to submit quiz:", error);
-      form.setError("root", {
-        message: "Failed to submit quiz. Please try again.",
-      });
+  const handleNext = () => {
+    if (!isLastQuestion) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
+  const handlePrevious = () => {
+    if (!isFirstQuestion) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    console.log('[SkillQuiz] onSubmit called with data:', data);
+    setError(null);
+
+    // Validate all questions are answered before submitting
+    const unansweredIndices = data.answers
+      .map((a, i) => (a.optionId === null ? i : -1))
+      .filter(i => i !== -1);
+
+    console.log('[SkillQuiz] Unanswered indices:', unansweredIndices);
+
+    if (unansweredIndices.length > 0) {
+      console.log('[SkillQuiz] Validation failed - unanswered questions');
+      setError('Please answer all questions before submitting');
+      setCurrentQuestionIndex(unansweredIndices[0]); // Jump to first unanswered
+      return;
+    }
+
+    try {
+      // All questions are answered (validated above), safe to use non-null assertion
+      const payload = data.answers.map(a => ({
+        questionId: a.questionId,
+        optionId: a.optionId!, // Non-null assertion - validation ensures this
+      }));
+      console.log('[SkillQuiz] Calling submitQuiz with payload:', payload);
+      await submitQuiz(payload);
+      console.log('[SkillQuiz] submitQuiz completed successfully');
+    } catch (err) {
+      console.error('[SkillQuiz] submitQuiz error:', err);
+      const message = err instanceof Error ? err.message : 'Failed to submit quiz. Please try again.';
+      setError(message);
+    }
+  };
+
+  const currentAnswer = form.watch(`answers.${currentQuestionIndex}.optionId`);
+  const allAnswers = form.watch('answers');
+  const allAnswered = allAnswers.every(a => a.optionId !== null);
+  const canProceed = currentAnswer !== null;
+
+  // Debug logging
+  console.log('[SkillQuiz] Button state:', {
+    isLastQuestion,
+    allAnswers,
+    allAnswered,
+    pending,
+    isSubmitting: form.formState.isSubmitting,
+    buttonDisabled: !allAnswered || pending || form.formState.isSubmitting,
+  });
+
+  // Debug form errors
+  console.log('[SkillQuiz] Form errors:', form.formState.errors);
+  console.log('[SkillQuiz] Form values:', form.getValues());
+
   return (
-    <>
-      {result && (
-        <Card className="w-full mb-6">
-          <div className="p-6 text-center">
-            <Heading level={2} className="mb-4">
-              Your starting level: {result.level.toUpperCase()}
-            </Heading>
-            <p className="mb-2">
-              Score: {result.score} / {result.total}
-            </p>
-            <p className="mb-4">
-              Suggested course: <strong>{result.suggestedCourse}</strong>
-            </p>
-            <Muted variant="small">Redirecting...</Muted>
-          </div>
-        </Card>
-      )}
-
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <Stack gap="default">
-        {initialQuestions.map((q, idx) => (
-          <Card key={q.id}>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Q{idx + 1}. {q.text}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Controller
-                name={`answers.${idx}.optionId`}
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <>
-                    <RadioGroup
-                      // store numbers in form; RadioGroup gives strings
-                      value={field.value === null ? "" : String(field.value)}
-                      onValueChange={(v) => field.onChange(v === "" ? null : Number(v))}
-                      disabled={form.formState.isSubmitting}
-                    >
-                      <Grid gap="tight">
-                        {q.options.map((opt) => {
-                          const inputId = `q${q.id}-o${opt.id}`;
-                          return (
-                            <Inline key={opt.id} gap="default" align="center">
-                              <RadioGroupItem value={String(opt.id)} id={inputId} />
-                              <Label htmlFor={inputId} className="cursor-pointer">
-                                {opt.text}
-                              </Label>
-                            </Inline>
-                          );
-                        })}
-                      </Grid>
-                    </RadioGroup>
-
-                    {/* keep questionId in the form data */}
-                    <input
-                      type="hidden"
-                      {...form.register(`answers.${idx}.questionId`, { value: q.id })}
-                    />
-
-                    {fieldState.error && (
-                      <Muted variant="small" className="text-destructive mt-2">
-                        {fieldState.error.message}
-                      </Muted>
-                    )}
-                  </>
-                )}
-              />
-            </CardContent>
-          </Card>
-        ))}
-
-        {form.formState.errors.root && (
-          <Muted variant="small" className="text-destructive text-center">
-            {form.formState.errors.root.message}
-          </Muted>
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Stack gap="default">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Submitting..." : "Submit"}
-          </Button>
-        </div>
+        {/* Progress indicator */}
+        <Stack gap="tight">
+          <Inline gap="default" align="center" className="justify-between">
+            <Caption variant="uppercase">
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </Caption>
+            <Muted variant="small">{Math.round(progress)}% Complete</Muted>
+          </Inline>
+          <Progress value={progress} className="h-2" />
         </Stack>
-      </form>
-    </>
+
+        {/* Current question */}
+        <Card>
+          <CardHeader>
+            <Heading level={3} className="text-lg">
+              {currentQuestion.text}
+            </Heading>
+          </CardHeader>
+          <CardContent>
+            {questions.map((q, i) => (
+              <div
+                key={q.id}
+                className={i === currentQuestionIndex ? '' : 'hidden'}
+                aria-hidden={i !== currentQuestionIndex}
+              >
+                <Controller
+                  name={`answers.${i}.optionId`}
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Stack gap="tight">
+                      <RadioGroup
+                        value={field.value === null ? '' : String(field.value)}
+                        onValueChange={(v) => field.onChange(v === '' ? null : Number(v))}
+                        disabled={pending || form.formState.isSubmitting}
+                      >
+                        <Stack gap="tight">
+                          {questions[i].options.map(opt => {
+                            const id = `q${q.id}-o${opt.id}`;
+                            return (
+                              <label
+                                key={opt.id}
+                                htmlFor={id}
+                                className="flex items-center gap-3 py-3 px-4 cursor-pointer rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-colors"
+                              >
+                                <RadioGroupItem value={String(opt.id)} id={id} />
+                                <Body variant="small" as="span">{opt.text}</Body>
+                              </label>
+                            );
+                          })}
+                        </Stack>
+                      </RadioGroup>
+                      {fieldState.error && (
+                        <Muted variant="small" className="text-destructive">{fieldState.error.message}</Muted>
+                      )}
+                    </Stack>
+                  )}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Navigation buttons */}
+        <Inline gap="default" align="center" className="justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={isFirstQuestion || pending}
+            size="lg"
+          >
+            <ChevronLeft className="size-4" />
+            Previous
+          </Button>
+
+          {isLastQuestion ? (
+            <Button
+              type="submit"
+              disabled={!allAnswered || pending || form.formState.isSubmitting}
+              size="lg"
+              onClick={() => {
+                console.log('[SkillQuiz] Submit button clicked', {
+                  allAnswered,
+                  pending,
+                  isSubmitting: form.formState.isSubmitting,
+                  disabled: !allAnswered || pending || form.formState.isSubmitting,
+                });
+              }}
+            >
+              {pending || form.formState.isSubmitting ? 'Submitting...' : 'Submit Quiz'}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleNext}
+              disabled={!canProceed || pending}
+              size="lg"
+            >
+              Next
+              <ChevronRight className="size-4" />
+            </Button>
+          )}
+        </Inline>
+      </Stack>
+    </form>
   );
 }

@@ -1,9 +1,15 @@
+/**
+ * This is basically a copy of the assistants table and the assistant_persona enum
+ * 
+ * TODO: If we keep assistants table in the database, these exports are not needed. It can be moved to seed file.
+ */
 export const ASSISTANT_FIXTURES = [
   {
     slug: 'nova-feminine',
     name: 'Nova',
     gender: 'feminine' as const,
     avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/power_smart.jpg',
+    hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-feminine-full-body.png',
     tagline: 'Brilliant strategist with infectious enthusiasm.',
     description:
       'Breaks down complex problems into achievable wins, celebrating each milestone with genuine excitement.',
@@ -13,6 +19,7 @@ export const ASSISTANT_FIXTURES = [
     name: 'Atlas',
     gender: 'masculine' as const,
     avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/tomoyw.jpg',
+    hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/atlas-masculine-full-body.png',
     tagline: 'Steady mentor with years of wisdom.',
     description:
       'Draws from deep experience to guide you through challenges, knowing exactly when to push and when to pause.',
@@ -22,6 +29,7 @@ export const ASSISTANT_FIXTURES = [
     name: 'Sage',
     gender: 'androgynous' as const,
     avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/femto.jpg',
+    hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/sage-androgynous-full-body.png',
     tagline: 'Intuitive guide who reads between the lines.',
     description:
       'Picks up on your learning style quickly, adapting explanations to match how you think best.',
