@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { AchievementTile } from "./achievement-tile";
 import { Heading } from "@/components/ui/typography";
-import { Grid } from "@/components/ui/spacing";
+import { Grid, Inline } from "@/components/ui/spacing";
 
 export type Badge = {
   id: string;
@@ -20,7 +20,7 @@ export function AchievementsSection({ badges }: AchievementsSectionProps) {
   return (
     <Card>
       <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <Inline gap="default" align="center" justify="between" className="mb-4">
           <Heading level={5}>Achievements</Heading>
           <Link
             href="/achievements"
@@ -28,7 +28,7 @@ export function AchievementsSection({ badges }: AchievementsSectionProps) {
           >
             View all →
           </Link>
-        </div>
+        </Inline>
         <Grid cols={2} gap="tight">
           {badges.slice(0, 6).map((badge) => (
             <AchievementTile key={badge.id} badge={badge} compact />

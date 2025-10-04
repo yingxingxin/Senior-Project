@@ -22,7 +22,7 @@ interface BaseSpacingProps {
 
 interface StackProps extends BaseSpacingProps {
   gap?: "tight" | "default" | "loose" | "section"
-  as?: "div" | "section" | "article" | "main" | "aside" | "nav" | "header" | "footer" | "fieldset"
+  as?: "div" | "section" | "article" | "main" | "aside" | "nav" | "header" | "footer" | "fieldset" | "ul" | "ol"
 }
 
 export function Stack({
@@ -56,14 +56,18 @@ export function Stack({
 
 interface InlineProps extends BaseSpacingProps {
   gap?: "tight" | "default" | "loose"
-  as?: "div" | "span"
-  align?: "start" | "center" | "end"
+  as?: "div" | "span" | "nav" | "ul" | "ol" | "li"
+  align?: "start" | "center" | "end" | "baseline"
+  justify?: "start" | "end" | "center" | "between" | "around" | "evenly"
+  wrap?: boolean
 }
 
 export function Inline({
   gap = "default",
   as: Component = "div",
   align = "start",
+  justify = "start",
+  wrap = true,
   className,
   children,
   ...props
@@ -78,11 +82,28 @@ export function Inline({
     start: "items-start",
     center: "items-center",
     end: "items-end",
+    baseline: "items-baseline",
+  }
+
+  const justifications = {
+    start: "justify-start",
+    end: "justify-end",
+    center: "justify-center",
+    between: "justify-between",
+    around: "justify-around",
+    evenly: "justify-evenly",
   }
 
   return (
     <Component
-      className={cn("flex flex-wrap", gaps[gap], alignments[align], className)}
+      className={cn(
+        "flex",
+        wrap && "flex-wrap",
+        gaps[gap],
+        alignments[align],
+        justifications[justify],
+        className
+      )}
       {...props}
     >
       {children}

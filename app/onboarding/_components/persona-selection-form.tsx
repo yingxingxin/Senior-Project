@@ -39,14 +39,14 @@ export function PersonaSelectionForm({
     subtitle: option.subtitle,
     icon: personaIcons[option.id],
     renderBody: (
-      <ul className="space-y-3">
+      <Stack gap="tight" as="ul">
         {option.highlights.map((highlight, idx) => (
-          <li key={idx} className="flex items-start gap-2">
+          <Inline gap="tight" align="start" as="li" key={idx}>
             <span className="mt-1 size-1.5 rounded-full bg-current opacity-60" />
             <Muted variant="tiny" as="span">{highlight}</Muted>
-          </li>
+          </Inline>
         ))}
-      </ul>
+      </Stack>
     ),
   }));
 

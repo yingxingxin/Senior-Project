@@ -41,7 +41,7 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
   return (
     <Card className="overflow-hidden">
       <div className="p-6">
-        <div className="flex items-start gap-5">
+        <Inline gap="loose" align="start">
           {/* Avatar */}
           <div className="relative shrink-0">
             <div className="h-20 w-20 rounded-[24px] bg-primary grid place-items-center ring-4 ring-border overflow-hidden">
@@ -106,17 +106,19 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                     <Link
                       key={action.label}
                       href={action.href}
-                      className="rounded-[14px] border border-border px-4 py-2.5 hover:bg-muted transition flex items-center gap-2"
+                      className="rounded-[14px] border border-border px-4 py-2.5 hover:bg-muted transition"
                     >
-                      <Icon className="h-4 w-4" />
-                      <Body variant="small" as="span" className="font-medium">{action.label}</Body>
+                      <Inline gap="tight" align="center" as="span">
+                        <Icon className="h-4 w-4" />
+                        <Body variant="small" as="span" className="font-medium">{action.label}</Body>
+                      </Inline>
                     </Link>
                   );
                 })}
               </Inline>
             </Inline>
           </div>
-        </div>
+        </Inline>
       </div>
     </Card>
   );

@@ -3,7 +3,7 @@
 import { Fragment } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Caption, Muted, Body } from '@/components/ui/typography';
-import { Stack } from '@/components/ui/spacing';
+import { Stack, Inline } from '@/components/ui/spacing';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/src/lib/utils';
 import { useOnboarding } from '@/app/onboarding/_context/onboarding-context';
@@ -20,7 +20,7 @@ export function OnboardingRail() {
       className="hidden shrink-0 border-border bg-gradient-to-b from-muted/30 to-muted/10 md:block md:basis-80 md:border-r lg:basis-96 xl:basis-[26rem]"
       aria-label="Onboarding progress"
     >
-      <div className="flex h-full flex-col px-8 py-12 lg:px-12 lg:py-16">
+      <Stack className="h-full px-8 py-12 lg:px-12 lg:py-16">
         <div className="lg:sticky lg:top-12">
           <Stack gap="loose">
             <Stack gap="tight">
@@ -33,20 +33,20 @@ export function OnboardingRail() {
             {/* Progress steps */}
             <Stack gap="default" className="w-full">
               {/* Progress header with prominent badge */}
-              <div className="flex items-center justify-between">
+              <Inline gap="default" align="center" justify="between">
                 <Caption variant="uppercase" className="text-muted-foreground">
                   Your Progress
                 </Caption>
                 <Badge variant="secondary" className="text-xs font-semibold">
                   {Math.round(progress)}% Complete
                 </Badge>
-              </div>
+              </Inline>
 
               {/* Progress bar */}
               <Progress value={progress} className="h-2.5" />
 
               {/* Stepper list with connecting lines */}
-              <ol className="relative space-y-6 pt-2" aria-label="Onboarding steps">
+              <Stack gap="loose" as="ol" className="relative pt-2" aria-label="Onboarding steps">
                 {ONBOARDING_STEPS.map((step, i) => {
                   const isCurrent = i === currentIndex;
                   const isDone = i < currentIndex;
@@ -54,9 +54,12 @@ export function OnboardingRail() {
 
                   return (
                     <Fragment key={step.id}>
-                      <li
+                      <Inline
+                        gap="default"
+                        align="start"
+                        as="li"
                         aria-current={isCurrent ? 'step' : undefined}
-                        className={cn('relative flex items-start gap-4')}
+                        className="relative"
                       >
                         {/* Step indicator container */}
                         <div className="relative flex shrink-0 items-center justify-center">
@@ -121,11 +124,11 @@ export function OnboardingRail() {
                             </Muted>
                           )}
                         </div>
-                      </li>
+                      </Inline>
                     </Fragment>
                   );
                 })}
-              </ol>
+              </Stack>
             </Stack>
 
             <Muted variant="tiny" className="text-muted-foreground">
@@ -133,7 +136,7 @@ export function OnboardingRail() {
             </Muted>
           </Stack>
         </div>
-      </div>
+      </Stack>
     </aside>
   );
 }

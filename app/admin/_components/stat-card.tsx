@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Inline } from "@/components/ui/spacing";
 
 type StatCardProps = {
   title: string;
@@ -18,12 +19,14 @@ export function StatCard({ title, icon: Icon, value, delta, href }: StatCardProp
 
   const content = (
     <Card className="h-full transition-colors hover:border-primary">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+      <CardHeader className="pb-2">
+        <Inline gap="default" align="center" justify="between">
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        </Inline>
       </CardHeader>
       <CardContent>
-        <div className="flex items-baseline justify-between gap-2">
+        <Inline gap="tight" align="baseline" justify="between">
           <div className="text-2xl font-bold">{value.toLocaleString("en-US")}</div>
           <Badge
             variant={up ? "default" : "destructive"}
@@ -31,7 +34,7 @@ export function StatCard({ title, icon: Icon, value, delta, href }: StatCardProp
           >
             {deltaLabel}
           </Badge>
-        </div>
+        </Inline>
       </CardContent>
     </Card>
   );

@@ -16,6 +16,7 @@ import { cn } from "@/src/lib/utils";
 import { LayoutDashboard, Users, ChevronDown, LogOut, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heading, Body, Caption } from "@/components/ui/typography";
+import { Stack, Inline } from "@/components/ui/spacing";
 
 interface NavItem {
   title: string;
@@ -163,13 +164,15 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               )}
             </button>
             {!collapsed && expanded && (
-              <ul
+              <Stack
+                gap="tight"
+                as="ul"
                 id={groupId}
                 role="group"
-                className="mt-1 space-y-1 border-l border-border/40 pl-4"
+                className="mt-1 border-l border-border/40 pl-4"
               >
                 {item.children?.map((child) => renderNavItem(child, depth + 1))}
-              </ul>
+              </Stack>
             )}
           </li>
         );
@@ -214,10 +217,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
   return (
-    <aside
+    <Stack
+      as="aside"
       aria-label="Admin navigation"
       className={cn(
-        "relative flex h-full flex-col border-r bg-background transition-[width] duration-300 ease-out",
+        "relative h-full border-r bg-background transition-[width] duration-300 ease-out",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -253,19 +257,18 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       </header>
 
       <ScrollArea className="flex-1 px-3 py-4" type="auto">
-        <nav id={navId} className="space-y-1" data-collapsed={collapsed}>
-          <ul className="space-y-1">
+        <Stack gap="tight" as="nav" id={navId} data-collapsed={collapsed}>
+          <Stack gap="tight" as="ul">
             {ADMIN_NAV.map((item) => renderNavItem(item))}
-          </ul>
-        </nav>
+          </Stack>
+        </Stack>
       </ScrollArea>
 
       <footer className="border-t px-3 py-4">
-        <div
-          className={cn(
-            "flex items-center gap-3",
-            collapsed ? "justify-center" : "justify-start"
-          )}
+        <Inline
+          gap="tight"
+          align="center"
+          className={collapsed ? "justify-center" : "justify-start"}
         >
           <Avatar className="h-9 w-9">
             {user.imageUrl ? (
@@ -281,7 +284,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               <Caption className="text-muted-foreground truncate">{user.email}</Caption>
             </div>
           )}
-        </div>
+        </Inline>
         <Button
           asChild
           variant="outline"
@@ -297,6 +300,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </Link>
         </Button>
       </footer>
-    </aside>
+    </Stack>
   );
 }

@@ -3,7 +3,7 @@
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
-import { Grid, Stack } from "@/components/ui/spacing"
+import { Grid, Stack, Inline } from "@/components/ui/spacing"
 import { authClient } from "@/lib/auth-client"
 
 type SocialButtonsProps = {
@@ -14,12 +14,12 @@ export function SocialButtons({ disabled }: SocialButtonsProps) {
   return (
     <Stack gap="tight">
       <div className="relative">
-        <div className="absolute inset-0 flex items-center">
+        <Inline align="center" className="absolute inset-0">
           <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-sm sm:text-xs">
+        </Inline>
+        <Inline align="center" justify="center" className="relative text-sm sm:text-xs">
           <span className="bg-background px-3 text-muted-foreground">or</span>
-        </div>
+        </Inline>
       </div>
 
       <Grid cols={2} gap="tight">

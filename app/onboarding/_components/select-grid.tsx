@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Heading, Muted, Caption } from '@/components/ui/typography';
-import { Stack } from '@/components/ui/spacing';
+import { Stack, Grid } from '@/components/ui/spacing';
 import { cn } from '@/src/lib/utils';
 
 export type SelectItem<ID extends string | number = string> = {
@@ -30,21 +30,20 @@ export function SelectGrid<ID extends string | number>({
   className?: string;
 }) {
   return (
-    <RadioGroup
-      value={value === null ? '' : String(value)}
-      onValueChange={(v) => {
-        const parsedValue = typeof items[0]?.id === 'number' ? Number(v) : v;
-        onChange(parsedValue as ID);
-      }}
-      disabled={disabled}
-      className={cn(
-        'grid gap-4',
-        cols === 2 && 'grid-cols-1 sm:grid-cols-2',
-        cols === 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-        cols === 4 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
-        className
-      )}
+    <Grid
+      gap="default"
+      cols={cols}
+      className={className}
     >
+      <RadioGroup
+        value={value === null ? '' : String(value)}
+        onValueChange={(v) => {
+          const parsedValue = typeof items[0]?.id === 'number' ? Number(v) : v;
+          onChange(parsedValue as ID);
+        }}
+        disabled={disabled}
+        className="contents"
+      >
       {items.map((item) => {
         const idStr = String(item.id);
         const inputId = `select-${idStr}`;
@@ -106,6 +105,7 @@ export function SelectGrid<ID extends string | number>({
           </div>
         );
       })}
-    </RadioGroup>
+      </RadioGroup>
+    </Grid>
   );
 }

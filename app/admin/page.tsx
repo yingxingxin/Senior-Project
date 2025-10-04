@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { type RangeKey, getAdminDashboard } from "@/app/admin/_lib/actions";
 import { StatCard } from "@/app/admin/_components/stat-card";
-import { Stack } from "@/components/ui/spacing";
+import { Stack, Grid, Inline } from "@/components/ui/spacing";
 import { Muted, Body } from "@/components/ui/typography";
 
 export default async function AdminHome({
@@ -56,9 +56,9 @@ export default async function AdminHome({
   return (
     <Stack gap="default">
       <section className="rounded-2xl border bg-card">
-        <div className="grid gap-4 p-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <Grid gap="default" className="p-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-            <div className="flex items-center gap-3 rounded-md border bg-background px-3 py-2">
+            <Inline gap="tight" align="center" className="rounded-md border bg-background px-3 py-2">
               <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <input
                 className="w-full bg-transparent text-sm outline-none"
@@ -66,9 +66,9 @@ export default async function AdminHome({
                 name="q"
                 type="search"
               />
-            </div>
+            </Inline>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <Inline gap="tight" align="center" justify="end" className="flex-wrap">
             <Separator orientation="vertical" className="hidden h-8 lg:block" />
             <Link href="/admin/content/lessons/new">
               <Button size="sm">
@@ -94,17 +94,17 @@ export default async function AdminHome({
                 Export CSV
               </Button>
             </Link>
-          </div>
-        </div>
+          </Inline>
+        </Grid>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Grid gap="default" cols={4} as="section">
         {kpiCards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
-      </section>
+      </Grid>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <Grid gap="default" as="section" className="xl:grid-cols-3">
         <Card className={stats.pendingOnboarding ? "border-yellow-500" : ""}>
           <CardHeader className="pb-2">
             <CardTitle className={stats.pendingOnboarding ? "text-yellow-700" : ""}>Alerts</CardTitle>
@@ -137,17 +137,19 @@ export default async function AdminHome({
                 {stats.recentActivity.map((event) => (
                   <div
                     key={event.id}
-                    className="flex flex-col gap-1 rounded-md border p-3 md:flex-row md:items-center md:justify-between"
+                    className="rounded-md border p-3"
                   >
-                    <div className="min-w-0">
-                      <Body variant="small" className="truncate font-medium">{event.name || "Unknown User"}</Body>
-                      <Muted variant="tiny" className="truncate">
-                        {String(event.type ?? "").replace(/_/g, " ")} • {event.email || "—"}
+                    <Inline gap="tight" align="center" justify="between" className="flex-col md:flex-row">
+                      <div className="min-w-0">
+                        <Body variant="small" className="truncate font-medium">{event.name || "Unknown User"}</Body>
+                        <Muted variant="tiny" className="truncate">
+                          {String(event.type ?? "").replace(/_/g, " ")} • {event.email || "—"}
+                        </Muted>
+                      </div>
+                      <Muted variant="tiny">
+                        <time>{event.at ? new Date(event.at).toLocaleString() : ""}</time>
                       </Muted>
-                    </div>
-                    <Muted variant="tiny">
-                      <time>{event.at ? new Date(event.at).toLocaleString() : ""}</time>
-                    </Muted>
+                    </Inline>
                   </div>
                 ))}
               </Stack>
@@ -170,14 +172,16 @@ export default async function AdminHome({
                     <Link
                       key={`lesson-${lesson.id}`}
                       href={`/admin/content/lessons/${lesson.id}`}
-                      className="flex items-center justify-between rounded-md border p-2 transition-colors hover:bg-accent/40"
+                      className="block rounded-md border p-2 transition-colors hover:bg-accent/40"
                     >
-                      <Body variant="small" className="truncate">
-                        {lesson.title || `Lesson #${lesson.id}`}
-                      </Body>
-                      <Muted variant="tiny">
-                        {lesson.updatedAt ? new Date(lesson.updatedAt).toLocaleDateString() : "—"}
-                      </Muted>
+                      <Inline gap="default" align="center" justify="between">
+                        <Body variant="small" className="truncate">
+                          {lesson.title || `Lesson #${lesson.id}`}
+                        </Body>
+                        <Muted variant="tiny">
+                          {lesson.updatedAt ? new Date(lesson.updatedAt).toLocaleDateString() : "—"}
+                        </Muted>
+                      </Inline>
                     </Link>
                   ))
                 )}
@@ -191,14 +195,16 @@ export default async function AdminHome({
                     <Link
                       key={`quiz-${quiz.id}`}
                       href={`/admin/content/quizzes/${quiz.id}`}
-                      className="flex items-center justify-between rounded-md border p-2 transition-colors hover:bg-accent/40"
+                      className="block rounded-md border p-2 transition-colors hover:bg-accent/40"
                     >
-                      <Body variant="small" className="truncate">
-                        {quiz.topic ? `Quiz: ${quiz.topic}` : `Quiz #${quiz.id}`}
-                      </Body>
-                      <Muted variant="tiny">
-                        {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : "—"}
-                      </Muted>
+                      <Inline gap="default" align="center" justify="between">
+                        <Body variant="small" className="truncate">
+                          {quiz.topic ? `Quiz: ${quiz.topic}` : `Quiz #${quiz.id}`}
+                        </Body>
+                        <Muted variant="tiny">
+                          {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : "—"}
+                        </Muted>
+                      </Inline>
                     </Link>
                   ))
                 )}
@@ -206,7 +212,7 @@ export default async function AdminHome({
             </Stack>
           </CardContent>
         </Card>
-      </section>
+      </Grid>
     </Stack>
   );
 }

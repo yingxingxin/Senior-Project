@@ -1,7 +1,7 @@
 import { Trophy, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Heading, Muted } from "@/components/ui/typography";
-import { Stack, Grid } from "@/components/ui/spacing";
+import { Stack, Grid, Inline } from "@/components/ui/spacing";
 
 interface QuickStatsCardProps {
   points: number;
@@ -24,12 +24,12 @@ export function QuickStatsCard({
         <Heading level={5} className="mb-4">Next Milestone</Heading>
         <Stack gap="tight">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <Inline gap="default" align="center" justify="between" className="mb-2">
               <Muted variant="small" as="span">Points Progress</Muted>
               <span className="text-sm font-semibold">
                 {points.toLocaleString()} / {nextMilestonePoints.toLocaleString()}
               </span>
-            </div>
+            </Inline>
             <div className="h-2 rounded-full bg-muted">
               <div
                 className="h-2 rounded-full bg-primary"
