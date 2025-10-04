@@ -16,8 +16,8 @@ import {
   quiz_attempt_answers,
   activity_events
 } from '@/src/db';
-import type { AssistantPersona } from '@/app/onboarding/_lib/guard';
-import { getOnboardingStepHref, type OnboardingStep } from '@/app/onboarding/_lib/steps';
+import type { AssistantPersona, OnboardingStep } from '@/src/db/schema';
+import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 
 // Internal type for actions
 type ActiveOnboardingUser = {
