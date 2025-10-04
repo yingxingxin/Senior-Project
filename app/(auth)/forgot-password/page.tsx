@@ -1,5 +1,5 @@
-import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm"
-import { AuthCard } from "@/components/auth/shared/AuthCard"
+import { ForgotPasswordForm } from "../_components/forgot-password-form"
+import { Stack } from "@/components/ui/spacing"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -9,11 +9,8 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    // We don't provide a header or footer here because 
-    // forgotpasswordform is a multi-step form, 
-    // each step defines its own header and footer
-    <AuthCard>
+    <Stack gap="loose">
       <ForgotPasswordForm />
-    </AuthCard>
+    </Stack>
   )
 }
