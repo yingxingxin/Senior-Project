@@ -1,5 +1,6 @@
 'use server';
 
+import { cache } from 'react';
 import { revalidatePath } from 'next/cache';
 import { eq, and, inArray, asc } from 'drizzle-orm';
 
@@ -16,66 +17,110 @@ import {
   quiz_attempt_answers,
   activity_events
 } from '@/src/db';
-import type { AssistantPersona, OnboardingStep } from '@/src/db/schema';
+import type { AssistantPersona, OnboardingStep, SkillLevel } from '@/src/db/schema';
 import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
+import type { OnboardingUserGuard, AssistantOption } from '@/app/onboarding/_lib/guard';
 
-// Internal type for actions
-type ActiveOnboardingUser = {
-  userId: number;
-  username: string;
-  assistantId: number | null;
-  assistantPersona: AssistantPersona | null;
-  skillLevel: string | null;
-  onboardingCompletedAt: Date | null;
-  onboardingStep: OnboardingStep | null;
-};
+export async function getAssistantOptions(): Promise<AssistantOption[]> {
+  const rows = await db
+    .select({
+      id: assistants.id,
+      name: assistants.name,
+      slug: assistants.slug,
+      gender: assistants.gender,
+      avatarUrl: assistants.avatar_url,
+      tagline: assistants.tagline,
+      description: assistants.description,
+    })
+    .from(assistants)
+    .orderBy(asc(assistants.name));
 
-async function loadActiveOnboardingUser(): Promise<ActiveOnboardingUser> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    gender: row.gender,
+    avatarUrl: row.avatarUrl,
+    tagline: row.tagline,
+    description: row.description,
+  }));
+}
 
-  if (!session || !session.user) {
-    throw new Error('Not authenticated');
+/**
+ * Internal implementation of user loading.
+ * Wrapped with cache() to deduplicate requests in the same render tree.
+ */
+const loadActiveUserImpl = cache(async (
+  userId?: number,
+  requireIncomplete = false
+): Promise<OnboardingUserGuard> => {
+  let sessionUserId: number;
+
+  if (userId) {
+    // Auth already done by caller (e.g., layout)
+    sessionUserId = userId;
+  } else {
+    // Perform auth check (e.g., called from server action)
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session || !session.user) {
+      throw new Error('Not authenticated');
+    }
+
+    sessionUserId = Number(session.user.id);
   }
 
-  const sessionUserId = Number(session.user.id);
-
-  const [record] = await db
+  const [r] = await db
     .select({
-      userId: users.id,
-      username: users.name,
-      assistantId: users.assistant_id,
-      assistantPersona: users.assistant_persona,
-      skillLevel: users.skill_level,
-      onboardingCompletedAt: users.onboarding_completed_at,
-      onboardingStep: users.onboarding_step,
+      id: users.id,
+      name: users.name,
+      assistant_id: users.assistant_id,
+      assistant_persona: users.assistant_persona,
+      skill_level: users.skill_level,
+      onboarding_completed_at: users.onboarding_completed_at,
+      onboarding_step: users.onboarding_step,
     })
     .from(users)
     .where(eq(users.id, sessionUserId))
     .limit(1);
 
-  if (!record) {
-    throw new Error('User not found');
-  }
+  if (!r) throw new Error('User not found');
 
-  if (record.onboardingCompletedAt) {
+  if (requireIncomplete && r.onboarding_completed_at) {
     throw new Error('Onboarding already completed');
   }
 
   return {
-    userId: record.userId,
-    username: record.username,
-    assistantId: record.assistantId,
-    assistantPersona: record.assistantPersona,
-    skillLevel: record.skillLevel,
-    onboardingCompletedAt: record.onboardingCompletedAt,
-    onboardingStep: record.onboardingStep,
+    id: r.id,
+    name: r.name,
+    assistantId: r.assistant_id,
+    assistantPersona: r.assistant_persona as AssistantPersona | null,
+    skillLevel: r.skill_level as SkillLevel,
+    currentStep: r.onboarding_step as OnboardingStep | null,
+    completedAt: r.onboarding_completed_at,
   };
+});
+
+/**
+ * Loads user data for onboarding flow.
+ * Automatically deduplicates requests within the same render tree.
+ *
+ * @param userId - Optional. If provided, skips auth check (used when layout already authenticated).
+ *                 If not provided, performs auth check (used by server actions).
+ * @param requireIncomplete - If true, throws error if onboarding is already completed
+ * @returns User data needed for onboarding guards and context
+ */
+export async function loadActiveUser(
+  userId?: number,
+  requireIncomplete = false
+): Promise<OnboardingUserGuard> {
+  return loadActiveUserImpl(userId, requireIncomplete);
 }
   
 export async function selectAssistantGenderAction(assistantId: number) {
-  const user = await loadActiveOnboardingUser();
+  const user = await loadActiveUser(undefined, true);
 
   const [assistant] = await db
     .select({ assistantId: assistants.id })
@@ -94,7 +139,7 @@ export async function selectAssistantGenderAction(assistantId: number) {
       onboarding_step: 'skill_quiz',
       onboarding_completed_at: null,
     })
-    .where(eq(users.id, user.userId));
+    .where(eq(users.id, user.id));
 
   // TODO: emit analytics event `assistant_gender_selected`.
 
@@ -107,7 +152,7 @@ export async function selectAssistantGenderAction(assistantId: number) {
 }
 
 export async function selectAssistantPersonaAction(persona: AssistantPersona) {
-  const user = await loadActiveOnboardingUser();
+  const user = await loadActiveUser(undefined, true);
 
   if (!user.assistantId) {
     throw new Error('Select an assistant before choosing a persona');
@@ -119,7 +164,7 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
       assistant_persona: persona,
       onboarding_step: 'guided_intro',
     })
-    .where(eq(users.id, user.userId));
+    .where(eq(users.id, user.id));
 
   // TODO: emit analytics event `assistant_persona_selected`.
 
@@ -132,7 +177,7 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
 }
 
 export async function completeOnboardingAction() {
-  const user = await loadActiveOnboardingUser();
+  const user = await loadActiveUser(undefined, true);
 
   if (!user.assistantId || !user.assistantPersona) {
     throw new Error('Complete all onboarding steps before finishing');
@@ -144,7 +189,7 @@ export async function completeOnboardingAction() {
       onboarding_completed_at: new Date(),
       onboarding_step: null,
     })
-    .where(eq(users.id, user.userId));
+    .where(eq(users.id, user.id));
 
   // TODO: emit analytics event `onboarding_completed` with duration metadata.
   // should activity events be updated to support onboarding_completed?
@@ -153,6 +198,36 @@ export async function completeOnboardingAction() {
   revalidatePath('/home');
 
   return { completed: true, redirectTo: '/home' } as const;
+}
+
+export async function resetOnboardingAction() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session || !session.user) {
+    throw new Error('Not authenticated');
+  }
+
+  const userId = Number(session.user.id);
+
+  // Reset all onboarding progress
+  await db
+    .update(users)
+    .set({
+      assistant_id: null,
+      assistant_persona: null,
+      skill_level: 'beginner',
+      onboarding_step: 'gender',
+      onboarding_completed_at: null,
+    })
+    .where(eq(users.id, userId));
+
+  // TODO: emit analytics event `onboarding_restarted`
+
+  revalidatePath('/onboarding');
+
+  return { success: true, redirectTo: getOnboardingStepHref('gender') } as const;
 }
 
 // Skill Quiz Server Actions

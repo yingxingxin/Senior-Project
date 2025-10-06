@@ -3,12 +3,10 @@
  *
  * Renders the appropriate form based on the step
  */
-import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { auth } from '@/src/lib/auth';
 import { isValidStep, getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
-import { loadActiveUser, canAccessStep, getNextAllowedStep } from '@/app/onboarding/_lib/guard';
-import { getAssistantOptions } from '@/app/onboarding/_lib/guard';
+import { canAccessStep, getNextAllowedStep } from '@/app/onboarding/_lib/guard';
+import { getAssistantOptions, loadActiveUser } from '@/app/onboarding/actions';
 import { getSkillQuizQuestions } from '@/app/onboarding/actions';
 import { PERSONA_OPTIONS } from '@/src/lib/constants';
 // Individual onboarding steps
@@ -31,14 +29,8 @@ export default async function OnboardingStepPage({ params }: Props) {
     notFound();
   }
 
-  // Auth check
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user?.id) {
-    redirect('/login?next=/onboarding');
-  }
-
-  // Load user data
-  const user = await loadActiveUser(Number(session.user.id));
+  // Load user data (cached, so won't duplicate layout's query)
+  const user = await loadActiveUser();
 
   // Check if user can access this step
   if (!canAccessStep(user, step)) {

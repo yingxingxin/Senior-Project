@@ -9,16 +9,25 @@ import {
   selectAssistantPersonaAction,
   submitSkillQuizAnswers,
   completeOnboardingAction,
+  resetOnboardingAction,
 } from '@/app/onboarding/actions';
 
 export type OnboardingBootstrap = {
+  userId: number;
+  userName: string;
   currentStep: OnboardingStep;
   assistantId: number | null;
   assistantPersona: AssistantPersona | null;
   skillLevel: SkillLevel;
+  completedAt: Date | null;
 };
 
 type OnboardingContext = {
+  // User data
+  userId: number;
+  userName: string;
+  completedAt: Date | null;
+
   // State
   pending: boolean;
   error: string | null;
@@ -33,6 +42,7 @@ type OnboardingContext = {
   selectPersona: (p: AssistantPersona) => Promise<void>;
   submitQuiz: (answers: Array<{ questionId: number; optionId: number }>) => Promise<void>;
   complete: () => Promise<void>;
+  reset: () => Promise<void>;
 };
 
 const Ctx = createContext<OnboardingContext | null>(null);
@@ -75,6 +85,9 @@ export function OnboardingProvider({
 
   const value = useMemo<OnboardingContext>(
     () => ({
+      userId: bootstrap.userId,
+      userName: bootstrap.userName,
+      completedAt: bootstrap.completedAt,
       pending,
       error,
       currentStep: bootstrap.currentStep,
@@ -118,8 +131,14 @@ export function OnboardingProvider({
           router.push(r.redirectTo);
         });
       },
+      async reset() {
+        await withTransition(async () => {
+          const r = await resetOnboardingAction();
+          router.push(r.redirectTo);
+        });
+      },
     }),
-    [pending, error, assistantId, persona, skillLevel, router, bootstrap.currentStep]
+    [pending, error, assistantId, persona, skillLevel, router, bootstrap.currentStep, bootstrap.userId, bootstrap.userName, bootstrap.completedAt]
   );
 
   return <Ctx value={value}>{children}</Ctx>;

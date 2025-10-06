@@ -12,9 +12,9 @@ import { Muted, Body } from "@/components/ui/typography";
 export default async function AdminHome({
   searchParams,
 }: {
-  searchParams?: { range?: RangeKey };
+  searchParams?: Promise<{ range?: RangeKey }>;
 }) {
-  const range = (searchParams?.range ?? "7d") as RangeKey;
+  const range = (await searchParams)?.range ?? "7d" as RangeKey;
   const stats = await getAdminDashboard(range);
   const { meta } = stats;
   const delta = (current: number, previous: number) => {

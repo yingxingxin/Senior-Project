@@ -3,7 +3,7 @@
  *
  * Defines the steps of the onboarding process and their corresponding titles.
  */
-import type { OnboardingStep } from '@/src/db/schema';
+import type { OnboardingStep, AssistantPersona } from '@/src/db/schema';
 
 export interface OnboardingStepDefinition {
   id: OnboardingStep;
@@ -41,4 +41,44 @@ export function getOnboardingStepHref(step: OnboardingStep): string {
 export function getStepIndex(step: OnboardingStep): number {
   const index = ONBOARDING_STEPS.findIndex((s) => s.id === step);
   return index < 0 ? 0 : index;
+}
+
+/**
+ * Type for tracking onboarding progress
+ */
+export type OnboardingProgress = {
+  currentStep: OnboardingStep;
+  assistantId: number | null;
+  assistantPersona: AssistantPersona | null;
+};
+
+/**
+ * Check if user is brand new (hasn't started onboarding)
+ */
+export function isNewUser(progress: OnboardingProgress): boolean {
+  return progress.currentStep === 'gender' && !progress.assistantId;
+}
+
+/**
+ * Calculate completion percentage for current step
+ */
+export function calculateProgress(currentStep: OnboardingStep): number {
+  const index = getStepIndex(currentStep);
+  return Math.round(((index + 1) / ONBOARDING_STEPS.length) * 100);
+}
+
+/**
+ * Get the title of a step
+ */
+export function getStepTitle(step: OnboardingStep): string | null {
+  return ONBOARDING_STEPS.find(s => s.id === step)?.title ?? null;
+}
+
+/**
+ * Determine which step user should resume to based on their progress
+ */
+export function getResumeStep(progress: OnboardingProgress): OnboardingStep {
+  if (!progress.assistantId) return 'gender';
+  if (!progress.assistantPersona) return 'persona';
+  return 'guided_intro';
 }

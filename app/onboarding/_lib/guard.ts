@@ -3,8 +3,6 @@
  *
  * Guards the onboarding process and ensures users can only access steps they have completed.
  */
-import { asc, eq } from 'drizzle-orm';
-import { assistants, db, users } from '@/src/db';
 import type { SkillLevel, AssistantPersona, AssistantGender, OnboardingStep } from '@/src/db/schema';
 import { getStepIndex } from './steps';
 
@@ -53,59 +51,6 @@ export interface AssistantOption {
   description: string | null;
 }
 
-export async function getAssistantOptions(): Promise<AssistantOption[]> {
-  const rows = await db
-    .select({
-      id: assistants.id,
-      name: assistants.name,
-      slug: assistants.slug,
-      gender: assistants.gender,
-      avatarUrl: assistants.avatar_url,
-      tagline: assistants.tagline,
-      description: assistants.description,
-    })
-    .from(assistants)
-    .orderBy(asc(assistants.name));
-
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    gender: row.gender,
-    avatarUrl: row.avatarUrl,
-    tagline: row.tagline,
-    description: row.description,
-  }));
-} 
-
-export async function loadActiveUser(sessionUserId: number): Promise<OnboardingUserGuard> {
-  const [r] = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      assistant_id: users.assistant_id,
-      assistant_persona: users.assistant_persona,
-      skill_level: users.skill_level,
-      onboarding_completed_at: users.onboarding_completed_at,
-      onboarding_step: users.onboarding_step,
-    })
-    .from(users)
-    .where(eq(users.id, sessionUserId))
-    .limit(1);
-
-  if (!r) throw new Error('User not found');
-
-  return {
-    id: r.id,
-    name: r.name,
-    assistantId: r.assistant_id,
-    assistantPersona: r.assistant_persona as AssistantPersona | null,
-    skillLevel: r.skill_level as SkillLevel,
-    currentStep: r.onboarding_step as OnboardingStep | null,
-    completedAt: r.onboarding_completed_at,
-  };
-}
-
 export function getNextAllowedStep(u: OnboardingUserGuard): OnboardingStep {
   // Determine the furthest step the user can access
   if (!u.assistantId) return 'gender';
@@ -114,7 +59,9 @@ export function getNextAllowedStep(u: OnboardingUserGuard): OnboardingStep {
 }
 
 export function canAccessStep(u: OnboardingUserGuard, target: OnboardingStep): boolean {
-  const currentIdx = u.currentStep ? getStepIndex(u.currentStep) : 0;
+  // If currentStep is null, derive it from user progress to prevent redirect loops
+  const effectiveStep = u.currentStep ?? getNextAllowedStep(u);
+  const currentIdx = getStepIndex(effectiveStep);
   const targetIdx = getStepIndex(target);
 
   // Can access current step or earlier steps
