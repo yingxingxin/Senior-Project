@@ -6,8 +6,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { isValidStep, getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import { canAccessStep, getNextAllowedStep } from '@/app/onboarding/_lib/guard';
-import { getAssistantOptions, loadActiveUser } from '@/app/onboarding/actions';
-import { getSkillQuizQuestions } from '@/app/onboarding/actions';
+import { getAssistantOptions, loadActiveUser } from '@/app/onboarding/_lib/actions';
+import { getSkillQuizQuestions } from '@/app/onboarding/_lib/actions';
 import { PERSONA_OPTIONS } from '@/src/lib/constants';
 // Individual onboarding steps
 import { AssistantSelectionForm } from '@/app/onboarding/_components/assistant-selection-form';

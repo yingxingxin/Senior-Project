@@ -4,6 +4,11 @@ import { db, users } from "@/src/db";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/app/admin/_lib/admin-guard";
 import { revalidatePath } from "next/cache";
+import {
+  updateUserRole as updateUserRoleQuery,
+  resetUserOnboardingAdmin,
+  completeUserOnboardingAdmin,
+} from "@/src/db/queries";
 
 type UserInsert = typeof users.$inferInsert;
 
@@ -17,16 +22,7 @@ export async function resetUserOnboarding(userId: number) {
   // TODO: Add audit logging when implemented
   // await logAdminAction("user.onboarding.reset", "users", userId.toString());
 
-  await db
-    .update(users)
-    .set({
-      onboarding_completed_at: null,
-      onboarding_step: "welcome",
-      skill_level: null,
-      assistant_id: null,
-      assistant_persona: null,
-    })
-    .where(eq(users.id, userId));
+  await resetUserOnboardingAdmin.execute({ userId });
 
   revalidatePath(`/admin/users/${userId}`);
   return { success: true };
@@ -82,13 +78,7 @@ export async function completeUserOnboarding(userId: number) {
   // TODO: Add audit logging when implemented
   // await logAdminAction("user.onboarding.complete", "users", userId.toString());
 
-  await db
-    .update(users)
-    .set({
-      onboarding_completed_at: new Date(),
-      onboarding_step: null,
-    })
-    .where(eq(users.id, userId));
+  await completeUserOnboardingAdmin.execute({ userId });
 
   revalidatePath(`/admin/users/${userId}`);
   return { success: true };
@@ -103,7 +93,7 @@ export async function updateUserRole(userId: number, role: "user" | "admin") {
   // TODO: Add audit logging when implemented
   // await logAdminAction("user.role.update", "users", userId.toString(), { role });
 
-  await db.update(users).set({ role }).where(eq(users.id, userId));
+  await updateUserRoleQuery.execute({ userId, role });
 
   revalidatePath(`/admin/users/${userId}`);
   revalidatePath("/admin/users");

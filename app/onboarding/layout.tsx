@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/src/lib/auth';
 import { OnboardingProvider } from '@/app/onboarding/_context/onboarding-context';
-import { loadActiveUser } from '@/app/onboarding/actions';
+import { loadActiveUser } from '@/app/onboarding/_lib/actions';
 import { Stack } from '@/components/ui/spacing';
 import { OnboardingRail } from '@/app/onboarding/_components/onboarding-sidebar';
 import { cn } from '@/src/lib/utils';

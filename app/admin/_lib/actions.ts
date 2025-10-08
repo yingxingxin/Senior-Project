@@ -12,6 +12,12 @@ import {
   sessions,
   quiz_attempts,
 } from "@/src/db";
+import {
+  getAdminUserCount,
+  getAdminLessonCount,
+  getAdminQuizCount,
+  getNewUserCount,
+} from "@/src/db/queries";
 
 export type RangeKey = "7d" | "30d" | "90d";
 
@@ -88,10 +94,10 @@ export async function getAdminDashboard(range: RangeKey): Promise<AdminDashboard
     recentLessons,
     recentQuizzes,
   ] = await Promise.all([
-    db.select({ c: count() }).from(users).limit(1),
-    db.select({ c: count() }).from(lessons).limit(1),
-    db.select({ c: count() }).from(quizzes).limit(1),
-    db.select({ c: count() }).from(users).where(gte(users.created_at, start)).limit(1),
+    getAdminUserCount.execute({}),
+    getAdminLessonCount.execute({}),
+    getAdminQuizCount.execute({}),
+    getNewUserCount.execute({ startDate: start }),
     db
       .select({ c: count() })
       .from(users)

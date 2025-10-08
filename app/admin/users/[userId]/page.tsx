@@ -3,17 +3,19 @@ import { notFound } from "next/navigation";
 
 import {
   activity_events,
-  achievements,
   db,
-  lessons,
   lesson_sections,
   quiz_attempts,
-  quizzes,
   user_lesson_progress,
   user_lesson_sections,
-  users,
 } from "@/src/db";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
+import {
+  getAdminUserById,
+  getUserLessonProgress,
+  getUserQuizAttempts,
+  getRecentActivityWithDetails,
+} from "@/src/db/queries";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
@@ -80,11 +82,7 @@ const activityIconConfig: Record<string, { icon: LucideIcon; tone: string }> = {
 };
 
 async function getUserDetails(userId: number) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [user] = await getAdminUserById.execute({ userId });
 
   if (!user) {
     return null;
@@ -98,59 +96,9 @@ async function getUserDetails(userId: number) {
     quizTotals,
     pointsAggregate,
   ] = await Promise.all([
-    db
-      .select({
-        id: user_lesson_progress.id,
-        lessonId: user_lesson_progress.lesson_id,
-        isCompleted: user_lesson_progress.is_completed,
-        startedAt: user_lesson_progress.started_at,
-        lastAccessedAt: user_lesson_progress.last_accessed_at,
-        completedAt: user_lesson_progress.completed_at,
-        lessonTitle: lessons.title,
-        lessonSlug: lessons.slug,
-        estimatedDurationSec: lessons.estimated_duration_sec,
-      })
-      .from(user_lesson_progress)
-      .leftJoin(lessons, eq(user_lesson_progress.lesson_id, lessons.id))
-      .where(eq(user_lesson_progress.user_id, userId))
-      .orderBy(desc(user_lesson_progress.last_accessed_at))
-      .limit(5),
-    db
-      .select({
-        id: quiz_attempts.id,
-        quizId: quiz_attempts.quiz_id,
-        attemptNumber: quiz_attempts.attempt_number,
-        startedAt: quiz_attempts.started_at,
-        submittedAt: quiz_attempts.submitted_at,
-        durationSec: quiz_attempts.duration_sec,
-        quizTopic: quizzes.topic,
-        passingPct: quizzes.passing_pct,
-      })
-      .from(quiz_attempts)
-      .leftJoin(quizzes, eq(quiz_attempts.quiz_id, quizzes.id))
-      .where(eq(quiz_attempts.user_id, userId))
-      .orderBy(desc(quiz_attempts.started_at))
-      .limit(5),
-    db
-      .select({
-        id: activity_events.id,
-        eventType: activity_events.event_type,
-        occurredAt: activity_events.occurred_at,
-        pointsDelta: activity_events.points_delta,
-        lessonId: activity_events.lesson_id,
-        quizId: activity_events.quiz_id,
-        achievementId: activity_events.achievement_id,
-        lessonTitle: lessons.title,
-        quizTopic: quizzes.topic,
-        achievementName: achievements.name,
-      })
-      .from(activity_events)
-      .leftJoin(lessons, eq(activity_events.lesson_id, lessons.id))
-      .leftJoin(quizzes, eq(activity_events.quiz_id, quizzes.id))
-      .leftJoin(achievements, eq(activity_events.achievement_id, achievements.id))
-      .where(eq(activity_events.user_id, userId))
-      .orderBy(desc(activity_events.occurred_at))
-      .limit(10),
+    getUserLessonProgress.execute({ userId, limit: 5 }),
+    getUserQuizAttempts.execute({ userId, limit: 5 }),
+    getRecentActivityWithDetails.execute({ userId, limit: 10 }),
     db
       .select({
         started: count(),

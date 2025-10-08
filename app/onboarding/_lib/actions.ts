@@ -2,7 +2,7 @@
 
 import { cache } from 'react';
 import { revalidatePath } from 'next/cache';
-import { eq, and, inArray, asc } from 'drizzle-orm';
+import { eq, inArray, asc } from 'drizzle-orm';
 
 import { auth } from '@/src/lib/auth';
 import { headers } from 'next/headers';
@@ -15,8 +15,17 @@ import {
   quiz_options,
   quiz_attempts,
   quiz_attempt_answers,
-  activity_events
 } from '@/src/db';
+import {
+  insertActivityEvent,
+  getUserForOnboarding,
+  updateUserAssistantSelection,
+  updateUserPersona,
+  completeOnboarding,
+  resetOnboarding,
+  getQuizAttemptCount,
+} from '@/src/db/queries';
+import { getAssistantById } from '@/src/db/queries/lessons';
 import type { AssistantPersona, OnboardingStep, SkillLevel } from '@/src/db/schema';
 import { getOnboardingStepHref } from '@/app/onboarding/_lib/steps';
 import type { OnboardingUserGuard, AssistantOption } from '@/app/onboarding/_lib/guard';
@@ -72,19 +81,7 @@ const loadActiveUserImpl = cache(async (
     sessionUserId = Number(session.user.id);
   }
 
-  const [r] = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      assistant_id: users.assistant_id,
-      assistant_persona: users.assistant_persona,
-      skill_level: users.skill_level,
-      onboarding_completed_at: users.onboarding_completed_at,
-      onboarding_step: users.onboarding_step,
-    })
-    .from(users)
-    .where(eq(users.id, sessionUserId))
-    .limit(1);
+  const [r] = await getUserForOnboarding.execute({ userId: sessionUserId });
 
   if (!r) throw new Error('User not found');
 
@@ -122,24 +119,13 @@ export async function loadActiveUser(
 export async function selectAssistantGenderAction(assistantId: number) {
   const user = await loadActiveUser(undefined, true);
 
-  const [assistant] = await db
-    .select({ assistantId: assistants.id })
-    .from(assistants)
-    .where(eq(assistants.id, assistantId))
-    .limit(1);
+  const [assistant] = await getAssistantById.execute({ assistantId });
 
   if (!assistant) {
     throw new Error('Assistant option not found');
   }
 
-  await db
-    .update(users)
-    .set({
-      assistant_id: assistantId,
-      onboarding_step: 'skill_quiz',
-      onboarding_completed_at: null,
-    })
-    .where(eq(users.id, user.id));
+  await updateUserAssistantSelection.execute({ userId: user.id, assistantId });
 
   // TODO: emit analytics event `assistant_gender_selected`.
 
@@ -158,13 +144,7 @@ export async function selectAssistantPersonaAction(persona: AssistantPersona) {
     throw new Error('Select an assistant before choosing a persona');
   }
 
-  await db
-    .update(users)
-    .set({
-      assistant_persona: persona,
-      onboarding_step: 'guided_intro',
-    })
-    .where(eq(users.id, user.id));
+  await updateUserPersona.execute({ userId: user.id, persona });
 
   // TODO: emit analytics event `assistant_persona_selected`.
 
@@ -183,13 +163,7 @@ export async function completeOnboardingAction() {
     throw new Error('Complete all onboarding steps before finishing');
   }
 
-  await db
-    .update(users)
-    .set({
-      onboarding_completed_at: new Date(),
-      onboarding_step: null,
-    })
-    .where(eq(users.id, user.id));
+  await completeOnboarding.execute({ userId: user.id });
 
   // TODO: emit analytics event `onboarding_completed` with duration metadata.
   // should activity events be updated to support onboarding_completed?
@@ -212,16 +186,7 @@ export async function resetOnboardingAction() {
   const userId = Number(session.user.id);
 
   // Reset all onboarding progress
-  await db
-    .update(users)
-    .set({
-      assistant_id: null,
-      assistant_persona: null,
-      skill_level: 'beginner',
-      onboarding_step: 'gender',
-      onboarding_completed_at: null,
-    })
-    .where(eq(users.id, userId));
+  await resetOnboarding.execute({ userId });
 
   // TODO: emit analytics event `onboarding_restarted`
 
@@ -321,14 +286,10 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
   console.log('[Server Action] Found quiz:', skillQuiz.id);
 
   // Check how many attempts the user has made
-  const existingAttempts = await db
-    .select({ attempt_number: quiz_attempts.attempt_number })
-    .from(quiz_attempts)
-    .where(and(
-      eq(quiz_attempts.user_id, userId),
-      eq(quiz_attempts.quiz_id, skillQuiz.id)
-    ))
-    .orderBy(quiz_attempts.attempt_number);
+  const existingAttempts = await getQuizAttemptCount.execute({
+    userId,
+    quizId: skillQuiz.id
+  });
 
   const attemptNumber = existingAttempts.length > 0
     ? Math.max(...existingAttempts.map(a => a.attempt_number)) + 1
@@ -388,24 +349,26 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
 
   // Log activity event for quiz submission
   const pointsEarned = score * 10; // 10 points per correct answer
-  await db.insert(activity_events).values({
-    user_id: userId,
-    event_type: 'quiz_submitted',
-    points_delta: pointsEarned,
-    quiz_id: skillQuiz.id,
-    quiz_attempt_id: attempt.id,
-    occurred_at: new Date(),
+  await insertActivityEvent.execute({
+    userId,
+    eventType: 'quiz_submitted',
+    pointsDelta: pointsEarned,
+    lessonId: null,
+    quizId: skillQuiz.id,
+    quizAttemptId: attempt.id,
+    achievementId: null,
   });
 
   // If perfect score, log additional achievement
   if (score === answers.length) {
-    await db.insert(activity_events).values({
-      user_id: userId,
-      event_type: 'quiz_perfect',
-      points_delta: 20, // Bonus points for perfect score
-      quiz_id: skillQuiz.id,
-      quiz_attempt_id: attempt.id,
-      occurred_at: new Date(),
+    await insertActivityEvent.execute({
+      userId,
+      eventType: 'quiz_perfect',
+      pointsDelta: 20, // Bonus points for perfect score
+      lessonId: null,
+      quizId: skillQuiz.id,
+      quizAttemptId: attempt.id,
+      achievementId: null,
     });
   }
 

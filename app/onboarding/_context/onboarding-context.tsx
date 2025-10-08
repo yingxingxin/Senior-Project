@@ -10,7 +10,7 @@ import {
   submitSkillQuizAnswers,
   completeOnboardingAction,
   resetOnboardingAction,
-} from '@/app/onboarding/actions';
+} from '@/app/onboarding/_lib/actions';
 
 export type OnboardingBootstrap = {
   userId: number;
