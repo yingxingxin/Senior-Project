@@ -3,17 +3,19 @@ import { notFound } from "next/navigation";
 
 import {
   activity_events,
-  achievements,
   db,
-  lessons,
   lesson_sections,
   quiz_attempts,
-  quizzes,
   user_lesson_progress,
   user_lesson_sections,
-  users,
 } from "@/src/db";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
+import {
+  getAdminUserById,
+  getUserLessonProgress,
+  getUserQuizAttempts,
+  getRecentActivityWithDetails,
+} from "@/src/db/queries";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
@@ -41,8 +43,10 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/src/lib/utils";
-import { UserDetailShell } from "@/components/admin/users/user-detail-shell";
-import { UserActions } from "@/components/admin/users/user-actions";
+import { UserDetailShell } from "@/app/admin/_components/user-detail-shell";
+import { UserActions } from "@/app/admin/_components/user-actions";
+import { Stack } from "@/components/ui/spacing";
+import { Body, Muted, Caption } from "@/components/ui/typography";
 
 function getAvatarInitials(name: string | null | undefined, fallback: string) {
   const base = name?.trim() || fallback;
@@ -78,11 +82,7 @@ const activityIconConfig: Record<string, { icon: LucideIcon; tone: string }> = {
 };
 
 async function getUserDetails(userId: number) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [user] = await getAdminUserById.execute({ userId });
 
   if (!user) {
     return null;
@@ -96,59 +96,9 @@ async function getUserDetails(userId: number) {
     quizTotals,
     pointsAggregate,
   ] = await Promise.all([
-    db
-      .select({
-        id: user_lesson_progress.id,
-        lessonId: user_lesson_progress.lesson_id,
-        isCompleted: user_lesson_progress.is_completed,
-        startedAt: user_lesson_progress.started_at,
-        lastAccessedAt: user_lesson_progress.last_accessed_at,
-        completedAt: user_lesson_progress.completed_at,
-        lessonTitle: lessons.title,
-        lessonSlug: lessons.slug,
-        estimatedDurationSec: lessons.estimated_duration_sec,
-      })
-      .from(user_lesson_progress)
-      .leftJoin(lessons, eq(user_lesson_progress.lesson_id, lessons.id))
-      .where(eq(user_lesson_progress.user_id, userId))
-      .orderBy(desc(user_lesson_progress.last_accessed_at))
-      .limit(5),
-    db
-      .select({
-        id: quiz_attempts.id,
-        quizId: quiz_attempts.quiz_id,
-        attemptNumber: quiz_attempts.attempt_number,
-        startedAt: quiz_attempts.started_at,
-        submittedAt: quiz_attempts.submitted_at,
-        durationSec: quiz_attempts.duration_sec,
-        quizTopic: quizzes.topic,
-        passingPct: quizzes.passing_pct,
-      })
-      .from(quiz_attempts)
-      .leftJoin(quizzes, eq(quiz_attempts.quiz_id, quizzes.id))
-      .where(eq(quiz_attempts.user_id, userId))
-      .orderBy(desc(quiz_attempts.started_at))
-      .limit(5),
-    db
-      .select({
-        id: activity_events.id,
-        eventType: activity_events.event_type,
-        occurredAt: activity_events.occurred_at,
-        pointsDelta: activity_events.points_delta,
-        lessonId: activity_events.lesson_id,
-        quizId: activity_events.quiz_id,
-        achievementId: activity_events.achievement_id,
-        lessonTitle: lessons.title,
-        quizTopic: quizzes.topic,
-        achievementName: achievements.name,
-      })
-      .from(activity_events)
-      .leftJoin(lessons, eq(activity_events.lesson_id, lessons.id))
-      .leftJoin(quizzes, eq(activity_events.quiz_id, quizzes.id))
-      .leftJoin(achievements, eq(activity_events.achievement_id, achievements.id))
-      .where(eq(activity_events.user_id, userId))
-      .orderBy(desc(activity_events.occurred_at))
-      .limit(10),
+    getUserLessonProgress.execute({ userId, limit: 5 }),
+    getUserQuizAttempts.execute({ userId, limit: 5 }),
+    getRecentActivityWithDetails.execute({ userId, limit: 10 }),
     db
       .select({
         started: count(),
@@ -270,9 +220,9 @@ function MetricTile({ icon: Icon, label, value, helper, tone = "text-primary bg-
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-          <p className="text-lg font-semibold leading-tight">{value}</p>
-          {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}
+          <Caption variant="uppercase" className="text-muted-foreground">{label}</Caption>
+          <Body variant="large" className="font-semibold leading-tight">{value}</Body>
+          {helper ? <Muted variant="tiny">{helper}</Muted> : null}
         </div>
       </div>
     </div>
@@ -348,7 +298,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
   ];
 
   return (
-    <div className="space-y-6">
+    <Stack gap="default">
       <Button asChild variant="ghost" size="sm" className="w-fit">
         <Link href="/admin/users">
           <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -420,13 +370,15 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                 <CardTitle>Account snapshot</CardTitle>
                 <CardDescription>Key profile attributes and preferences.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                {accountFacts.map((fact) => (
-                  <div key={fact.label} className="flex items-center justify-between gap-4">
-                    <span className="text-muted-foreground">{fact.label}</span>
-                    <span className="font-medium text-foreground capitalize">{fact.value}</span>
-                  </div>
-                ))}
+              <CardContent>
+                <Stack gap="tight">
+                  {accountFacts.map((fact) => (
+                    <div key={fact.label} className="flex items-center justify-between gap-4">
+                      <Muted variant="small">{fact.label}</Muted>
+                      <Body variant="small" className="font-medium capitalize">{fact.value}</Body>
+                    </div>
+                  ))}
+                </Stack>
               </CardContent>
             </Card>
 
@@ -435,21 +387,22 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                 <CardTitle>Onboarding journey</CardTitle>
                 <CardDescription>Manage the user’s onboarding progress.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="flex flex-col gap-1 text-sm">
-                  <span className="font-semibold text-foreground">
-                    {onboardingCompleted ? "Completed" : currentStep ? onboardingStepLabels[currentStep as typeof onboardingSteps[number]] : "Not started"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {onboardingCompleted
-                      ? `Finished ${user.onboarding_completed_at?.toLocaleString("en-US") ?? "Unknown"}`
-                      : currentStep
-                        ? `Currently at ${onboardingStepLabels[currentStep as typeof onboardingSteps[number]]}`
-                        : "Awaiting first step"}
-                  </span>
-                </div>
+              <CardContent>
+                <Stack gap="default">
+                  <Stack gap="tight">
+                    <Body variant="small" className="font-semibold">
+                      {onboardingCompleted ? "Completed" : currentStep ? onboardingStepLabels[currentStep as typeof onboardingSteps[number]] : "Not started"}
+                    </Body>
+                    <Muted variant="tiny">
+                      {onboardingCompleted
+                        ? `Finished ${user.onboarding_completed_at?.toLocaleString("en-US") ?? "Unknown"}`
+                        : currentStep
+                          ? `Currently at ${onboardingStepLabels[currentStep as typeof onboardingSteps[number]]}`
+                          : "Awaiting first step"}
+                    </Muted>
+                  </Stack>
 
-                <ol className="space-y-3 text-sm">
+                  <ol className="space-y-3">
                   {onboardingSteps.map((step, index) => {
                     const status = onboardingCompleted
                       ? "completed"
@@ -472,14 +425,14 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                           {index + 1}
                         </span>
                         <div>
-                          <p className="font-medium text-foreground">{onboardingStepLabels[step]}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <Body variant="small" className="font-medium">{onboardingStepLabels[step]}</Body>
+                          <Muted variant="tiny">
                             {status === "completed"
                               ? "Completed"
                               : status === "current"
                                 ? "In progress"
                                 : "Pending"}
-                          </p>
+                          </Muted>
                         </div>
                       </li>
                     );
@@ -497,6 +450,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                   }}
                   className="pt-1"
                 />
+                </Stack>
               </CardContent>
             </Card>
           </>
@@ -523,10 +477,10 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           </CardHeader>
           <CardContent>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
+              <Muted variant="small">No activity recorded yet.</Muted>
             ) : (
               <ScrollArea className="h-[320px] pr-4">
-                <div className="space-y-5">
+                <Stack gap="default">
                   {recentActivity.map((event) => {
                     const iconConfig = activityIconConfig[event.eventType] ?? {
                       icon: Activity,
@@ -547,33 +501,33 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                         >
                           <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                         </span>
-                        <div className="flex flex-col gap-1">
+                        <Stack gap="tight">
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-foreground">
+                            <Body variant="small" className="font-semibold">
                               {event.eventType.replace(/_/g, " ")}
-                            </p>
-                            <span className="text-xs text-muted-foreground">
+                            </Body>
+                            <Muted variant="tiny">
                               {event.occurredAt ? event.occurredAt.toLocaleString("en-US") : "Unknown"}
-                            </span>
+                            </Muted>
                           </div>
                           {context ? (
-                            <p className="text-xs text-muted-foreground">{context}</p>
+                            <Muted variant="tiny">{context}</Muted>
                           ) : null}
                           {event.pointsDelta ? (
-                            <span
+                            <Caption
                               className={cn(
-                                "text-xs font-semibold",
+                                "font-semibold",
                                 event.pointsDelta > 0 ? "text-emerald-600" : "text-destructive",
                               )}
                             >
                               {event.pointsDelta > 0 ? `+${event.pointsDelta}` : event.pointsDelta} pts
-                            </span>
+                            </Caption>
                           ) : null}
-                        </div>
+                        </Stack>
                       </div>
                     );
                   })}
-                </div>
+                </Stack>
               </ScrollArea>
             )}
           </CardContent>
@@ -586,9 +540,9 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           </CardHeader>
           <CardContent>
             {lessonProgress.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No lessons started yet.</p>
+              <Muted variant="small">No lessons started yet.</Muted>
             ) : (
-              <div className="space-y-4">
+              <Stack gap="default">
                 {lessonProgress.map((lesson) => (
                   <div
                     key={lesson.id}
@@ -596,12 +550,12 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-foreground">
+                        <Body variant="small" className="font-semibold">
                           {lesson.lessonTitle || `Lesson ${lesson.lessonId}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                        </Body>
+                        <Muted variant="tiny">
                           Last touched {lesson.lastAccessedAt ? lesson.lastAccessedAt.toLocaleString("en-US") : "Unknown"}
-                        </p>
+                        </Muted>
                       </div>
                       <div className="flex items-center gap-2">
                         {lesson.estimatedDurationSec ? (
@@ -619,18 +573,18 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>
+                    <Stack gap="tight" className="mt-4">
+                      <div className="flex items-center justify-between">
+                        <Muted variant="tiny">
                           {lesson.completedSections}/{lesson.totalSections} sections
-                        </span>
-                        <span>{lesson.progressPercent}%</span>
+                        </Muted>
+                        <Muted variant="tiny">{lesson.progressPercent}%</Muted>
                       </div>
                       <Progress value={lesson.progressPercent} />
-                    </div>
+                    </Stack>
                   </div>
                 ))}
-              </div>
+              </Stack>
             )}
           </CardContent>
         </Card>
@@ -642,9 +596,9 @@ export default async function UserDetailPage({ params }: { params: { userId: str
           </CardHeader>
           <CardContent>
             {quizAttempts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No quiz activity yet.</p>
+              <Muted variant="small">No quiz activity yet.</Muted>
             ) : (
-              <div className="space-y-4">
+              <Stack gap="default">
                 {quizAttempts.map((attempt) => (
                   <div
                     key={attempt.id}
@@ -652,12 +606,12 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-foreground">
+                        <Body variant="small" className="font-semibold">
                           {attempt.quizTopic || `Quiz ${attempt.quizId}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                        </Body>
+                        <Muted variant="tiny">
                           Attempt #{attempt.attemptNumber} • Started {attempt.startedAt ? attempt.startedAt.toLocaleString("en-US") : "Unknown"}
-                        </p>
+                        </Muted>
                       </div>
                       <div className="flex items-center gap-2">
                         {typeof attempt.passingPct === "number" ? (
@@ -679,25 +633,25 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                         </Button>
                       </div>
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <Muted variant="tiny">
                         {attempt.durationSec
                           ? `Duration ${Math.max(1, Math.round(attempt.durationSec / 60))} min`
                           : "Duration unknown"}
-                      </span>
+                      </Muted>
                       {attempt.submittedAt ? (
-                        <span>
+                        <Muted variant="tiny">
                           Submitted {attempt.submittedAt ? attempt.submittedAt.toLocaleString("en-US") : "Unknown"}
-                        </span>
+                        </Muted>
                       ) : null}
                     </div>
                   </div>
                 ))}
-              </div>
+              </Stack>
             )}
           </CardContent>
         </Card>
       </UserDetailShell>
-    </div>
+    </Stack>
   );
 }

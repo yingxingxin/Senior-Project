@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
-import { db, users } from "@/src/db";
+import { db, SkillLevel, users } from "@/src/db";
 import { eq } from "drizzle-orm";
-import Navbar from "@/components/home/navbar";
+import Navbar from "@/app/(app)/home/_components/navbar";
 import { getUserNavbarData } from "./actions";
-import { getOnboardingRedirectTarget } from "@/src/lib/onboarding/server";
+import { getNextAllowedStep } from "@/app/onboarding/_lib/guard";
+import { getOnboardingStepHref } from "@/app/onboarding/_lib/steps";
+import type { OnboardingStep, AssistantPersona } from "@/src/db/schema";
 
 export default async function AppLayout({
   children,
@@ -50,16 +52,16 @@ export default async function AppLayout({
 
   if (!userRecord?.onboarding_completed_at) {
     // User hasn't completed onboarding, redirect to appropriate step
-    const redirectTarget = getOnboardingRedirectTarget({
-      userId,
-      username: session.user.name || "",
+    const nextStep = getNextAllowedStep({
+      id: userId,
+      name: session.user.name || "",
       assistantId: userRecord?.assistant_id || null,
-      assistantPersona: userRecord?.assistant_persona || null,
-      skillLevel: userRecord?.skill_level || null,
-      onboardingCompletedAt: null,
-      onboardingStep: userRecord?.onboarding_step || null,
+      assistantPersona: (userRecord?.assistant_persona as AssistantPersona) || null,
+      skillLevel: userRecord?.skill_level as SkillLevel,
+      currentStep: (userRecord?.onboarding_step as OnboardingStep) || null,
+      completedAt: null,
     });
-    redirect(redirectTarget);
+    redirect(getOnboardingStepHref(nextStep));
   }
 
   // Fetch navbar data from database

@@ -1,9 +1,7 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options } from './index';
-import { ASSISTANT_FIXTURES } from '../lib/onboarding/fixtures';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, type NewAssistant, type NewUser, type NewAccount } from './index';
+import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
+import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-
-type AssistantSeed = typeof assistants.$inferInsert;
-type UserSeed = typeof users.$inferInsert;
 
 export async function seed() {
   console.log("🌱 Starting database seed...");
@@ -15,7 +13,7 @@ export async function seed() {
     for (const option of ASSISTANT_FIXTURES) {
       const [assistant] = await db
         .insert(assistants)
-        .values(option as AssistantSeed)
+        .values(option as NewAssistant)
         .onConflictDoUpdate({
           target: assistants.slug,
           set: {
@@ -33,7 +31,7 @@ export async function seed() {
 
     // Seed test user that has finished onboarding
     console.log("Creating test user...");
-    const testUser: UserSeed = {
+    const testUser: NewUser = {
       name: "Test User",
       email: "test@example.com",
       is_email_verified: true,

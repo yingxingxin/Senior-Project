@@ -1,15 +1,14 @@
 import { headers } from "next/headers";
 import { auth } from "@/src/lib/auth";
 import {
-  db,
-  users,
-  assistants,
-  achievements,
-  user_achievements,
-  activity_events,
-  lessons as lessonsTable
-} from "@/src/db";
-import { eq, desc, and, sql, count } from "drizzle-orm";
+  getUserWithAssistant,
+  getUserActivityStats,
+  getStreakDays,
+  getRecentActivities as getRecentActivitiesQuery,
+  getUserAchievements as getUserAchievementsQuery,
+  getFeaturedLessons,
+  getUserNavbarData as getUserNavbarDataQuery,
+} from "@/src/db/queries";
 
 type Persona = "kind" | "direct" | "calm";
 type Gender = "feminine" | "masculine" | "androgynous";
@@ -95,14 +94,7 @@ export type NavbarData = {
 
 async function getUserStats(userId: number) {
   // Calculate stats from activity_events since we don't have a leaderboards table
-  const events = await db
-    .select({
-      total_points: sql<number>`COALESCE(SUM(${activity_events.points_delta}), 0)`,
-      event_count: count(),
-      last_active: sql<Date>`MAX(${activity_events.occurred_at})`,
-    })
-    .from(activity_events)
-    .where(eq(activity_events.user_id, userId));
+  const events = await getUserActivityStats.execute({ userId });
 
   const totalPoints = events[0]?.total_points || 0;
   const xp = totalPoints; // XP equals points for simplicity
@@ -127,17 +119,7 @@ async function getUserStats(userId: number) {
 
 async function calculateStreakDays(userId: number): Promise<number> {
   // Get distinct days with activity in the last 30 days
-  const recentActivity = await db
-    .select({
-      date: sql<string>`DATE(${activity_events.occurred_at})`,
-    })
-    .from(activity_events)
-    .where(and(
-      eq(activity_events.user_id, userId),
-      sql`${activity_events.occurred_at} > NOW() - INTERVAL '30 days'`
-    ))
-    .groupBy(sql`DATE(${activity_events.occurred_at})`)
-    .orderBy(desc(sql`DATE(${activity_events.occurred_at})`));
+  const recentActivity = await getStreakDays.execute({ userId });
 
   if (recentActivity.length === 0) return 0;
 
@@ -170,12 +152,7 @@ async function calculateStreakDays(userId: number): Promise<number> {
 }
 
 async function getRecentActivities(userId: number, limit = 5): Promise<Activity[]> {
-  const activities = await db
-    .select()
-    .from(activity_events)
-    .where(eq(activity_events.user_id, userId))
-    .orderBy(desc(activity_events.occurred_at))
-    .limit(limit);
+  const activities = await getRecentActivitiesQuery.execute({ userId, limit });
 
   // Transform database activities to dashboard format
   return activities.map(activity => {
@@ -228,27 +205,7 @@ async function getRecentActivities(userId: number, limit = 5): Promise<Activity[
 }
 
 async function getUserAchievements(userId: number): Promise<Badge[]> {
-  const allAchievements = await db
-    .select({
-      id: achievements.id,
-      code: achievements.code,
-      name: achievements.name,
-      description: achievements.description,
-      icon_url: achievements.icon_url,
-      points_reward: achievements.points_reward,
-      is_active: achievements.is_active,
-      earned: sql<boolean>`CASE WHEN ${user_achievements.user_id} IS NOT NULL THEN true ELSE false END`,
-      unlocked_at: user_achievements.unlocked_at
-    })
-    .from(achievements)
-    .leftJoin(
-      user_achievements,
-      and(
-        eq(user_achievements.achievement_id, achievements.id),
-        eq(user_achievements.user_id, userId)
-      )
-    )
-    .where(eq(achievements.is_active, true));
+  const allAchievements = await getUserAchievementsQuery.execute({ userId });
 
   // Transform to dashboard badge format
   return allAchievements.map(achievement => {
@@ -304,26 +261,7 @@ export async function getExploreData(): Promise<DashboardData> {
 
   const userId = Number(session.user.id);
 
-  const [userData] = await db
-    .select({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        skill_level: users.skill_level,
-        assistant_persona: users.assistant_persona,
-        assistant_id: users.assistant_id,
-        // Assistant fields
-        assistantName: assistants.name,
-        assistantSlug: assistants.slug,
-        assistantGender: assistants.gender,
-        assistantAvatar: assistants.avatar_url,
-        assistantTagline: assistants.tagline,
-        assistantDescription: assistants.description,
-      })
-      .from(users)
-      .leftJoin(assistants, eq(users.assistant_id, assistants.id))
-      .where(eq(users.id, userId))
-      .limit(1);
+  const [userData] = await getUserWithAssistant.execute({ userId });
 
     if (!userData) {
       // This shouldn't happen if onboarding is complete
@@ -412,17 +350,7 @@ export async function getExploreData(): Promise<DashboardData> {
   const assistantSpeech = `${greet}, ${userName}! I'm ${assistantInfo.name}. Ready for "${primaryAction.title}"? ${tone}`;
 
   // Fetch featured lessons for explore section
-  const lessons = await db
-    .select({
-      id: lessonsTable.id,
-      slug: lessonsTable.slug,
-      title: lessonsTable.title,
-      description: lessonsTable.description,
-      difficulty: lessonsTable.difficulty,
-      estimatedDurationSec: lessonsTable.estimated_duration_sec,
-    })
-    .from(lessonsTable)
-    .limit(3);
+  const lessons = await getFeaturedLessons.execute({ limit: 3 });
 
   return {
     userName,
@@ -453,15 +381,7 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
   const userId = Number(session.user.id);
 
   // Fetch user data with image
-  const [userData] = await db
-    .select({
-      name: users.name,
-      email: users.email,
-      image: users.image,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [userData] = await getUserNavbarDataQuery.execute({ userId });
 
   if (!userData) {
     return null;

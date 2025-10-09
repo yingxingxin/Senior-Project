@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Stack } from "@/components/ui/spacing";
+import { Heading, Muted } from "@/components/ui/typography";
 
 async function getUsers() {
   return await db
@@ -34,13 +36,13 @@ export default async function UsersPage() {
   const allUsers = await getUsers();
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground mt-2">
+    <Stack gap="loose">
+      <Stack gap="tight">
+        <Heading level={1}>User Management</Heading>
+        <Muted variant="small">
           Manage users, view their progress, and update their settings
-        </p>
-      </div>
+        </Muted>
+      </Stack>
 
       <Card>
         <CardHeader>
@@ -122,6 +124,6 @@ export default async function UsersPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </Stack>
   );
 }

@@ -4,15 +4,17 @@ import { Activity, Users, BookOpen, Brain, Rocket, Download, Plus, Search } from
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { type RangeKey, getAdminDashboard } from "@/app/admin/actions";
-import { StatCard } from "@/components/admin/stat-card";
+import { type RangeKey, getAdminDashboard } from "@/app/admin/_lib/actions";
+import { StatCard } from "@/app/admin/_components/stat-card";
+import { Stack, Grid, Inline } from "@/components/ui/spacing";
+import { Muted, Body } from "@/components/ui/typography";
 
 export default async function AdminHome({
   searchParams,
 }: {
-  searchParams?: { range?: RangeKey };
+  searchParams?: Promise<{ range?: RangeKey }>;
 }) {
-  const range = (searchParams?.range ?? "7d") as RangeKey;
+  const range = (await searchParams)?.range ?? "7d" as RangeKey;
   const stats = await getAdminDashboard(range);
   const { meta } = stats;
   const delta = (current: number, previous: number) => {
@@ -52,11 +54,11 @@ export default async function AdminHome({
   ];
 
   return (
-    <div className="space-y-6">
+    <Stack gap="default">
       <section className="rounded-2xl border bg-card">
-        <div className="grid gap-4 p-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <Grid gap="default" className="p-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-            <div className="flex items-center gap-3 rounded-md border bg-background px-3 py-2">
+            <Inline gap="tight" align="center" className="rounded-md border bg-background px-3 py-2">
               <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <input
                 className="w-full bg-transparent text-sm outline-none"
@@ -64,9 +66,9 @@ export default async function AdminHome({
                 name="q"
                 type="search"
               />
-            </div>
+            </Inline>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <Inline gap="tight" align="center" justify="end" className="flex-wrap">
             <Separator orientation="vertical" className="hidden h-8 lg:block" />
             <Link href="/admin/content/lessons/new">
               <Button size="sm">
@@ -92,32 +94,32 @@ export default async function AdminHome({
                 Export CSV
               </Button>
             </Link>
-          </div>
-        </div>
+          </Inline>
+        </Grid>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Grid gap="default" cols={4} as="section">
         {kpiCards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
-      </section>
+      </Grid>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <Grid gap="default" as="section" className="xl:grid-cols-3">
         <Card className={stats.pendingOnboarding ? "border-yellow-500" : ""}>
           <CardHeader className="pb-2">
             <CardTitle className={stats.pendingOnboarding ? "text-yellow-700" : ""}>Alerts</CardTitle>
             <CardDescription>Actionable items</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {stats.pendingOnboarding ? (
               <Link
                 href="/admin/users?onboarding=pending"
-                className="block rounded-md border bg-muted/30 p-3 text-sm transition-colors hover:bg-muted/50"
+                className="block rounded-md border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
               >
-                {stats.pendingOnboarding} users have not completed onboarding
+                <Body variant="small">{stats.pendingOnboarding} users have not completed onboarding</Body>
               </Link>
             ) : (
-              <p className="text-sm text-muted-foreground">No alerts</p>
+              <Muted variant="small">No alerts</Muted>
             )}
           </CardContent>
         </Card>
@@ -127,26 +129,30 @@ export default async function AdminHome({
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>Latest user events</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {stats.recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No recent activity</p>
+              <Muted variant="small">No recent activity</Muted>
             ) : (
-              stats.recentActivity.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex flex-col gap-1 rounded-md border p-3 text-sm md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{event.name || "Unknown User"}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {String(event.type ?? "").replace(/_/g, " ")} • {event.email || "—"}
-                    </p>
+              <Stack gap="tight">
+                {stats.recentActivity.map((event) => (
+                  <div
+                    key={event.id}
+                    className="rounded-md border p-3"
+                  >
+                    <Inline gap="tight" align="center" justify="between" className="flex-col md:flex-row">
+                      <div className="min-w-0">
+                        <Body variant="small" className="truncate font-medium">{event.name || "Unknown User"}</Body>
+                        <Muted variant="tiny" className="truncate">
+                          {String(event.type ?? "").replace(/_/g, " ")} • {event.email || "—"}
+                        </Muted>
+                      </div>
+                      <Muted variant="tiny">
+                        <time>{event.at ? new Date(event.at).toLocaleString() : ""}</time>
+                      </Muted>
+                    </Inline>
                   </div>
-                  <time className="text-xs text-muted-foreground">
-                    {event.at ? new Date(event.at).toLocaleString() : ""}
-                  </time>
-                </div>
-              ))
+                ))}
+              </Stack>
             )}
           </CardContent>
         </Card>
@@ -156,51 +162,57 @@ export default async function AdminHome({
             <CardTitle>Recently Edited Content</CardTitle>
             <CardDescription>Lessons and quizzes</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              {stats.recentLessons.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No lessons updated recently</p>
-              ) : (
-                stats.recentLessons.map((lesson) => (
-                  <Link
-                    key={`lesson-${lesson.id}`}
-                    href={`/admin/content/lessons/${lesson.id}`}
-                    className="flex items-center justify-between rounded-md border p-2 text-sm transition-colors hover:bg-accent/40"
-                  >
-                    <span className="truncate">
-                      {lesson.title || `Lesson #${lesson.id}`}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {lesson.updatedAt ? new Date(lesson.updatedAt).toLocaleDateString() : "—"}
-                    </span>
-                  </Link>
-                ))
-              )}
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              {stats.recentQuizzes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No recent quizzes</p>
-              ) : (
-                stats.recentQuizzes.map((quiz) => (
-                  <Link
-                    key={`quiz-${quiz.id}`}
-                    href={`/admin/content/quizzes/${quiz.id}`}
-                    className="flex items-center justify-between rounded-md border p-2 text-sm transition-colors hover:bg-accent/40"
-                  >
-                    <span className="truncate">
-                      {quiz.topic ? `Quiz: ${quiz.topic}` : `Quiz #${quiz.id}`}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : "—"}
-                    </span>
-                  </Link>
-                ))
-              )}
-            </div>
+          <CardContent>
+            <Stack gap="default">
+              <Stack gap="tight">
+                {stats.recentLessons.length === 0 ? (
+                  <Muted variant="small">No lessons updated recently</Muted>
+                ) : (
+                  stats.recentLessons.map((lesson) => (
+                    <Link
+                      key={`lesson-${lesson.id}`}
+                      href={`/admin/content/lessons/${lesson.id}`}
+                      className="block rounded-md border p-2 transition-colors hover:bg-accent/40"
+                    >
+                      <Inline gap="default" align="center" justify="between">
+                        <Body variant="small" className="truncate">
+                          {lesson.title || `Lesson #${lesson.id}`}
+                        </Body>
+                        <Muted variant="tiny">
+                          {lesson.updatedAt ? new Date(lesson.updatedAt).toLocaleDateString() : "—"}
+                        </Muted>
+                      </Inline>
+                    </Link>
+                  ))
+                )}
+              </Stack>
+              <Separator />
+              <Stack gap="tight">
+                {stats.recentQuizzes.length === 0 ? (
+                  <Muted variant="small">No recent quizzes</Muted>
+                ) : (
+                  stats.recentQuizzes.map((quiz) => (
+                    <Link
+                      key={`quiz-${quiz.id}`}
+                      href={`/admin/content/quizzes/${quiz.id}`}
+                      className="block rounded-md border p-2 transition-colors hover:bg-accent/40"
+                    >
+                      <Inline gap="default" align="center" justify="between">
+                        <Body variant="small" className="truncate">
+                          {quiz.topic ? `Quiz: ${quiz.topic}` : `Quiz #${quiz.id}`}
+                        </Body>
+                        <Muted variant="tiny">
+                          {quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : "—"}
+                        </Muted>
+                      </Inline>
+                    </Link>
+                  ))
+                )}
+              </Stack>
+            </Stack>
           </CardContent>
         </Card>
-      </section>
-    </div>
+      </Grid>
+    </Stack>
   );
 }
