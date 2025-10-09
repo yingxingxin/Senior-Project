@@ -3,13 +3,13 @@
  *
  * Creates a consistent layout for the auth pages
  */
-import Image from "next/image"
 import type React from "react"
 import { redirect } from "next/navigation"
 import { auth } from "@/src/lib/auth"
 import { headers } from "next/headers"
 import { db, users } from "@/src/db"
 import { eq } from "drizzle-orm"
+import { AuthCarousel } from "./_components/auth-carousel"
 
 export default async function AuthLayout({
   children,
@@ -47,13 +47,7 @@ export default async function AuthLayout({
         {/* Left side - Artwork/Branding - Hidden on mobile, visible on md and up */}
         <div className="relative hidden flex-1 md:block md:p-4 lg:p-6">
           <div className="relative h-full w-full overflow-hidden rounded-3xl">
-            <Image
-              src="/anime3.png"
-              alt="Sprite.exe hero artwork"
-              fill
-              priority
-              className="object-cover"
-            />
+            <AuthCarousel />
           </div>
         </div>
 
