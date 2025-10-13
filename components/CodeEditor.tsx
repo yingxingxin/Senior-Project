@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { type OnChange } from '@monaco-editor/react';
 
 type Props = {
     initialCode?: string;
     language?: string;
-    onChange?: (value: string) => void;
+    onChange?: (value: string) => void; // your consumer still gets a plain string
 };
 
 export default function CodeEditor({
@@ -16,18 +16,20 @@ export default function CodeEditor({
                                    }: Props) {
     const [value, setValue] = useState(initialCode);
 
+    const handleChange: OnChange = (v) => {
+        const text = v ?? '';
+        setValue(text);
+        onChange?.(text);
+    };
+
     return (
         <div style={{ height: '100vh', width: '100%' }}>
             <Editor
                 height="100%"
+                value={value}                 // controlled
                 defaultLanguage={language}
-                defaultValue={initialCode}
                 theme="vs-dark"
-                onChange={(v: string) => {
-                    const text = v ?? '';
-                    setValue(text);
-                    onChange?.(text);
-                }}
+                onChange={handleChange}       // ← correct signature
                 options={{
                     fontSize: 14,
                     minimap: { enabled: false },
