@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Editor, { type OnChange } from '@monaco-editor/react';
 import loader from '@monaco-editor/loader';
 
-/** Monaco 0.54 needs extra AMD paths. TS types only allow `vs`,
- *  so cast to `any` to silence the type error. */
-(loader as any).config({
+/* ============================== Monaco AMD paths ============================== */
+/** Monaco 0.54 needs extra AMD paths. The loader type only exposes `vs`,
+ *  so we widen the type (without using `any`) and configure the extra paths. */
+type LoaderWithConfig = { config: (opts: { paths: Record<string, string> }) => void };
+(loader as unknown as LoaderWithConfig).config({
     paths: {
         vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.54.0/min/vs',
         'error-stack-parser':
@@ -14,7 +16,7 @@ import loader from '@monaco-editor/loader';
         stackframe:
             'https://cdn.jsdelivr.net/npm/stackframe@1.3.4/dist/stackframe.min',
     },
-} as any);
+});
 
 /* ============================== Types & Samples ============================== */
 
@@ -63,22 +65,32 @@ SELECT * FROM test;`,
     },
 ];
 
-/* ============================== Globals & Loaders ============================== */
+/* ============================== Minimal externals typing ============================== */
+
+type Pyodide = {
+    setStdout?: (cfg: { batched?: (s: string) => void; raw?: (s: string) => void; write?: (s: string) => void }) => void;
+    setStderr?: (cfg: { batched?: (s: string) => void; raw?: (s: string) => void; write?: (s: string) => void }) => void;
+    runPython?: (code: string) => unknown;
+};
+type SqlJsResult = { columns: string[]; values: unknown[][] };
+type SqlJsDatabase = { exec: (sql: string) => SqlJsResult[] };
+type SqlJsNamespace = { Database: new () => SqlJsDatabase };
 
 declare global {
     interface Window {
-        loadPyodide?: any;
-        pyodide?: any;
-        __pyodidePromise?: Promise<any>;
-        initSqlJs?: (cfg: { locateFile: (f: string) => string }) => Promise<any>;
+        loadPyodide?: () => Promise<Pyodide>;
+        pyodide?: Pyodide;
+        __pyodidePromise?: Promise<Pyodide>;
+        initSqlJs?: (cfg: { locateFile: (f: string) => string }) => Promise<SqlJsNamespace>;
     }
 }
 
 /** Remove any half-loaded pyodide globals before retrying */
 function cleanPyodideGlobals() {
-    try { delete (window as any).pyodide; } catch {}
-    try { delete (window as any).loadPyodide; } catch {}
-    try { delete (window as any).__pyodidePromise; } catch {}
+    const w = window as unknown as Record<string, unknown>;
+    delete w.pyodide;
+    delete w.loadPyodide;
+    delete w.__pyodidePromise;
 }
 
 /** load a <script> with timeout */
@@ -96,24 +108,25 @@ function loadScript(src: string, timeoutMs = 15000) {
 }
 
 /** Pyodide multi-CDN loader with backoff */
-async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise<any> {
+async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise<Pyodide> {
     const cdns = [
         'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js',
         'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js',
         'https://unpkg.com/pyodide@0.25.0/full/pyodide.js',
     ];
     cleanPyodideGlobals();
-    let lastErr: any = null;
+    let lastErr: unknown = null;
     for (const url of cdns) {
         try {
             log(`loading ${url}`);
             await loadScript(url);
-            const py = await (window as any).loadPyodide?.();
+            const py = await window.loadPyodide?.();
             if (!py) throw new Error('loadPyodide returned null');
             return py;
-        } catch (e: any) {
+        } catch (e: unknown) {
             lastErr = e;
-            log('failed ' + (e?.message ?? String(e)));
+            const msg = e instanceof Error ? e.message : String(e);
+            log('failed ' + msg);
             cleanPyodideGlobals();
         }
     }
@@ -123,7 +136,7 @@ async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise
         await new Promise(r => setTimeout(r, delay));
         return loadPyodideRobust(log, attempt + 1);
     }
-    throw lastErr ?? new Error('all Pyodide CDNs failed');
+    throw (lastErr instanceof Error ? lastErr : new Error('all Pyodide CDNs failed'));
 }
 
 /* ============================== Component ============================== */
@@ -143,30 +156,32 @@ export default function CodePlayground() {
 
     // refs
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
-    const sqlDbRef = useRef<any>(null);
-    const tsRef = useRef<any>(null);
+    const sqlDbRef = useRef<SqlJsDatabase | null>(null);
+    const tsRef = useRef<typeof import('typescript') | null>(null);
 
     // helpers
-    const selected = useMemo(
-        () => LANGUAGE_OPTIONS.find(o => o.id === language)!,
-        [language]
-    );
-    const handleChange: OnChange = v => setValue(v ?? '');
-    const clearConsole = () => setConsoleLines([]);
-    const appendLogs = (...lines: string[]) =>
+    const handleChange: OnChange = (v) => setValue(v ?? '');
+
+    const clearConsole = useCallback(() => setConsoleLines([]), []);
+
+    const appendLogs = useCallback((...lines: string[]) => {
         setConsoleLines(prev => [...prev, ...lines]);
-    const loadSample = (lang: Lang) =>
-        setValue(LANGUAGE_OPTIONS.find(o => o.id === lang)!.sample);
+    }, []);
+
+    const loadSample = useCallback((lang: Lang) => {
+        const found = LANGUAGE_OPTIONS.find(o => o.id === lang);
+        if (found) setValue(found.sample);
+    }, []);
 
     const isDark = theme === 'vs-dark';
-    const selectStyle: React.CSSProperties = {
+    const selectStyle: React.CSSProperties = useMemo(() => ({
         background: isDark ? '#1f2937' : '#ffffff',
         color: isDark ? '#e5e7eb' : '#111827',
         border: `1px solid ${isDark ? '#374151' : '#d1d5db'}`,
         padding: '4px 8px',
         borderRadius: 6,
         colorScheme: 'light',
-    };
+    }), [isDark]);
 
     /* -------------------------- Python (Pyodide) -------------------------- */
     useEffect(() => {
@@ -176,12 +191,15 @@ export default function CodePlayground() {
                 setPyStatus('loading…');
                 const py = await loadPyodideRobust(s => setPyStatus(s));
                 if (!cancelled) {
-                    (window as any).pyodide = py;
+                    window.pyodide = py;
                     setPyReady(true);
                     setPyStatus('ready');
                 }
-            } catch (e: any) {
-                if (!cancelled) setPyStatus('failed: ' + (e?.message ?? String(e)));
+            } catch (e: unknown) {
+                if (!cancelled) {
+                    const msg = e instanceof Error ? e.message : String(e);
+                    setPyStatus('failed: ' + msg);
+                }
             }
         })();
         return () => { cancelled = true; };
@@ -189,7 +207,7 @@ export default function CodePlayground() {
 
     // IMPORTANT: in Pyodide ≥0.25 pass ONLY ONE of raw/batched/write
     useEffect(() => {
-        const py = (window as any).pyodide;
+        const py = window.pyodide;
         if (!pyReady || !py) return;
 
         py.setStdout?.({
@@ -206,19 +224,20 @@ export default function CodePlayground() {
         let mounted = true;
         async function initDb() {
             try {
-                const SQL = await (window as any).initSqlJs({
+                const SQL = await window.initSqlJs?.({
                     locateFile: (f: string) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`,
                 });
-                if (mounted) {
+                if (mounted && SQL) {
                     sqlDbRef.current = new SQL.Database();
                     setSqlReady(true);
                 }
-            } catch (e: any) {
-                appendLogs('[sql] ' + (e?.message ?? e));
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                appendLogs('[sql] ' + msg);
             }
         }
 
-        if (typeof (window as any).initSqlJs === 'function') initDb();
+        if (typeof window.initSqlJs === 'function') initDb();
         else {
             const s = document.createElement('script');
             s.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js';
@@ -229,17 +248,36 @@ export default function CodePlayground() {
             document.body.appendChild(s);
         }
         return () => { mounted = false; };
-    }, []);
+    }, [appendLogs]);
 
     /* ============================== Runners ============================== */
 
     // Capture console for JS/TS
-    function makeCapturingConsole(push: (s: string) => void) {
+    function makeCapturingConsole(push: (s: string) => void): Console {
         return {
-            log: (...a: any[]) => push(a.map(x => String(x)).join(' ')),
-            info: (...a: any[]) => push(a.map(x => String(x)).join(' ')),
-            warn: (...a: any[]) => push('[warn] ' + a.map(x => String(x)).join(' ')),
-            error: (...a: any[]) => push('[error] ' + a.map(x => String(x)).join(' ')),
+            log: (...a: unknown[]) => push(a.map(x => String(x)).join(' ')),
+            info: (...a: unknown[]) => push(a.map(x => String(x)).join(' ')),
+            warn: (...a: unknown[]) => push('[warn] ' + a.map(x => String(x)).join(' ')),
+            error: (...a: unknown[]) => push('[error] ' + a.map(x => String(x)).join(' ')),
+            // the rest of Console methods aren’t needed; fall back to no-ops
+            assert: (() => undefined) as Console['assert'],
+            clear: (() => undefined) as Console['clear'],
+            count: (() => undefined) as Console['count'],
+            countReset: (() => undefined) as Console['countReset'],
+            debug: (() => undefined) as Console['debug'],
+            dir: (() => undefined) as Console['dir'],
+            dirxml: (() => undefined) as Console['dirxml'],
+            group: (() => undefined) as Console['group'],
+            groupCollapsed: (() => undefined) as Console['groupCollapsed'],
+            groupEnd: (() => undefined) as Console['groupEnd'],
+            table: (() => undefined) as Console['table'],
+            time: (() => undefined) as Console['time'],
+            timeEnd: (() => undefined) as Console['timeEnd'],
+            timeLog: (() => undefined) as Console['timeLog'],
+            timeStamp: (() => undefined) as Console['timeStamp'],
+            trace: (() => undefined) as Console['trace'],
+            profile: (() => undefined) as Console['profile'],
+            profileEnd: (() => undefined) as Console['profileEnd'],
         } as Console;
     }
 
@@ -247,11 +285,11 @@ export default function CodePlayground() {
         const lines: string[] = [];
         const c = makeCapturingConsole(s => lines.push(s));
         try {
-            // eslint-disable-next-line no-new-func
             const fn = new Function('console', value);
             fn(c);
-        } catch (e: any) {
-            lines.push('[throw] ' + (e?.message ?? String(e)));
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            lines.push('[throw] ' + msg);
         }
         if (lines.length) appendLogs(...lines);
     };
@@ -270,11 +308,11 @@ export default function CodePlayground() {
         const lines: string[] = [];
         const c = makeCapturingConsole(s => lines.push(s));
         try {
-            // eslint-disable-next-line no-new-func
             const fn = new Function('console', transpiled);
             fn(c);
-        } catch (e: any) {
-            lines.push('[throw] ' + (e?.message ?? String(e)));
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            lines.push('[throw] ' + msg);
         }
         if (lines.length) appendLogs(...lines);
     };
@@ -295,16 +333,18 @@ export default function CodePlayground() {
         try {
             const result = sqlDbRef.current.exec(value);
             if (result && result.length) {
-                result.forEach((r: any) => {
-                    appendLogs(r.columns.join(' | '), ...r.values.map((row: any[]) => row.join(' | ')));
+                result.forEach((r) => {
+                    appendLogs(r.columns.join(' | '), ...r.values.map((row) => row.join(' | ')));
                 });
             }
-        } catch (e: any) {
-            appendLogs('[sql] ' + (e?.message ?? String(e)));
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            appendLogs('[sql] ' + msg);
         }
     };
 
-    // Backend: only stdout (and stderr if present). No raw/compile noise.
+    // Backend: only stdout/stderr (no compile noise)
+    type BackendRun = { run?: { stdout?: string; stderr?: string } | null };
     const runViaBackend = async (lang: 'c' | 'cpp' | 'java' | 'python') => {
         try {
             const resp = await fetch('/api/execute', {
@@ -317,14 +357,15 @@ export default function CodePlayground() {
                 appendLogs(`[${lang}] HTTP ${resp.status}${text ? `: ${text}` : ''}`);
                 return;
             }
-            const data = await resp.json();
+            const data = (await resp.json()) as BackendRun;
             const out = data?.run?.stdout?.trim?.() ?? '';
             const err = data?.run?.stderr?.trim?.() ?? '';
             if (out) appendLogs(out);
             if (err) appendLogs('[stderr] ' + err);
             if (!out && !err) appendLogs('(no output)');
-        } catch (e: any) {
-            appendLogs(`[${lang}] ${e?.message ?? String(e)}`);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            appendLogs(`[${lang}] ${msg}`);
         }
     };
 
@@ -348,7 +389,7 @@ export default function CodePlayground() {
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             {/* Toolbar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: 8, borderBottom: '1px solid #2a2a2a' }}>
-                <label>Language:{' '}
+                <label>Language{' '}
                     <select
                         style={selectStyle}
                         value={language}
@@ -358,7 +399,7 @@ export default function CodePlayground() {
                     </select>
                 </label>
 
-                <label>Theme:{' '}
+                <label>Theme{' '}
                     <select style={selectStyle} value={theme} onChange={e => setTheme(e.target.value as Theme)}>
                         <option value="vs-dark">Dark</option>
                         <option value="light">Light</option>
@@ -376,10 +417,10 @@ export default function CodePlayground() {
                         setPyStatus('retrying…');
                         try {
                             const py = await loadPyodideRobust(s => setPyStatus(s));
-                            (window as any).pyodide = py;
+                            window.pyodide = py;
                             setPyReady(true);
                             setPyStatus('ready');
-                        } catch (e: any) {
+                        } catch {
                             setPyStatus('failed');
                         }
                     }}
@@ -391,7 +432,7 @@ export default function CodePlayground() {
 
                 <div style={{ marginLeft: 'auto', fontSize: 12, opacity: 0.85 }}>
                     Python: <b style={{ color: pyReady ? '#16a34a' : '#dc2626' }}>{pyReady ? 'ready' : 'not ready'}</b>
-                    {' '}(<span>{pyStatus}</span>) • SQL:{' '}
+                    {' '}(<span>{pyStatus}</span>) • SQL{' '}
                     <b style={{ color: sqlReady ? '#16a34a' : '#dc2626' }}>{sqlReady ? 'ready' : 'not ready'}</b>
                 </div>
             </div>
