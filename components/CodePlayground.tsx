@@ -2,6 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Editor, { type OnChange } from '@monaco-editor/react';
+import loader from '@monaco-editor/loader';
+
+/** Monaco 0.54 needs extra AMD paths. TS types only allow `vs`,
+ *  so cast to `any` to silence the type error. */
+(loader as any).config({
+    paths: {
+        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.54.0/min/vs',
+        'error-stack-parser':
+            'https://cdn.jsdelivr.net/npm/error-stack-parser@2.1.4/dist/error-stack-parser.min',
+        stackframe:
+            'https://cdn.jsdelivr.net/npm/stackframe@1.3.4/dist/stackframe.min',
+    },
+} as any);
 
 /* ============================== Types & Samples ============================== */
 
@@ -33,14 +46,20 @@ const LANGUAGE_OPTIONS: { id: Lang; label: string; sample: string }[] = [
     {
         id: 'sql',
         label: 'SQL',
-        sample: `CREATE TABLE test(id INTEGER, name TEXT);\nINSERT INTO test VALUES(1,'A'),(2,'B');\nSELECT * FROM test;`,
+        sample: `CREATE TABLE test(id INTEGER, name TEXT);
+INSERT INTO test VALUES(1,'A'),(2,'B');
+SELECT * FROM test;`,
     },
     { id: 'c', label: 'C', sample: `#include <stdio.h>\nint main(){ printf("hello from C\\n"); return 0; }` },
     { id: 'cpp', label: 'C++', sample: `#include <iostream>\nint main(){ std::cout<<"hello from C++\\n"; }` },
     {
         id: 'java',
         label: 'Java',
-        sample: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("hello from Java");\n  }\n}`,
+        sample: `public class Main {
+  public static void main(String[] args) {
+    System.out.println("hello from Java");
+  }
+}`,
     },
 ];
 
@@ -55,12 +74,14 @@ declare global {
     }
 }
 
+/** Remove any half-loaded pyodide globals before retrying */
 function cleanPyodideGlobals() {
     try { delete (window as any).pyodide; } catch {}
     try { delete (window as any).loadPyodide; } catch {}
     try { delete (window as any).__pyodidePromise; } catch {}
 }
 
+/** load a <script> with timeout */
 function loadScript(src: string, timeoutMs = 15000) {
     return new Promise<void>((resolve, reject) => {
         const s = document.createElement('script');
@@ -74,7 +95,7 @@ function loadScript(src: string, timeoutMs = 15000) {
     });
 }
 
-/** Robust multi-CDN loader with backoff + global reset */
+/** Pyodide multi-CDN loader with backoff */
 async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise<any> {
     const cdns = [
         'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js',
@@ -82,24 +103,27 @@ async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise
         'https://unpkg.com/pyodide@0.25.0/full/pyodide.js',
     ];
     cleanPyodideGlobals();
+    let lastErr: any = null;
     for (const url of cdns) {
         try {
             log(`loading ${url}`);
             await loadScript(url);
             const py = await (window as any).loadPyodide?.();
-            if (py) return py;
+            if (!py) throw new Error('loadPyodide returned null');
+            return py;
         } catch (e: any) {
-            log('failed ' + (e?.message ?? e));
+            lastErr = e;
+            log('failed ' + (e?.message ?? String(e)));
             cleanPyodideGlobals();
         }
     }
     if (attempt < 3) {
-        const delay = 1000 * Math.pow(2, attempt - 1);
+        const delay = 1000 * Math.pow(2, attempt - 1); // 1s, 2s
         log(`retrying in ${delay}ms…`);
         await new Promise(r => setTimeout(r, delay));
         return loadPyodideRobust(log, attempt + 1);
     }
-    throw new Error('all Pyodide CDNs failed');
+    throw lastErr ?? new Error('all Pyodide CDNs failed');
 }
 
 /* ============================== Component ============================== */
@@ -112,7 +136,7 @@ export default function CodePlayground() {
     const [consoleLines, setConsoleLines] = useState<string[]>([]);
     const [running, setRunning] = useState(false);
 
-    // engines
+    // engine flags
     const [pyReady, setPyReady] = useState(false);
     const [pyStatus, setPyStatus] = useState('not loaded');
     const [sqlReady, setSqlReady] = useState(false);
@@ -144,7 +168,7 @@ export default function CodePlayground() {
         colorScheme: 'light',
     };
 
-    /* -------------------------- Python -------------------------- */
+    /* -------------------------- Python (Pyodide) -------------------------- */
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -157,25 +181,27 @@ export default function CodePlayground() {
                     setPyStatus('ready');
                 }
             } catch (e: any) {
-                if (!cancelled) setPyStatus('failed: ' + (e?.message ?? e));
+                if (!cancelled) setPyStatus('failed: ' + (e?.message ?? String(e)));
             }
         })();
         return () => { cancelled = true; };
     }, []);
 
+    // IMPORTANT: in Pyodide ≥0.25 pass ONLY ONE of raw/batched/write
     useEffect(() => {
-        if (!pyReady || !(window as any).pyodide) return;
-        let buf = '';
-        (window as any).pyodide.setStdout?.({
-            write: (s: string) => { buf += s; const i = buf.lastIndexOf('\n'); if (i >= 0) { appendLogs(buf.slice(0, i)); buf = buf.slice(i+1); } },
-            batched: (s: string) => { if (buf) { appendLogs(buf); buf = ''; } if (s) appendLogs(s); },
+        const py = (window as any).pyodide;
+        if (!pyReady || !py) return;
+
+        py.setStdout?.({
+            batched: (s: string) => { if (s) appendLogs(s); },
         });
-        (window as any).pyodide.setStderr?.({
+
+        py.setStderr?.({
             batched: (s: string) => { if (s) appendLogs('[python stderr] ' + s); },
         });
-    }, [pyReady]);
+    }, [pyReady, appendLogs]);
 
-    /* -------------------------- SQL -------------------------- */
+    /* -------------------------- SQL (sql.js) -------------------------- */
     useEffect(() => {
         let mounted = true;
         async function initDb() {
@@ -257,7 +283,10 @@ export default function CodePlayground() {
         const doc = iframeRef.current?.contentDocument;
         if (!doc) return;
         doc.open();
-        doc.write(value);
+        const html = value.includes('<html')
+            ? value
+            : `<!doctype html><html><head></head><body>${value}</body></html>`;
+        doc.write(html);
         doc.close();
     };
 
@@ -275,7 +304,7 @@ export default function CodePlayground() {
         }
     };
 
-    // Backend: only print stdout (and stderr if present). No raw/compile noise.
+    // Backend: only stdout (and stderr if present). No raw/compile noise.
     const runViaBackend = async (lang: 'c' | 'cpp' | 'java' | 'python') => {
         try {
             const resp = await fetch('/api/execute', {
@@ -336,7 +365,9 @@ export default function CodePlayground() {
                     </select>
                 </label>
 
-                <button onClick={run} disabled={running} style={{ padding: '6px 10px', borderRadius: 6 }}> {running ? 'Running…' : '▶ Run'} </button>
+                <button onClick={run} disabled={running} style={{ padding: '6px 10px', borderRadius: 6 }}>
+                    {running ? 'Running…' : '▶ Run'}
+                </button>
                 <button onClick={clearConsole} style={{ padding: '6px 10px', borderRadius: 6 }}>Clear</button>
 
                 <button
