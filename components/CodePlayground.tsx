@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Editor, { type OnChange } from '@monaco-editor/react';
 
-// ---------------------------------------------
-// Supported languages
-// ---------------------------------------------
+/* ============================== Types & Samples ============================== */
+
 type Lang =
     | 'javascript'
     | 'typescript'
@@ -18,384 +17,351 @@ type Lang =
 
 type Theme = 'vs-dark' | 'light';
 
-// Sample snippets for each language
 const LANGUAGE_OPTIONS: { id: Lang; label: string; sample: string }[] = [
-    {
-        id: 'javascript',
-        label: 'JavaScript',
-        sample: `// JS
-console.log('hello from JS');`,
-    },
+    { id: 'javascript', label: 'JavaScript', sample: `// JS\nconsole.log('hello from JS');` },
     {
         id: 'typescript',
         label: 'TypeScript',
-        sample: `// TS
-const greet = (name: string): string => \`Hello \${name}\`;
-console.log(greet('TypeScript'));`,
+        sample: `// TS\nconst msg = (n: string) => \`hello from \${n}\`;\nconsole.log(msg('TypeScript'));`,
     },
-    {
-        id: 'python',
-        label: 'Python',
-        sample: `# Python
-print("hello from Python")`,
-    },
+    { id: 'python', label: 'Python', sample: `# Python\nprint("hello from Python")` },
     {
         id: 'html',
         label: 'HTML',
-        sample: `<!doctype html>
-<html>
-  <body>
-    <h1>Hello from HTML</h1>
-    <p>Edit this HTML and click Run to refresh the preview.</p>
-    <script>console.log('JS inside iframe');</script>
-  </body>
-</html>`,
+        sample: `<!doctype html><html><body><h1>Hello HTML</h1></body></html>`,
     },
     {
         id: 'sql',
-        label: 'SQL (SQLite)',
-        sample: `-- SQL (SQLite in browser)
-CREATE TABLE todos(id INTEGER PRIMARY KEY, title TEXT);
-INSERT INTO todos(title) VALUES ('write code'), ('ship app');
-SELECT * FROM todos;`,
+        label: 'SQL',
+        sample: `CREATE TABLE test(id INTEGER, name TEXT);\nINSERT INTO test VALUES(1,'A'),(2,'B');\nSELECT * FROM test;`,
     },
-    {
-        id: 'c',
-        label: 'C',
-        sample: `#include <stdio.h>
-int main() {
-  printf("hello from C\\n");
-  return 0;
-}`,
-    },
-    {
-        id: 'cpp',
-        label: 'C++',
-        sample: `#include <bits/stdc++.h>
-using namespace std;
-int main(){
-  cout << "hello from C++\\n";
-  return 0;
-}`,
-    },
+    { id: 'c', label: 'C', sample: `#include <stdio.h>\nint main(){ printf("hello from C\\n"); return 0; }` },
+    { id: 'cpp', label: 'C++', sample: `#include <iostream>\nint main(){ std::cout<<"hello from C++\\n"; }` },
     {
         id: 'java',
         label: 'Java',
-        sample: `public class Main {
-  public static void main(String[] args) {
-    System.out.println("hello from Java");
-  }
-}`,
+        sample: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("hello from Java");\n  }\n}`,
     },
 ];
+
+/* ============================== Globals & Loaders ============================== */
 
 declare global {
     interface Window {
         loadPyodide?: any;
         pyodide?: any;
+        __pyodidePromise?: Promise<any>;
+        initSqlJs?: (cfg: { locateFile: (f: string) => string }) => Promise<any>;
     }
 }
+
+function cleanPyodideGlobals() {
+    try { delete (window as any).pyodide; } catch {}
+    try { delete (window as any).loadPyodide; } catch {}
+    try { delete (window as any).__pyodidePromise; } catch {}
+}
+
+function loadScript(src: string, timeoutMs = 15000) {
+    return new Promise<void>((resolve, reject) => {
+        const s = document.createElement('script');
+        const timer = setTimeout(() => { s.remove(); reject(new Error(`timeout ${src}`)); }, timeoutMs);
+        s.src = src;
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.onload = () => { clearTimeout(timer); resolve(); };
+        s.onerror = () => { clearTimeout(timer); reject(new Error(`failed ${src}`)); };
+        document.body.appendChild(s);
+    });
+}
+
+/** Robust multi-CDN loader with backoff + global reset */
+async function loadPyodideRobust(log: (s: string) => void, attempt = 1): Promise<any> {
+    const cdns = [
+        'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js',
+        'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js',
+        'https://unpkg.com/pyodide@0.25.0/full/pyodide.js',
+    ];
+    cleanPyodideGlobals();
+    for (const url of cdns) {
+        try {
+            log(`loading ${url}`);
+            await loadScript(url);
+            const py = await (window as any).loadPyodide?.();
+            if (py) return py;
+        } catch (e: any) {
+            log('failed ' + (e?.message ?? e));
+            cleanPyodideGlobals();
+        }
+    }
+    if (attempt < 3) {
+        const delay = 1000 * Math.pow(2, attempt - 1);
+        log(`retrying in ${delay}ms…`);
+        await new Promise(r => setTimeout(r, delay));
+        return loadPyodideRobust(log, attempt + 1);
+    }
+    throw new Error('all Pyodide CDNs failed');
+}
+
+/* ============================== Component ============================== */
 
 export default function CodePlayground() {
     // UI state
     const [language, setLanguage] = useState<Lang>('javascript');
     const [theme, setTheme] = useState<Theme>('vs-dark');
-    const [value, setValue] = useState<string>(
-        LANGUAGE_OPTIONS.find(o => o.id === 'javascript')!.sample
-    );
+    const [value, setValue] = useState(LANGUAGE_OPTIONS[0].sample);
     const [consoleLines, setConsoleLines] = useState<string[]>([]);
     const [running, setRunning] = useState(false);
 
-    // HTML preview iframe
-    const iframeRef = useRef<HTMLIFrameElement | null>(null);
-
-    // -------------------------
-    // TypeScript: lazy import compiler
-    // -------------------------
-    const tsRef = useRef<any>(null);
-    const ensureTS = useCallback(async () => {
-        if (!tsRef.current) {
-            const ts = await import('typescript'); // pulled client-side only when needed
-            tsRef.current = ts;
-        }
-        return tsRef.current;
-    }, []);
-
-    // -------------------------
-    // Python: load Pyodide once
-    // -------------------------
+    // engines
     const [pyReady, setPyReady] = useState(false);
-    useEffect(() => {
-        if (pyReady) return;
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js';
-        script.onload = async () => {
-            window.pyodide = await window.loadPyodide?.();
-            setPyReady(true);
-        };
-        document.body.appendChild(script);
-        return () => {
-            script.remove();
-        };
-    }, [pyReady]);
-
-// -------------------------
-// SQL: init sql.js + in-memory DB (CDN loader; no bundling)
-// -------------------------
-    const sqlDbRef = useRef<any>(null);
+    const [pyStatus, setPyStatus] = useState('not loaded');
     const [sqlReady, setSqlReady] = useState(false);
 
+    // refs
+    const iframeRef = useRef<HTMLIFrameElement | null>(null);
+    const sqlDbRef = useRef<any>(null);
+    const tsRef = useRef<any>(null);
+
+    // helpers
+    const selected = useMemo(
+        () => LANGUAGE_OPTIONS.find(o => o.id === language)!,
+        [language]
+    );
+    const handleChange: OnChange = v => setValue(v ?? '');
+    const clearConsole = () => setConsoleLines([]);
+    const appendLogs = (...lines: string[]) =>
+        setConsoleLines(prev => [...prev, ...lines]);
+    const loadSample = (lang: Lang) =>
+        setValue(LANGUAGE_OPTIONS.find(o => o.id === lang)!.sample);
+
+    const isDark = theme === 'vs-dark';
+    const selectStyle: React.CSSProperties = {
+        background: isDark ? '#1f2937' : '#ffffff',
+        color: isDark ? '#e5e7eb' : '#111827',
+        border: `1px solid ${isDark ? '#374151' : '#d1d5db'}`,
+        padding: '4px 8px',
+        borderRadius: 6,
+        colorScheme: 'light',
+    };
+
+    /* -------------------------- Python -------------------------- */
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                setPyStatus('loading…');
+                const py = await loadPyodideRobust(s => setPyStatus(s));
+                if (!cancelled) {
+                    (window as any).pyodide = py;
+                    setPyReady(true);
+                    setPyStatus('ready');
+                }
+            } catch (e: any) {
+                if (!cancelled) setPyStatus('failed: ' + (e?.message ?? e));
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    useEffect(() => {
+        if (!pyReady || !(window as any).pyodide) return;
+        let buf = '';
+        (window as any).pyodide.setStdout?.({
+            write: (s: string) => { buf += s; const i = buf.lastIndexOf('\n'); if (i >= 0) { appendLogs(buf.slice(0, i)); buf = buf.slice(i+1); } },
+            batched: (s: string) => { if (buf) { appendLogs(buf); buf = ''; } if (s) appendLogs(s); },
+        });
+        (window as any).pyodide.setStderr?.({
+            batched: (s: string) => { if (s) appendLogs('[python stderr] ' + s); },
+        });
+    }, [pyReady]);
+
+    /* -------------------------- SQL -------------------------- */
     useEffect(() => {
         let mounted = true;
-        // already loaded?
-        if ((window as any).initSqlJs && !sqlDbRef.current) {
-            (async () => {
+        async function initDb() {
+            try {
                 const SQL = await (window as any).initSqlJs({
-                    locateFile: (file: string) =>
-                        `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`,
+                    locateFile: (f: string) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`,
                 });
                 if (mounted) {
                     sqlDbRef.current = new SQL.Database();
                     setSqlReady(true);
                 }
-            })();
-            return () => { mounted = false; };
+            } catch (e: any) {
+                appendLogs('[sql] ' + (e?.message ?? e));
+            }
         }
 
-        // inject script tag for browser build
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js';
-        script.async = true;
-        script.onload = async () => {
-            const SQL = await (window as any).initSqlJs({
-                locateFile: (file: string) =>
-                    `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`,
-            });
-            if (mounted) {
-                sqlDbRef.current = new SQL.Database();
-                setSqlReady(true);
-            }
-        };
-        document.body.appendChild(script);
-
-        return () => {
-            mounted = false;
-            script.remove();
-        };
+        if (typeof (window as any).initSqlJs === 'function') initDb();
+        else {
+            const s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js';
+            s.async = true;
+            s.crossOrigin = 'anonymous';
+            s.onload = () => initDb();
+            s.onerror = () => appendLogs('[sql] load failed');
+            document.body.appendChild(s);
+        }
+        return () => { mounted = false; };
     }, []);
 
-    // handy derived/utility stuff
-    const selected = useMemo(
-        () => LANGUAGE_OPTIONS.find(o => o.id === language)!,
-        [language]
-    );
+    /* ============================== Runners ============================== */
 
-    const handleChange: OnChange = v => setValue(v ?? '');
-    const clearConsole = useCallback(() => setConsoleLines([]), []);
-    const appendLogs = useCallback((...lines: string[]) => {
-        setConsoleLines(prev => [...prev, ...lines]);
-    }, []);
+    // Capture console for JS/TS
+    function makeCapturingConsole(push: (s: string) => void) {
+        return {
+            log: (...a: any[]) => push(a.map(x => String(x)).join(' ')),
+            info: (...a: any[]) => push(a.map(x => String(x)).join(' ')),
+            warn: (...a: any[]) => push('[warn] ' + a.map(x => String(x)).join(' ')),
+            error: (...a: any[]) => push('[error] ' + a.map(x => String(x)).join(' ')),
+        } as Console;
+    }
 
-    // ---------------------------------------------
-    // Runners
-    // ---------------------------------------------
-
-    // JS (native eval in sandboxed Function)
-    const runJS = useCallback(() => {
-        const logs: string[] = [];
-        const fakeConsole = {
-            log: (...args: any[]) => logs.push(args.map(String).join(' ')),
-            error: (...args: any[]) => logs.push('[error] ' + args.map(String).join(' ')),
-            warn: (...args: any[]) => logs.push('[warn] ' + args.map(String).join(' ')),
-            info: (...args: any[]) => logs.push('[info] ' + args.map(String).join(' ')),
-        };
+    const runJS = () => {
+        const lines: string[] = [];
+        const c = makeCapturingConsole(s => lines.push(s));
         try {
             // eslint-disable-next-line no-new-func
             const fn = new Function('console', value);
-            fn(fakeConsole);
+            fn(c);
         } catch (e: any) {
-            logs.push('[throw] ' + (e?.message ?? String(e)));
+            lines.push('[throw] ' + (e?.message ?? String(e)));
         }
-        appendLogs('— run (JS) —', ...logs);
-    }, [appendLogs, value]);
+        if (lines.length) appendLogs(...lines);
+    };
 
-    // TS → transpile to JS → run
-    const runTS = useCallback(async () => {
+    const ensureTS = useCallback(async () => {
+        if (!tsRef.current) tsRef.current = await import('typescript');
+        return tsRef.current;
+    }, []);
+
+    const runTS = async () => {
+        const ts = await ensureTS();
+        const transpiled = ts.transpileModule(value, {
+            compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext },
+        }).outputText;
+
+        const lines: string[] = [];
+        const c = makeCapturingConsole(s => lines.push(s));
         try {
-            const ts = await ensureTS();
-            const transpiled = ts
-                .transpileModule(value, {
-                    compilerOptions: {
-                        target: ts.ScriptTarget.ES2020,
-                        module: ts.ModuleKind.ESNext,
-                    },
-                })
-                .outputText;
-
-            const logs: string[] = [];
-            const fakeConsole = {
-                log: (...args: any[]) => logs.push(args.map(String).join(' ')),
-                error: (...args: any[]) => logs.push('[error] ' + args.map(String).join(' ')),
-            };
             // eslint-disable-next-line no-new-func
             const fn = new Function('console', transpiled);
-            fn(fakeConsole);
-            appendLogs('— run (TS→JS) —', ...logs);
+            fn(c);
         } catch (e: any) {
-            appendLogs('— run (TS→JS) —', '[throw] ' + (e?.message ?? String(e)));
+            lines.push('[throw] ' + (e?.message ?? String(e)));
         }
-    }, [appendLogs, ensureTS, value]);
+        if (lines.length) appendLogs(...lines);
+    };
 
-    // Python via Pyodide
-    const runPy = useCallback(async () => {
-        if (!pyReady || !window.pyodide) {
-            appendLogs('[python] runtime not ready yet…');
-            return;
-        }
-        try {
-            const out = await window.pyodide.runPythonAsync(value);
-            if (out !== undefined) appendLogs(String(out));
-            else appendLogs('— run (Python) —');
-        } catch (e: any) {
-            appendLogs('[python throw] ' + (e?.message ?? String(e)));
-        }
-    }, [appendLogs, pyReady, value]);
-
-    // HTML → render into iframe
-    const runHTML = useCallback(() => {
-        if (!iframeRef.current) return;
-        const doc = iframeRef.current.contentDocument;
+    const runHTML = () => {
+        const doc = iframeRef.current?.contentDocument;
         if (!doc) return;
         doc.open();
         doc.write(value);
         doc.close();
-        appendLogs('— rendered HTML in preview —');
-    }, [appendLogs, value]);
+    };
 
-    // SQL (SQLite in memory)
-    const runSQL = useCallback(() => {
-        if (!sqlReady || !sqlDbRef.current) {
-            appendLogs('[sql] engine not ready');
-            return;
-        }
+    const runSQL = () => {
+        if (!sqlReady || !sqlDbRef.current) { appendLogs('[sql] not ready'); return; }
         try {
-            // Split statements on trailing semicolons across lines
-            const statements = value
-                .split(/;\s*$/m)
-                .map(s => s.trim())
-                .filter(Boolean);
-            let printed = false;
-            statements.forEach(stmt => {
-                const res = sqlDbRef.current.exec(stmt);
-                if (res && res.length) {
-                    printed = true;
-                    res.forEach(({ columns, values }: any) => {
-                        const header = columns.join(' | ');
-                        const rows = values.map((r: any[]) => r.join(' | '));
-                        appendLogs('— SQL result —', header, ...rows);
-                    });
-                }
-            });
-            if (!printed) appendLogs('— SQL ok —');
-        } catch (e: any) {
-            appendLogs('[sql error] ' + (e?.message ?? String(e)));
-        }
-    }, [appendLogs, sqlReady, value]);
-
-    // C / C++ / Java via backend API
-    const runViaBackend = useCallback(
-        async (lang: 'c' | 'cpp' | 'java') => {
-            try {
-                const resp = await fetch('/api/execute', {
-                    method: 'POST',
-                    headers: { 'content-type': 'application/json' },
-                    body: JSON.stringify({ language: lang, code: value }),
+            const result = sqlDbRef.current.exec(value);
+            if (result && result.length) {
+                result.forEach((r: any) => {
+                    appendLogs(r.columns.join(' | '), ...r.values.map((row: any[]) => row.join(' | ')));
                 });
-                const json = await resp.json();
-                if (json.error) {
-                    appendLogs(`[${lang}] error: ${json.error}`);
-                    return;
-                }
-                const out =
-                    (json.stdout || '') + (json.stderr ? '\n[stderr]\n' + json.stderr : '');
-                appendLogs(`— run (${lang}) —`, out || '(no output)');
-            } catch (e: any) {
-                appendLogs(`[${lang}] network error: ${e?.message ?? String(e)}`);
             }
-        },
-        [appendLogs, value]
-    );
+        } catch (e: any) {
+            appendLogs('[sql] ' + (e?.message ?? String(e)));
+        }
+    };
 
-    // Main Run button dispatcher
-    const run = useCallback(async () => {
+    // Backend: only print stdout (and stderr if present). No raw/compile noise.
+    const runViaBackend = async (lang: 'c' | 'cpp' | 'java' | 'python') => {
+        try {
+            const resp = await fetch('/api/execute', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ language: lang, code: value }),
+            });
+            if (!resp.ok) {
+                const text = await resp.text().catch(() => '');
+                appendLogs(`[${lang}] HTTP ${resp.status}${text ? `: ${text}` : ''}`);
+                return;
+            }
+            const data = await resp.json();
+            const out = data?.run?.stdout?.trim?.() ?? '';
+            const err = data?.run?.stderr?.trim?.() ?? '';
+            if (out) appendLogs(out);
+            if (err) appendLogs('[stderr] ' + err);
+            if (!out && !err) appendLogs('(no output)');
+        } catch (e: any) {
+            appendLogs(`[${lang}] ${e?.message ?? String(e)}`);
+        }
+    };
+
+    const run = async () => {
         setRunning(true);
         try {
             if (language === 'javascript') runJS();
             else if (language === 'typescript') await runTS();
-            else if (language === 'python') await runPy();
+            else if (language === 'python' || language === 'c' || language === 'cpp' || language === 'java')
+                await runViaBackend(language);
             else if (language === 'html') runHTML();
             else if (language === 'sql') runSQL();
-            else if (language === 'c' || language === 'cpp' || language === 'java')
-                await runViaBackend(language);
         } finally {
             setRunning(false);
         }
-    }, [language, runHTML, runJS, runPy, runSQL, runTS, runViaBackend]);
+    };
 
-    // When switching languages, load a sample for convenience
-    const loadSample = useCallback((lang: Lang) => {
-        const opt = LANGUAGE_OPTIONS.find(o => o.id === lang)!;
-        setValue(opt.sample);
-    }, []);
+    /* ============================== UI ============================== */
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
             {/* Toolbar */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '8px 12px',
-                    borderBottom: '1px solid #2a2a2a',
-                }}
-            >
-                <label>
-                    Language:{' '}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: 8, borderBottom: '1px solid #2a2a2a' }}>
+                <label>Language:{' '}
                     <select
+                        style={selectStyle}
                         value={language}
-                        onChange={e => {
-                            const lang = e.target.value as Lang;
-                            setLanguage(lang);
-                            loadSample(lang);
-                        }}
+                        onChange={e => { const l = e.target.value as Lang; setLanguage(l); loadSample(l); }}
                     >
-                        {LANGUAGE_OPTIONS.map(opt => (
-                            <option key={opt.id} value={opt.id}>
-                                {opt.label}
-                            </option>
-                        ))}
+                        {LANGUAGE_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                     </select>
                 </label>
 
-                <label>
-                    Theme:{' '}
-                    <select value={theme} onChange={e => setTheme(e.target.value as Theme)}>
+                <label>Theme:{' '}
+                    <select style={selectStyle} value={theme} onChange={e => setTheme(e.target.value as Theme)}>
                         <option value="vs-dark">Dark</option>
                         <option value="light">Light</option>
                     </select>
                 </label>
 
-                <button onClick={run} disabled={running} style={{ padding: '6px 10px' }}>
-                    {running ? 'Running…' : '▶ Run'}
+                <button onClick={run} disabled={running} style={{ padding: '6px 10px', borderRadius: 6 }}> {running ? 'Running…' : '▶ Run'} </button>
+                <button onClick={clearConsole} style={{ padding: '6px 10px', borderRadius: 6 }}>Clear</button>
+
+                <button
+                    onClick={async () => {
+                        setPyReady(false);
+                        setPyStatus('retrying…');
+                        try {
+                            const py = await loadPyodideRobust(s => setPyStatus(s));
+                            (window as any).pyodide = py;
+                            setPyReady(true);
+                            setPyStatus('ready');
+                        } catch (e: any) {
+                            setPyStatus('failed');
+                        }
+                    }}
+                    style={{ padding: '6px 10px', borderRadius: 6 }}
+                    title="Retry loading Python"
+                >
+                    Retry Python
                 </button>
 
-                <button onClick={clearConsole} style={{ padding: '6px 10px' }}>
-                    Clear Console
-                </button>
-
-                <div style={{ marginLeft: 'auto', opacity: 0.75, fontSize: 12 }}>
-                    {LANGUAGE_OPTIONS.find(o => o.id === language)!.label} • {theme}
+                <div style={{ marginLeft: 'auto', fontSize: 12, opacity: 0.85 }}>
+                    Python: <b style={{ color: pyReady ? '#16a34a' : '#dc2626' }}>{pyReady ? 'ready' : 'not ready'}</b>
+                    {' '}(<span>{pyStatus}</span>) • SQL:{' '}
+                    <b style={{ color: sqlReady ? '#16a34a' : '#dc2626' }}>{sqlReady ? 'ready' : 'not ready'}</b>
                 </div>
             </div>
 
@@ -405,48 +371,30 @@ export default function CodePlayground() {
                     height="100%"
                     value={value}
                     language={language}
-                    defaultLanguage={language}
                     theme={theme}
                     onChange={handleChange}
-                    options={{
-                        fontSize: 14,
-                        minimap: { enabled: false },
-                        wordWrap: 'on',
-                        automaticLayout: true,
-                        scrollBeyondLastLine: false,
-                    }}
+                    options={{ fontSize: 14, minimap: { enabled: false }, automaticLayout: true, wordWrap: 'on' }}
                 />
             </div>
 
-            {/* Console / Preview area */}
+            {/* Console + HTML preview */}
             <div style={{ height: 220, display: 'flex', borderTop: '1px solid #2a2a2a' }}>
-                {/* Left: console text */}
-                <div
-                    style={{
-                        flex: 1,
-                        background: theme === 'vs-dark' ? '#111' : '#fafafa',
-                        color: theme === 'vs-dark' ? '#ddd' : '#111',
-                        padding: 8,
-                        overflow: 'auto',
-                        fontFamily:
-                            'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                        fontSize: 13,
-                    }}
-                >
-                    {consoleLines.length === 0 ? (
-                        <div style={{ opacity: 0.6 }}>Console output will appear here…</div>
-                    ) : (
-                        consoleLines.map((line, i) => <div key={i}>{line}</div>)
-                    )}
+                <div style={{
+                    flex: 1,
+                    background: isDark ? '#111' : '#fafafa',
+                    color: isDark ? '#ddd' : '#111',
+                    padding: 8,
+                    overflow: 'auto',
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                    fontSize: 13,
+                }}>
+                    {consoleLines.length === 0
+                        ? <div style={{ opacity: 0.6 }}>Console output will appear here…</div>
+                        : consoleLines.map((line, i) => <div key={i}>{line}</div>)
+                    }
                 </div>
-
-                {/* Right: HTML preview iframe (used only for HTML) */}
                 <div style={{ width: 360, borderLeft: '1px solid #2a2a2a' }}>
-                    <iframe
-                        ref={iframeRef}
-                        title="preview"
-                        style={{ width: '100%', height: '100%', border: 'none' }}
-                    />
+                    <iframe ref={iframeRef} title="preview" style={{ width: '100%', height: '100%', border: 'none' }} />
                 </div>
             </div>
         </div>
