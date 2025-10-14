@@ -2,11 +2,12 @@
 
 import dynamic from 'next/dynamic';
 
-const CodeEditor = dynamic(() => import('../../components/CodeEditor'), {
+// load the playground only on the client (Monaco, Pyodide, etc.)
+const CodePlayground = dynamic(() => import('../../components/CodePlayground'), {
     ssr: false,
     loading: () => <div style={{ padding: 24 }}>Loading editor…</div>,
 });
 
 export default function EditorClient() {
-    return <CodeEditor language="javascript" initialCode="// hello world" />;
+    return <CodePlayground />;
 }
