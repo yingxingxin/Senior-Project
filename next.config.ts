@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
     // selecting a parent directory with another lockfile.
     root: __dirname,
   },
+    webpack: (config, { isServer }) => {
+        if (!isServer) {
+            // prevent browser bundle from trying to use Node's fs/path
+            config.resolve = config.resolve || {};
+            config.resolve.fallback = {
+                ...(config.resolve.fallback || {}),
+                fs: false,
+                path: false,
+            };
+        }
+        return config;
+    },
 };
 
 export default nextConfig;
