@@ -24,10 +24,12 @@ import {
   Sparkles,
   MessageSquare,
   Swords,
+  Music,
 } from "lucide-react";
 
 import { NavbarData } from "@/app/(app)/actions";
 import { Heading, Muted } from "@/components/ui/typography";
+import { useMusic } from "@/components/music";
 
 interface NavbarProps {
   data: NavbarData | null;
@@ -36,6 +38,7 @@ interface NavbarProps {
 export default function Navbar({ data }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { state, togglePlayerVisibility } = useMusic();
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -126,6 +129,21 @@ export default function Navbar({ data }: NavbarProps) {
                 </span>
               </div>
             </div>
+
+            {/* Music Control */}
+            <button 
+              onClick={togglePlayerVisibility}
+              className={`relative p-2 rounded-xl transition-all ${
+                state.showPlayer 
+                  ? 'text-primary bg-primary/10' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              <Music className="h-5 w-5" />
+              {state.isPlaying && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary animate-pulse" />
+              )}
+            </button>
 
             {/* Notifications */}
             <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
