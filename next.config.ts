@@ -24,6 +24,18 @@ const nextConfig: NextConfig = {
                 ...(config.resolve.fallback || {}),
                 fs: false,
                 path: false,
+                net: false,
+                tls: false,
+                crypto: false,
+                stream: false,
+                util: false,
+                url: false,
+                assert: false,
+                http: false,
+                https: false,
+                os: false,
+                buffer: false,
+                process: false,
             };
         }
         return config;

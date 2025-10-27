@@ -1,4 +1,4 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, type NewAssistant, type NewUser, type NewAccount } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser, type NewAccount, type NewMusicTrack } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
 import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
@@ -267,6 +267,18 @@ export async function seed() {
       { level: 8, xp_to_reach: 4000, label: "Advanced" },
       { level: 9, xp_to_reach: 5500, label: "Expert" },
       { level: 10, xp_to_reach: 7500, label: "Master" },
+    ]).onConflictDoNothing();
+
+    // Seed music tracks
+    console.log("Creating music tracks...");
+    await db.insert(music_tracks).values([
+      {
+        title: "Genshin Impact Theme Song",
+        artist: "PenG Lexer",
+        duration_sec: 147, // 2 minutes 27 seconds
+        file_url: "/music/peng-lexer-genshin-theme.mp3",
+        volume: 0.7,
+      },
     ]).onConflictDoNothing();
 
     // Seed Skill Assessment Quiz (for onboarding)

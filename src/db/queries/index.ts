@@ -28,3 +28,6 @@ export * from './lessons';
 
 // Admin queries
 export * from './admin';
+
+// Music queries
+export * from './music';
