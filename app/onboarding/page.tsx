@@ -25,7 +25,7 @@ export default function OnboardingWelcomePage() {
 
   const hasProgress = !userIsNew;
   const progressPercent = hasProgress ? calculateProgress(ctx.currentStep) : 0;
-  const currentStepTitle = hasProgress ? getStepTitle(ctx.currentStep) : null;
+  // const currentStepTitle = hasProgress ? getStepTitle(ctx.currentStep) : null;
   const resumeStep = getResumeStep({
     currentStep: ctx.currentStep,
     assistantId: ctx.assistantId,

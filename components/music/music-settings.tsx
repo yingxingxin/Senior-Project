@@ -14,7 +14,7 @@ interface MusicSettingsProps {
 }
 
 export function MusicSettings({ userId, className = '' }: MusicSettingsProps) {
-  const { state, addToUserTracks, removeFromUserTracks } = useMusic();
+  const { addToUserTracks, removeFromUserTracks } = useMusic();
   const [availableTracks, setAvailableTracks] = useState<MusicTrack[]>([]);
   const [userTracks, setUserTracks] = useState<MusicTrack[]>([]);
   const [isLoading, setIsLoading] = useState(true);

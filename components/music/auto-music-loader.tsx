@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMusic } from './music-context';
 import { getMusicTracks, getUserMusicTracksAction, setUserMusicTracksAction } from '@/app/(app)/actions/music';
 
