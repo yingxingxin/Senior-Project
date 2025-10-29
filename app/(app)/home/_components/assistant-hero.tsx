@@ -32,19 +32,39 @@ interface AssistantHeroProps {
 
 export function AssistantHero({ persona, assistant, primaryAction, speech }: AssistantHeroProps) {
   const quickActions = [
-    { label: "Study", href: "/study", icon: BookOpen },
+    { label: "Courses", href: "/courses", icon: BookOpen },
     { label: "Quiz", href: "/quiz", icon: Sparkles },
     { label: "Ask", href: "/ask", icon: MessageSquare },
     { label: "Practice", href: "/practice", icon: Swords },
   ];
 
   return (
-    <Card className="overflow-hidden">
+    <div style={{
+      background: 'rgba(255, 255, 255, 0.05)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      borderRadius: '16px',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+      padding: '24px',
+      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+      color: '#e8e8e8'
+    }}>
       <div className="p-6">
         <Inline gap="loose" align="start">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="h-20 w-20 rounded-[24px] bg-primary grid place-items-center ring-4 ring-border overflow-hidden">
+                <div 
+                  style={{
+                    height: '80px',
+                    width: '80px',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '16px',
+                    display: 'grid',
+                    placeItems: 'center',
+                    overflow: 'hidden',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)'
+                  }}>
               {assistant.avatarUrl ? (
                 <Image
                   src={assistant.avatarUrl}
@@ -54,10 +74,22 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <Bot className="h-10 w-10 text-white" />
+                <Bot className="h-10 w-10" style={{color: '#ffffff'}} />
               )}
             </div>
-            <div className="absolute -right-2 -bottom-2 rounded-full bg-background border border-border px-2 py-0.5 text-[10px] font-semibold text-primary shadow">
+            <div style={{
+              position: 'absolute',
+              right: '-8px',
+              bottom: '-8px',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '8px',
+              padding: '4px 8px',
+              fontSize: '10px',
+              fontWeight: '600',
+              background: 'rgba(26, 26, 46, 0.9)',
+              color: '#a78bfa',
+              fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
+            }}>
               {persona}
             </div>
           </div>
@@ -66,16 +98,24 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
           <div className="flex-1">
             {/* Assistant Info */}
             <div className="mb-3">
-              <Heading level={5}>{assistant.name}</Heading>
+              <Heading level={5} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600'}}>{assistant.name}</Heading>
               {assistant.tagline && (
-                <Muted variant="small" className="italic">{assistant.tagline}</Muted>
+                <Muted variant="small" className="italic" style={{color: '#94a3b8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{assistant.tagline}</Muted>
               )}
             </div>
 
             <div className="relative inline-block max-w-full mb-4">
-              <div className="rounded-[18px] border border-border bg-accent px-5 py-4 shadow-sm">
+              <div style={{
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                color: '#e8e8e8',
+                fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
+              }}>
                 <Inline gap="default" align="start">
-                  <Body className="flex-1">{speech}</Body>
+                  <Body className="flex-1" style={{color: '#e8e8e8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{speech}</Body>
                   <AudioPlayer
                     text={speech}
                     persona={persona}
@@ -86,13 +126,40 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                 </Inline>
               </div>
               {/* tail */}
-              <div className="absolute -left-2 top-6 h-3 w-3 rotate-45 border-l border-t bg-accent border-border" />
+              <div style={{
+                position: 'absolute',
+                left: '-8px',
+                top: '24px',
+                height: '12px',
+                width: '12px',
+                transform: 'rotate(45deg)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)'
+              }} />
             </div>
 
             <Inline gap="default" align="center">
               <Link
                 href={primaryAction.href}
-                className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-primary text-primary-foreground px-6 py-3 text-sm font-semibold hover:bg-primary/90 transition shadow-sm"
+                className="primary-button"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: '#ffffff',
+                  borderRadius: '12px',
+                  border: 'none',
+                  textDecoration: 'none',
+                  fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                  boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 0.2s ease'
+                }}
               >
                 <Play className="h-4 w-4" />
                 {primaryAction.cta}
@@ -106,11 +173,23 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
                     <Link
                       key={action.label}
                       href={action.href}
-                      className="rounded-[14px] border border-border px-4 py-2.5 hover:bg-muted transition"
+                      className="secondary-button"
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: '#e8e8e8',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        textDecoration: 'none',
+                        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                        transition: 'all 0.2s ease'
+                      }}
                     >
                       <Inline gap="tight" align="center" as="span">
                         <Icon className="h-4 w-4" />
-                        <Body variant="small" as="span" className="font-medium">{action.label}</Body>
+                        <Body variant="small" as="span" style={{fontWeight: '500', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{action.label}</Body>
                       </Inline>
                     </Link>
                   );
@@ -120,6 +199,6 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
           </div>
         </Inline>
       </div>
-    </Card>
+    </div>
   );
 }

@@ -12,7 +12,8 @@ import {
 import { relations, sql } from 'drizzle-orm';
 import { assistants } from './lessons';
 import { study_settings, user_preferences, user_theme_settings, user_music_tracks } from './preferences';
-import { user_lesson_progress, user_lesson_sections, activity_events, user_achievements } from './progress';
+import { user_lesson_progress, activity_events, user_achievements } from './progress';
+import { user_lesson_sections } from './lessons';
 import { quiz_attempts } from './quizzes';
 
 // ============ ENUMS ============
