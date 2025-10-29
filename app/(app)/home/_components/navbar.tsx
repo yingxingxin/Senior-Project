@@ -50,6 +50,7 @@ export default function Navbar({ data }: NavbarProps) {
     { href: "/home", label: "Home", icon: Home },
     { href: "/courses", label: "Courses", icon: BookOpen },
     { href: "/quiz", label: "Quiz", icon: Sparkles },
+    { href: "/editor", label: "Practice", icon: Swords },
     { href: "/ask", label: "Ask AI", icon: MessageSquare },
   ];
 
