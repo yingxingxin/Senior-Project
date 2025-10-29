@@ -7,6 +7,10 @@ import type { Lang } from './exercises/types';
 import { listForLang, getById } from './exercises';
 import { EXERCISES } from './exercises';
 
+// Types for optional TS transpiler on window
+type TsModule = typeof import('typescript');
+declare global { interface Window { ts?: TsModule } }
+
 type Theme = 'vs-dark' | 'light';
 type Mode = 'free' | 'exercise';
 
@@ -52,9 +56,7 @@ export default function CodePlayground(): JSX.Element {
     const [htmlPreview, setHtmlPreview] = useState<string>('');
     const [validMsg, setValidMsg] = useState<string>('');
 
-    const appendOut = useCallback((s: string) => {
-        setStdout(prev => (prev ? prev + '\n' : '') + s);
-    }, []);
+    // appendOut helper removed (unused)
 
     // When exercise/lang changes in exercise mode, seed the editor with the exercise starter
     useEffect(() => {
@@ -91,34 +93,34 @@ export default function CodePlayground(): JSX.Element {
         if (isTs) {
             try {
                 // lazy load the TS transpiler only if needed
-                // @ts-ignore
-                const ts = (window as any).ts ?? (await import('typescript'));
+                const ts: TsModule = (window.ts ?? (await import('typescript')));
                 js = ts.transpileModule(src, {
                     compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext }
                 }).outputText;
-            } catch (e: any) {
-                setStderr('TypeScript transpile error: ' + (e?.message ?? String(e)));
-                return { stdout: '', stderr: String(e?.message ?? e) };
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : String(e);
+                setStderr('TypeScript transpile error: ' + message);
+                return { stdout: '', stderr: message };
             }
         }
 
         try {
             const lines: string[] = [];
             const fakeConsole = {
-                log: (...a: any[]) => lines.push(String(a.join(' '))),
-                error: (...a: any[]) => lines.push('[error] ' + String(a.join(' '))),
-                warn: (...a: any[]) => lines.push('[warn] ' + String(a.join(' '))),
-                info: (...a: any[]) => lines.push(String(a.join(' '))),
+                log: (...a: unknown[]) => lines.push(String(a.map(String).join(' '))),
+                error: (...a: unknown[]) => lines.push('[error] ' + String(a.map(String).join(' '))),
+                warn: (...a: unknown[]) => lines.push('[warn] ' + String(a.map(String).join(' '))),
+                info: (...a: unknown[]) => lines.push(String(a.map(String).join(' '))),
             };
-            // eslint-disable-next-line no-new-func
             const fn = new Function('console', js);
             fn(fakeConsole);
             const out = lines.join('\n') || '(no output)';
             setStdout(out);
             return { stdout: out, stderr: '' };
-        } catch (e: any) {
-            setStderr(String(e?.message ?? e));
-            return { stdout: '', stderr: String(e?.message ?? e) };
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            setStderr(message);
+            return { stdout: '', stderr: message };
         }
     }, []);
 
@@ -156,17 +158,27 @@ export default function CodePlayground(): JSX.Element {
             const text = await resp.text();
 
             // Try to parse JSON; if it's not JSON, show raw
-            let data: any;
-            try { data = JSON.parse(text); } catch { data = null; }
+            let parsed: unknown;
+            try { parsed = JSON.parse(text); } catch { parsed = null; }
+
+            type Output = { stdout?: string; stderr?: string };
+            type ExecResponse = {
+                compile?: Output;
+                run?: Output;
+                error?: string;
+                stdout?: string;
+                stderr?: string;
+            };
+            const data: Partial<ExecResponse> = (parsed && typeof parsed === 'object') ? (parsed as Partial<ExecResponse>) : {};
 
             if (!resp.ok) {
-                const msg = data?.error ?? text ?? `HTTP ${resp.status}`;
+                const msg = data.error ?? text ?? `HTTP ${resp.status}`;
                 setStderr(String(msg));
                 return { stdout: '', stderr: String(msg) };
             }
 
-            const compileOut = data?.compile ?? {};
-            const runOut = data?.run ?? data ?? {};
+            const compileOut: Output = data.compile ?? {};
+            const runOut: Output = data.run ?? data;
 
             const out = [compileOut.stdout, runOut.stdout].filter(Boolean).join('');
             const err = [compileOut.stderr, runOut.stderr].filter(Boolean).join('');
@@ -174,10 +186,10 @@ export default function CodePlayground(): JSX.Element {
             setStdout((out ?? '').trim());
             setStderr((err ?? '').trim());
             return { stdout: (out ?? '').trim(), stderr: (err ?? '').trim() };
-        } catch (e: any) {
-            const msg = e?.message ?? String(e);
-            setStderr(msg);
-            return { stdout: '', stderr: msg };
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            setStderr(message);
+            return { stdout: '', stderr: message };
         }
     }, []);
 
@@ -206,7 +218,7 @@ export default function CodePlayground(): JSX.Element {
                 let ok = false;
 
                 if (ex.expected.matchAny) {
-                    // ✅ Pass if ANY expected line appears anywhere in the output
+                    //  Pass if ANY expected line appears anywhere in the output
                     ok = gotLines.some(gl => want.includes(gl));
 
                     // (Optional stricter variant—uncomment if you want exactly ONE line total)
@@ -220,8 +232,8 @@ export default function CodePlayground(): JSX.Element {
 
                 setValidMsg(
                     ok
-                        ? '✅ Output accepted'
-                        : `❌ Output mismatch.\nExpected ${
+                        ? ' Output accepted'
+                        : ` Output mismatch.\nExpected ${
                             ex.expected.matchAny ? 'any of' : 'exactly'
                         }:\n${want.join('\n')}\nGot:\n${gotLines.join('\n') || '(no output)'}`
                 );
@@ -229,7 +241,7 @@ export default function CodePlayground(): JSX.Element {
                 const ok = (ex.expected.requiredText ?? []).every(t =>
                     (htmlPreview || '').includes(t)
                 );
-                setValidMsg(ok ? '✅ HTML contains required text' : '❌ HTML missing required text');
+                setValidMsg(ok ? ' HTML contains required text' : ' HTML missing required text');
             }
         }
     }, [lang, code, mode, exerciseId, runJsTs, runHtml, callExecute, htmlPreview]);

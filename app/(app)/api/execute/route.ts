@@ -68,9 +68,10 @@ export async function POST(req: Request) {
             },
             success: true,
         });
-    } catch (e: any) {
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
         return NextResponse.json(
-            { error: e?.message ?? String(e), success: false },
+            { error: message, success: false },
             { status: 500 }
         );
     }

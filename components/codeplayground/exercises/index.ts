@@ -13,7 +13,7 @@ export const EXERCISES: Exercise[] = [
     ex4_if_positive_negative,
 ];
 
-export function listForLang(lang: Lang): Exercise[] {
+export function listForLang(_lang: Lang): Exercise[] {
 
     return EXERCISES;
 }

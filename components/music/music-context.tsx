@@ -386,7 +386,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
     if (state.isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch((_err) => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
