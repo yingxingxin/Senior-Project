@@ -267,7 +267,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
       dispatch({ type: 'NEXT_TRACK' });
       // Auto-play the next track
       if (audioRef.current) {
-        audioRef.current.play().catch(error => {
+        audioRef.current.play().catch(() => {
           dispatch({ type: 'SET_ERROR', payload: 'Failed to play next track' });
         });
       }
@@ -342,7 +342,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playTrack = (track: MusicTrack) => {
     dispatch({ type: 'SET_CURRENT_TRACK', payload: track });
     if (audioRef.current) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
@@ -365,7 +365,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playNext = () => {
     dispatch({ type: 'NEXT_TRACK' });
     if (audioRef.current && state.userSelectedTracks.length > 0) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
@@ -374,7 +374,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playPrevious = () => {
     dispatch({ type: 'PREVIOUS_TRACK' });
     if (audioRef.current && state.userSelectedTracks.length > 0) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }

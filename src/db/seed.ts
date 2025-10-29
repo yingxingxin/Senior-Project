@@ -1,6 +1,5 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser, type NewAccount, type NewMusicTrack } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
-import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
 export async function seed() {
