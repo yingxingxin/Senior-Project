@@ -5,16 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex1-init-add-print.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex2-for-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex3-while-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex4-if-positive-negative.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/editor/EditorClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/editor/EditorClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/CodePlayground.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/codeplayground/CodePlayground.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +52,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "dans-branch-02",
+    "git-widget-placeholder": "#64 on stephanies-branch-01",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -74,7 +65,7 @@
     "npm.Next.js: server-side.executor": "Run",
     "settings.editor.selected.configurable": "preferences.lookFeel",
     "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "C:\\Users\\steve\\WebstormProjects\\Senior-Project\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "C:\\Users\\ssem1\\WebstormProjects\\Senior-Project-1\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -150,7 +141,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/db/seed.ts</url>
-          <line>5</line>
+          <line>4</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

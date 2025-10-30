@@ -354,7 +354,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
         audio.load();
 
         return () => {
-            audio.removeEventListener('canplay', onCanPlay as any);
+            audio.removeEventListener('canplay', onCanPlay);
         };
     }, [state.currentTrack]);
 
