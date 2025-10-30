@@ -4,71 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex1-init-add-print.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex2-for-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex3-while-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex4-if-positive-negative.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/editor/EditorClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/editor/EditorClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/CodePlayground.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/codeplayground/CodePlayground.tsx" afterDir="false" />
+    <list default="true" id="c1f8f5ec-7abf-420f-b158-4200584ed48a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="TypeScript File" />
-      </list>
-    </option>
-  </component>
-  <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 0
-}</component>
-  <component name="ProjectId" id="34TQGzgSHxs5TQIM1TGJdWCTnJL" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "JavaScript Debug.Next.js: debug client-side.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "dans-branch-02",
-    "js.debugger.nextJs.config.created.client": "true",
-    "js.debugger.nextJs.config.created.server": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_interpreter_path": "C:/Users/ssem1/AppData/Roaming/JetBrains/WebStorm2025.2/node/versions/22.19.0/node",
-    "nodejs_package_manager_path": "npm",
-    "npm.Next.js: server-side.executor": "Run",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "C:\\Users\\steve\\WebstormProjects\\Senior-Project\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;git-widget-placeholder&quot;: &quot;dans-branch-02&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\steve\\WebstormProjects\\Senior-Project\\node_modules\\typescript\\lib&quot;
   }
-}]]></component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\steve\WebstormProjects\Senior-Project\components\codeplayground" />
-    </key>
-  </component>
-  <component name="RunManager" selected="JavaScript Debug.Next.js: debug client-side">
+}</component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
     </configuration>
@@ -83,47 +33,7 @@
       <method v="2" />
     </configuration>
   </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-WS-252.26199.162" />
-      </set>
-    </attachedChunks>
-  </component>
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="" />
-      <created>1761234990907</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1761234990907</updated>
-      <workItem from="1761234992468" duration="546000" />
-      <workItem from="1761239550280" duration="753000" />
-      <workItem from="1761241624361" duration="202000" />
-      <workItem from="1761242008672" duration="526000" />
-      <workItem from="1761242671857" duration="11381000" />
-      <workItem from="1761604993360" duration="334000" />
-    </task>
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="UnknownFeatures">
-    <option featureType="dependencySupport" implementationName="javascript:npm:react" />
-    <option featureType="dependencySupport" implementationName="javascript:npm:tailwindcss" />
-    <option featureType="dependencySupport" implementationName="javascript:npm:next" />
-    <option featureType="dependencySupport" implementationName="javascript:npm:postcss" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/src/db/seed.ts</url>
-          <line>5</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
