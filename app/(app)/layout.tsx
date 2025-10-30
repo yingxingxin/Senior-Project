@@ -8,6 +8,8 @@ import { getUserNavbarData } from "./actions";
 import { getNextAllowedStep } from "@/app/onboarding/_lib/guard";
 import { getOnboardingStepHref } from "@/app/onboarding/_lib/steps";
 import type { OnboardingStep, AssistantPersona } from "@/src/db/schema";
+import { MusicProvider } from "@/components/music";
+import { MusicPlayer } from "@/components/music";
 
 export default async function AppLayout({
   children,
@@ -68,9 +70,10 @@ export default async function AppLayout({
   const navbarData = await getUserNavbarData();
 
   return (
-    <>
+    <MusicProvider>
       <Navbar data={navbarData} />
       <main>{children}</main>
-    </>
+      <MusicPlayer userId={userId} />
+    </MusicProvider>
   );
 }
