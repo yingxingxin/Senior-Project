@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, BookOpen, CheckCircle, Play } from "lucide-react";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid } from "@/components/ui/spacing";
-import { COURSES } from "@/src/lib/constants";
 import { getCourseData } from "../_lib/actions";
 import { LessonButton } from "../_components/lesson-button";
 
@@ -24,20 +23,15 @@ const formatDuration = (seconds: number): string => {
 
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
   const { id } = await params;
-  const course = COURSES.find(c => c.id === id);
 
-  if (!course) {
-    notFound();
-  }
-
-  // Get real course data with progress
+  // Get course data with progress (id is the slug)
   const courseData = await getCourseData(id);
-  
+
   if (!courseData) {
     notFound();
   }
 
-  const { lessons, completedLessons, totalLessons, progressPercentage } = courseData;
+  const { lessons, completedLessons, totalLessons, progressPercentage, courseTitle, courseIcon, courseDifficulty, courseDescription, courseEstimatedDurationSec } = courseData;
 
 
   return (
@@ -105,9 +99,9 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
                     boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)'
                   }}>
-                  {course.icon}
+                  {courseIcon}
                 </div>
-                <div 
+                <div
                   style={{
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '8px',
@@ -118,14 +112,14 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     color: '#a78bfa',
                     fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
                   }}>
-                  {course.difficulty}
+                  {courseDifficulty}
                 </div>
               </div>
               
               <Stack gap="default">
-                <Heading level={1} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', fontSize: '32px'}}>{course.title}</Heading>
+                <Heading level={1} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', fontSize: '32px'}}>{courseTitle}</Heading>
                 <Body style={{color: '#e8e8e8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontSize: '18px', lineHeight: '1.6'}}>
-                  {course.description}
+                  {courseDescription}
                 </Body>
 
                     {/* Course Stats */}
@@ -136,7 +130,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        <span>{course.estimatedDuration}</span>
+                        <span>{formatDuration(courseEstimatedDurationSec)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />

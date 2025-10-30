@@ -72,8 +72,10 @@ export const lessons = pgTable('lessons', {
   difficulty: difficultyEnum('difficulty'),
   estimated_duration_sec: integer('estimated_duration_sec'),
 
-  // Course grouping & ordering
-  course_slug: varchar('course_slug', { length: 64 }).notNull().default(''),
+  // Hierarchy: parent_lesson_id NULL = top-level course, otherwise topic within a course
+  parent_lesson_id: integer('parent_lesson_id').references(() => lessons.id, { onDelete: 'cascade' }),
+
+  // Ordering within parent
   order_index: integer('order_index').notNull().default(0),
   icon: varchar('icon', { length: 10 }),
   is_published: boolean('is_published').notNull().default(true),
@@ -82,8 +84,8 @@ export const lessons = pgTable('lessons', {
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
   uniqueIndex('uq_lessons__slug').on(t.slug),
-  index('ix_lessons__course_slug').on(t.course_slug),
-  uniqueIndex('uq_lessons__course_order').on(t.course_slug, t.order_index),
+  index('ix_lessons__parent').on(t.parent_lesson_id),
+  uniqueIndex('uq_lessons__parent_order').on(t.parent_lesson_id, t.order_index),
 ]);
 
 /**

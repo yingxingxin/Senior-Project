@@ -8,18 +8,21 @@
 
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
-import { 
-  getLessonsByCourse, 
-  getUserCourseProgress, 
-  startLessonProgress, 
-  completeLesson, 
+import {
+  getLessonsByCourse,
+  getUserCourseProgress,
+  startLessonProgress,
+  completeLesson,
   completeLessonSection,
   upsertProgressLastSection,
   getSectionBySlugs,
   isSectionCompleted,
-  checkLessonCompletion
+  checkLessonCompletion,
+  getAllCourses as getAllCoursesQuery
 } from "@/src/db/queries/lessons";
-import { COURSES } from "@/src/lib/constants";
+
+// Re-export for page usage
+export const getAllCourses = getAllCoursesQuery;
 
 export interface CourseLesson {
   id: number;
@@ -39,6 +42,10 @@ export interface CourseLesson {
 export interface CourseProgress {
   courseId: string;
   courseTitle: string;
+  courseIcon: string | null;
+  courseDifficulty: string;
+  courseDescription: string | null;
+  courseEstimatedDurationSec: number;
   lessons: CourseLesson[];
   completedLessons: number;
   totalLessons: number;
@@ -48,27 +55,29 @@ export interface CourseProgress {
 /**
  * Get course data with real lessons and user progress
  */
-export async function getCourseData(courseId: string): Promise<CourseProgress | null> {
+export async function getCourseData(courseSlug: string): Promise<CourseProgress | null> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.id) {
     return null;
   }
 
-  const course = COURSES.find(c => c.id === courseId);
-  if (!course) {
-    return null;
-  }
-
   try {
+    // Get course by slug
+    const allCourses = await getAllCourses.execute({});
+    const course = allCourses.find(c => c.slug === courseSlug);
+    if (!course) {
+      return null;
+    }
+
     // Get lessons for this course
-    const lessons = await getLessonsByCourse.execute({ 
-      courseSlug: courseId 
+    const lessons = await getLessonsByCourse.execute({
+      courseId: course.id
     });
 
     // Get user progress for these lessons
-    const progress = await getUserCourseProgress.execute({ 
-      userId: parseInt(session.user.id), 
-      courseSlug: courseId 
+    const progress = await getUserCourseProgress.execute({
+      userId: parseInt(session.user.id),
+      courseId: course.id
     });
 
     // Combine lessons with progress data
@@ -94,9 +103,16 @@ export async function getCourseData(courseId: string): Promise<CourseProgress | 
     const totalLessons = lessonsWithProgress.length;
     const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
+    // Calculate total estimated duration from lessons
+    const courseEstimatedDurationSec = lessonsWithProgress.reduce((sum, lesson) => sum + lesson.estimatedDurationSec, 0);
+
     return {
-      courseId,
+      courseId: course.id.toString(),
       courseTitle: course.title,
+      courseIcon: course.icon,
+      courseDifficulty: course.difficulty || 'standard',
+      courseDescription: course.description,
+      courseEstimatedDurationSec,
       lessons: lessonsWithProgress,
       completedLessons,
       totalLessons,
@@ -263,4 +279,53 @@ export async function checkAndCompleteLesson(lessonId: number): Promise<{ wasCom
     console.error('Error checking lesson completion:', error);
     return { wasCompleted: false, error: 'Failed to check lesson completion' };
   }
+}
+
+/**
+ * Get all courses with lesson counts
+ * Used for the courses listing page
+ */
+export async function getCoursesWithStats() {
+  try {
+    const courses = await getAllCourses.execute({});
+
+    // For each course, count its lessons
+    const coursesWithStats = await Promise.all(
+      courses.map(async (course) => {
+        const lessons = await getLessonsByCourse.execute({
+          courseId: course.id,
+        });
+
+        // Calculate total estimated duration from lessons
+        const estimatedDurationSec = lessons.reduce(
+          (sum, lesson) => sum + (lesson.estimatedDurationSec || 0),
+          0
+        );
+
+        return {
+          ...course,
+          lessonsCount: lessons.length,
+          estimatedDurationSec,
+        };
+      })
+    );
+
+    return coursesWithStats;
+  } catch (error) {
+    console.error('Error fetching courses with stats:', error);
+    return [];
+  }
+}
+
+/**
+ * Format duration in seconds to human-readable format
+ */
+export function formatDuration(seconds: number): string {
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 }
