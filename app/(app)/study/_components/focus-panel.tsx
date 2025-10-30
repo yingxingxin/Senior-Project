@@ -217,7 +217,6 @@ export function FocusPanel({ hideToggle = false }: { hideToggle?: boolean }) {
                             : "Paused — tap to resume • hold to reset"}
                 </Muted>
             </div>
-
             {/* Collapsible Pomodoro section */}
             <div
                 id="pomodoro-section"
