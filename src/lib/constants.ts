@@ -86,3 +86,55 @@ export const PERSONA_OPTIONS: ReadonlyArray<PersonaOption> = [
 ];
 
 export type AssistantPersona = PersonaOption['id'];
+
+// Course data structure
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedDuration: string;
+  lessonsCount: number;
+  icon: string;
+  color: string;
+}
+
+export const COURSES: ReadonlyArray<Course> = [
+  {
+    id: 'programming-foundations',
+    title: 'Programming Foundations',
+    description: 'Learn the fundamentals of programming with hands-on exercises and real-world examples.',
+    difficulty: 'beginner',
+    estimatedDuration: '8-12 weeks',
+    lessonsCount: 24,
+    icon: '💻',
+    color: 'bg-blue-500',
+  },
+  {
+    id: 'data-structures-algorithms-python',
+    title: 'Data Structures & Algorithms in Python',
+    description: 'Master essential data structures and algorithms using Python with practical implementations.',
+    difficulty: 'intermediate',
+    estimatedDuration: '10-14 weeks',
+    lessonsCount: 32,
+    icon: '🐍',
+    color: 'bg-green-500',
+  },
+  {
+    id: 'oop-java',
+    title: 'Object-Oriented Programming in Java',
+    description: 'Deep dive into OOP principles, design patterns, and advanced Java concepts.',
+    difficulty: 'advanced',
+    estimatedDuration: '12-16 weeks',
+    lessonsCount: 28,
+    icon: '☕',
+    color: 'bg-orange-500',
+  },
+] as const;
+
+// Skill level to recommended course mapping
+export const SKILL_LEVEL_RECOMMENDATIONS: Record<string, string> = {
+  'beginner': 'programming-foundations',
+  'intermediate': 'data-structures-algorithms-python',
+  'advanced': 'oop-java',
+} as const;

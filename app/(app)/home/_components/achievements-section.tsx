@@ -18,13 +18,14 @@ interface AchievementsSectionProps {
 
 export function AchievementsSection({ badges }: AchievementsSectionProps) {
   return (
-    <Card>
+    <div className="pc98-card pc98-glow">
       <div className="p-6">
         <Inline gap="default" align="center" justify="between" className="mb-4">
-          <Heading level={5}>Achievements</Heading>
+          <Heading level={5} className="pc98-font" style={{color: 'var(--pc98-fg)'}}>Achievements</Heading>
           <Link
             href="/achievements"
-            className="text-sm text-primary hover:underline"
+            className="text-sm pc98-font hover:underline"
+            style={{color: 'var(--pc98-accent)'}}
           >
             View all →
           </Link>
@@ -35,6 +36,6 @@ export function AchievementsSection({ badges }: AchievementsSectionProps) {
           ))}
         </Grid>
       </div>
-    </Card>
+    </div>
   );
 }

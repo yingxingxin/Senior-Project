@@ -5,8 +5,8 @@
  */
 
 import { db } from '@/src/db';
-import { lessons, user_lesson_progress, assistants } from '@/src/db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { lessons, user_lesson_progress, assistants, lesson_sections, user_lesson_sections, activity_events } from '@/src/db/schema';
+import { eq, desc, sql, and } from 'drizzle-orm';
 
 /**
  * Get featured lessons
@@ -83,3 +83,267 @@ export const getAssistantById = db
   .where(eq(assistants.id, sql.placeholder('assistantId')))
   .limit(1)
   .prepare('get_assistant_by_id');
+
+/**
+ * Get lessons by course slug pattern
+ *
+ * Returns all lessons that match a course pattern (e.g., programming-foundations-*)
+ *
+ * @param courseSlug - The course slug pattern
+ * @returns Array of lesson records with sections
+ *
+ * @example
+ * const lessons = await getLessonsByCourse.execute({ courseSlug: 'programming-foundations' });
+ */
+export const getLessonsByCourse = db
+  .select({
+    id: lessons.id,
+    slug: lessons.slug,
+    title: lessons.title,
+    description: lessons.description,
+    difficulty: lessons.difficulty,
+    estimatedDurationSec: lessons.estimated_duration_sec,
+  })
+  .from(lessons)
+  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
+  .orderBy(lessons.slug)
+  .prepare('get_lessons_by_course');
+
+/**
+ * Get lesson with sections
+ *
+ * Returns a lesson with all its sections
+ *
+ * @param lessonSlug - The lesson slug
+ * @returns Lesson with sections
+ *
+ * @example
+ * const [lesson] = await getLessonWithSections.execute({ lessonSlug: 'programming-foundations-1-introduction' });
+ */
+export const getLessonWithSections = db
+  .select({
+    id: lessons.id,
+    slug: lessons.slug,
+    title: lessons.title,
+    description: lessons.description,
+    difficulty: lessons.difficulty,
+    estimatedDurationSec: lessons.estimated_duration_sec,
+    sectionId: lesson_sections.id,
+    sectionSlug: lesson_sections.slug,
+    sectionTitle: lesson_sections.title,
+    sectionOrder: lesson_sections.order_index,
+    sectionBody: lesson_sections.body_md,
+  })
+  .from(lessons)
+  .leftJoin(lesson_sections, eq(lessons.id, lesson_sections.lesson_id))
+  .where(eq(lessons.slug, sql.placeholder('lessonSlug')))
+  .orderBy(lesson_sections.order_index)
+  .prepare('get_lesson_with_sections');
+
+/**
+ * Get user lesson progress for a course
+ *
+ * Returns user's progress through lessons in a course
+ *
+ * @param userId - The user's ID
+ * @param courseSlug - The course slug pattern
+ * @returns Array of lesson progress records
+ *
+ * @example
+ * const progress = await getUserCourseProgress.execute({ userId: 123, courseSlug: 'programming-foundations' });
+ */
+export const getUserCourseProgress = db
+  .select({
+    lessonId: lessons.id,
+    lessonSlug: lessons.slug,
+    lessonTitle: lessons.title,
+    isCompleted: user_lesson_progress.is_completed,
+    startedAt: user_lesson_progress.started_at,
+    lastAccessedAt: user_lesson_progress.last_accessed_at,
+    completedAt: user_lesson_progress.completed_at,
+  })
+  .from(lessons)
+  .leftJoin(user_lesson_progress, and(
+    eq(lessons.id, user_lesson_progress.lesson_id),
+    eq(user_lesson_progress.user_id, sql.placeholder('userId'))
+  ))
+  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
+  .orderBy(lessons.slug)
+  .prepare('get_user_course_progress');
+
+/**
+ * Start or update lesson progress
+ *
+ * Creates or updates user lesson progress
+ *
+ * @param userId - The user's ID
+ * @param lessonId - The lesson's ID
+ * @returns Updated progress record
+ *
+ * @example
+ * const progress = await startLessonProgress.execute({ userId: 123, lessonId: 1 });
+ */
+export const startLessonProgress = db
+  .insert(user_lesson_progress)
+  .values({
+    user_id: sql.placeholder('userId'),
+    lesson_id: sql.placeholder('lessonId'),
+    started_at: new Date(),
+    last_accessed_at: new Date(),
+  })
+  .onConflictDoUpdate({
+    target: [user_lesson_progress.user_id, user_lesson_progress.lesson_id],
+    set: {
+      last_accessed_at: new Date(),
+    },
+  })
+  .returning()
+  .prepare('start_lesson_progress');
+
+/**
+ * Complete lesson
+ *
+ * Marks a lesson as completed and records completion time
+ *
+ * @param userId - The user's ID
+ * @param lessonId - The lesson's ID
+ * @returns Updated progress record
+ *
+ * @example
+ * const progress = await completeLesson.execute({ userId: 123, lessonId: 1 });
+ */
+export const completeLesson = db
+  .update(user_lesson_progress)
+  .set({
+    is_completed: true,
+    completed_at: new Date(),
+    last_accessed_at: new Date(),
+  })
+  .where(and(
+    eq(user_lesson_progress.user_id, sql.placeholder('userId')),
+    eq(user_lesson_progress.lesson_id, sql.placeholder('lessonId'))
+  ))
+  .returning()
+  .prepare('complete_lesson');
+
+/**
+ * Record activity event
+ *
+ * Creates an activity event for tracking user actions
+ *
+ * @param userId - The user's ID
+ * @param eventType - The type of event
+ * @param lessonId - The lesson's ID (optional)
+ * @param pointsDelta - Points to award (optional)
+ * @returns Created activity event
+ *
+ * @example
+ * const event = await recordActivityEvent.execute({ 
+ *   userId: 123, 
+ *   eventType: 'lesson_completed', 
+ *   lessonId: 1, 
+ *   pointsDelta: 50 
+ * });
+ */
+export const recordActivityEvent = db
+  .insert(activity_events)
+  .values({
+    user_id: sql.placeholder('userId'),
+    event_type: sql.placeholder('eventType'),
+    lesson_id: sql.placeholder('lessonId'),
+    points_delta: sql.placeholder('pointsDelta'),
+    occurred_at: new Date(),
+  })
+  .returning()
+  .prepare('record_activity_event');
+
+/**
+ * Check if a lesson section is already completed by user
+ */
+export async function isSectionCompleted(userId: number, sectionId: number) {
+  return await db
+    .select({ user_id: user_lesson_sections.user_id })
+    .from(user_lesson_sections)
+    .where(
+      and(
+        eq(user_lesson_sections.user_id, userId),
+        eq(user_lesson_sections.section_id, sectionId)
+      )
+    )
+    .limit(1);
+}
+
+/**
+ * Complete a lesson section (idempotent)
+ *
+ * Inserts into user_lesson_sections if not already present.
+ */
+export async function completeLessonSection(userId: number, sectionId: number) {
+  return await db
+    .insert(user_lesson_sections)
+    .values({
+      user_id: userId,
+      section_id: sectionId,
+    })
+    .onConflictDoNothing()
+    .returning();
+}
+
+/**
+ * Upsert progress last_section_id for a lesson
+ */
+export async function upsertProgressLastSection(userId: number, lessonId: number, sectionId: number) {
+  return await db
+    .insert(user_lesson_progress)
+    .values({
+      user_id: userId,
+      lesson_id: lessonId,
+      last_section_id: sectionId,
+      started_at: new Date(),
+      last_accessed_at: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [user_lesson_progress.user_id, user_lesson_progress.lesson_id],
+      set: {
+        last_accessed_at: new Date(),
+        last_section_id: sectionId,
+      },
+    })
+    .returning();
+}
+
+/**
+ * Get a lesson section by lesson slug and section slug
+ */
+export const getSectionBySlugs = db
+  .select({
+    lessonId: lessons.id,
+    sectionId: lesson_sections.id,
+  })
+  .from(lessons)
+  .leftJoin(lesson_sections, eq(lessons.id, lesson_sections.lesson_id))
+  .where(and(
+    eq(lessons.slug, sql.placeholder('lessonSlug')),
+    eq(lesson_sections.slug, sql.placeholder('sectionSlug'))
+  ))
+  .limit(1)
+  .prepare('get_section_by_slugs');
+
+/**
+ * Check if all sections in a lesson are completed by a user
+ */
+export const checkLessonCompletion = db
+  .select({
+    totalSections: sql<number>`COUNT(${lesson_sections.id})`,
+    completedSections: sql<number>`COUNT(${user_lesson_sections.section_id})`,
+  })
+  .from(lessons)
+  .leftJoin(lesson_sections, eq(lessons.id, lesson_sections.lesson_id))
+  .leftJoin(user_lesson_sections, and(
+    eq(lesson_sections.id, user_lesson_sections.section_id),
+    eq(user_lesson_sections.user_id, sql.placeholder('userId'))
+  ))
+  .where(eq(lessons.id, sql.placeholder('lessonId')))
+  .groupBy(lessons.id)
+  .limit(1)
+  .prepare('check_lesson_completion');

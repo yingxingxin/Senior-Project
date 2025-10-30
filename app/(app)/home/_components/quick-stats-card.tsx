@@ -19,39 +19,39 @@ export function QuickStatsCard({
   const progress = Math.min(100, (points / nextMilestonePoints) * 100);
 
   return (
-    <Card>
+    <div className="pc98-card pc98-glow">
       <div className="p-6">
-        <Heading level={5} className="mb-4">Next Milestone</Heading>
+        <Heading level={5} className="mb-4 pc98-font" style={{color: 'var(--pc98-fg)'}}>Next Milestone</Heading>
         <Stack gap="tight">
           <div>
             <Inline gap="default" align="center" justify="between" className="mb-2">
-              <Muted variant="small" as="span">Points Progress</Muted>
-              <span className="text-sm font-semibold">
+              <Muted variant="small" as="span" className="pc98-font" style={{color: 'var(--pc98-fg)'}}>Points Progress</Muted>
+              <span className="text-sm font-semibold pc98-font" style={{color: 'var(--pc98-fg)'}}>
                 {points.toLocaleString()} / {nextMilestonePoints.toLocaleString()}
               </span>
             </Inline>
-            <div className="h-2 rounded-full bg-muted">
+            <div className="pc98-progress">
               <div
-                className="h-2 rounded-full bg-primary"
+                className="pc98-progress-fill"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
           <Grid cols={2} gap="tight" className="pt-2">
-            <div className="text-center p-3 rounded-xl bg-muted">
-              <Trophy className="h-5 w-5 mx-auto mb-1 text-primary" />
-              <div className="text-lg font-bold">{earnedBadgesCount}</div>
-              <Muted variant="tiny" as="div">Earned</Muted>
+            <div className="text-center p-3 pc98-border pc98-font" style={{background: 'var(--pc98-card-bg)', color: 'var(--pc98-fg)'}}>
+              <Trophy className="h-5 w-5 mx-auto mb-1" style={{color: 'var(--pc98-accent)'}} />
+              <div className="text-lg font-bold pc98-font" style={{color: 'var(--pc98-fg)'}}>{earnedBadgesCount}</div>
+              <Muted variant="tiny" as="div" className="pc98-font" style={{color: 'var(--pc98-fg)'}}>Earned</Muted>
             </div>
-            <div className="text-center p-3 rounded-xl bg-muted">
-              <Star className="h-5 w-5 mx-auto mb-1 text-warning" />
-              <div className="text-lg font-bold">{totalBadgesCount}</div>
-              <Muted variant="tiny" as="div">Total</Muted>
+            <div className="text-center p-3 pc98-border pc98-font" style={{background: 'var(--pc98-card-bg)', color: 'var(--pc98-fg)'}}>
+              <Star className="h-5 w-5 mx-auto mb-1" style={{color: 'var(--pc98-accent)'}} />
+              <div className="text-lg font-bold pc98-font" style={{color: 'var(--pc98-fg)'}}>{totalBadgesCount}</div>
+              <Muted variant="tiny" as="div" className="pc98-font" style={{color: 'var(--pc98-fg)'}}>Total</Muted>
             </div>
           </Grid>
         </Stack>
       </div>
-    </Card>
+    </div>
   );
 }

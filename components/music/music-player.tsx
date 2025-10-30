@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { useMusic } from './music-context';
 import { MusicTrack } from '@/src/db/schema';
 import { QuickAddTracks } from './quick-add-tracks';

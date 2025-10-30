@@ -150,6 +150,18 @@
   }
 }
 
+/* Logo pulse (top-level to avoid scoping issues) */
+@keyframes logo-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    transform: scale(0.50);
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.35);
+  }
+}
+
 @keyframes slide-in-left {
   from {
     opacity: 0;
@@ -228,11 +240,447 @@
   }
 }
 
+/* PC-98 Visual Novel Aesthetic */
+:root {
+  /* PC-98 Color Palette */
+  --pc98-bg: #000080;        /* Deep blue background */
+  --pc98-fg: #C0C0C0;        /* Light gray text */
+  --pc98-accent: #FFFF00;     /* Bright yellow accent */
+  --pc98-highlight: #00FFFF;  /* Cyan highlight */
+  --pc98-border: #808080;     /* Gray borders */
+  --pc98-card-bg: #000040;    /* Darker blue for cards */
+  --pc98-button-bg: #404040;  /* Dark gray buttons */
+  --pc98-button-hover: #606060; /* Lighter gray on hover */
+  --pc98-text-shadow: #000000; /* Black text shadow */
+  --pc98-glow: #00FF00;       /* Green glow effect */
+}
+
+/* PC-98 Typography */
+@font-face {
+  font-family: 'PC-98';
+  src: url('data:font/woff2;base64,') format('woff2');
+  font-display: swap;
+}
+
+.pc98-font {
+  font-family: 'Courier New', 'MS Gothic', monospace !important;
+  font-weight: normal !important;
+  text-shadow: 1px 1px 0px #000000 !important;
+  letter-spacing: 0.5px !important;
+  color: #C0C0C0 !important;
+}
+
+/* PC-98 Pixelated Borders */
+.pc98-border {
+  border: 2px solid #808080 !important;
+}
+
+.pc98-card {
+  background: #000040 !important;
+  border: 2px solid #808080 !important;
+  box-shadow: 
+    inset 1px 1px 0px rgba(255, 255, 255, 0.1),
+    inset -1px -1px 0px rgba(0, 0, 0, 0.3),
+    0px 0px 10px rgba(0, 255, 255, 0.2) !important;
+}
+
+.pc98-button {
+  background: #404040 !important;
+  border: 2px solid #808080 !important;
+  color: #C0C0C0 !important;
+  font-family: 'Courier New', monospace !important;
+  text-shadow: 1px 1px 0px #000000 !important;
+  transition: all 0.1s ease;
+}
+
+.pc98-button:hover {
+  background: #606060 !important;
+  box-shadow: 0px 0px 8px #00FF00 !important;
+  transform: translateY(-1px);
+}
+
+.pc98-button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0px 0px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* PC-98 Glow Effects */
+.pc98-glow {
+  box-shadow: 0px 0px 15px #00FF00 !important;
+  animation: pc98-pulse 2s ease-in-out infinite;
+}
+
+@keyframes pc98-pulse {
+  0%, 100% {
+    box-shadow: 0px 0px 15px #00FF00 !important;
+  }
+  50% {
+    box-shadow: 0px 0px 25px #00FF00, 0px 0px 35px #00FF00 !important;
+  }
+}
+
+/* PC-98 Scanline Effect */
+.pc98-scanlines {
+  position: relative;
+  overflow: hidden;
+}
+
+.pc98-scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.03) 2px,
+    rgba(0, 255, 255, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* PC-98 CRT Monitor Effect */
+.pc98-crt {
+  background: radial-gradient(ellipse at center, #000080 0%, #000000 100%) !important;
+  position: relative;
+}
+
+.pc98-crt::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* PC-98 Progress Bar */
+.pc98-progress {
+  background: #000040 !important;
+  border: 2px solid #808080 !important;
+  height: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pc98-progress-fill {
+  background: linear-gradient(90deg, #FFFF00 0%, #00FFFF 100%) !important;
+  height: 100%;
+  transition: width 0.3s ease;
+  box-shadow: 0px 0px 10px #00FF00 !important;
+}
+
+/* PC-98 Status Display */
+.pc98-status {
+  background: #000040 !important;
+  border: 2px solid #808080 !important;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace !important;
+  color: #C0C0C0 !important;
+  text-shadow: 1px 1px 0px #000000 !important;
+  position: relative;
+}
+
+.pc98-status::before {
+  content: '■';
+  color: #00FF00 !important;
+  margin-right: 8px;
+  animation: pc98-blink 1s infinite;
+}
+
+@keyframes pc98-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* PC-98 Dashboard Override - Force override dark mode */
+  .pc98-dashboard {
+    background: #000080 !important;
+    color: #C0C0C0 !important;
+    font-family: 'Courier New', 'MS Gothic', monospace !important;
+    min-height: 100vh;
+  }
+  
+  /* Override dark mode for PC-98 dashboard */
+  .dark .pc98-dashboard {
+    background: #000080 !important;
+    color: #C0C0C0 !important;
+  }
+  
+  /* Test style to verify CSS is loading */
+  .pc98-test {
+    background: red !important;
+    color: white !important;
+    padding: 20px !important;
+    font-size: 24px !important;
+    border: 3px solid yellow !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    margin: 10px !important;
+  }
+  
+  /* Force override all Tailwind classes for PC-98 dashboard */
+  .pc98-dashboard * {
+    font-family: 'Courier New', 'MS Gothic', monospace !important;
+  }
+  
+  .pc98-dashboard .pc98-card {
+    background: #000040 !important;
+    border: 2px solid #808080 !important;
+  }
+  
+  .pc98-dashboard .pc98-font {
+    color: #C0C0C0 !important;
+    font-family: 'Courier New', 'MS Gothic', monospace !important;
+  }
+  
+  /* Modern Visual Novel Button Hover Effects */
+  .primary-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
+  }
+  
+  .secondary-button:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  /* Navbar Hover Effects */
+  .navbar-link:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e8e8e8 !important;
+  }
+  
+  .navbar-button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #e8e8e8 !important;
+  }
+  
+  .navbar-avatar:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* UI Animations */
+  @keyframes fade-in-down {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Subtle pulse for logo */
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.40), 0 0 0 0 rgba(102, 126, 234, 0.0);
+      filter: drop-shadow(0 0 6px rgba(118, 75, 162, 0.35));
+    }
+    50% {
+      transform: scale(1.12);
+      box-shadow: 0 14px 36px rgba(102, 126, 234, 0.65), 0 0 20px 6px rgba(118, 75, 162, 0.35);
+      filter: drop-shadow(0 0 12px rgba(118, 75, 162, 0.6));
+    }
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+  
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.3);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  @keyframes typewriter {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+  
+  @keyframes blink {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
+  }
+  
+  /* Animation Classes */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards !important;
+  }
+  
+  .animate-fade-in-left {
+    animation: fadeInLeft 0.6s ease-out forwards !important;
+  }
+  
+  .animate-fade-in-right {
+    animation: fadeInRight 0.6s ease-out forwards !important;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.5s ease-out forwards !important;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite !important;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite !important;
+  }
+  
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  .animate-typewriter {
+    overflow: hidden;
+    border-right: 2px solid #667eea;
+    white-space: nowrap;
+    animation: typewriter 2s steps(40, end), blink 1s infinite;
+  }
+  
+  /* Staggered Animation Delays */
+  .animate-delay-100 {
+    animation-delay: 0.1s !important;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 0.2s !important;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 0.3s !important;
+  }
+  
+  .animate-delay-400 {
+    animation-delay: 0.4s !important;
+  }
+  
+  .animate-delay-500 {
+    animation-delay: 0.5s !important;
+  }
+  
+  .animate-delay-600 {
+    animation-delay: 0.6s !important;
+  }
+  
+/* Background Animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+  
+  .animate-gradient {
+    background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e) !important;
+    background-size: 400% 400% !important;
+    animation: gradientShift 15s ease infinite !important;
   }
 }
