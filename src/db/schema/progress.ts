@@ -73,28 +73,6 @@ export const user_lesson_progress = pgTable('user_lesson_progress', {
 ]);
 
 /**
- * User Lesson Sections Table - Records completed lesson sections for granular progress tracking
- *
- * WHEN CREATED: User completes a lesson section
- * WHEN UPDATED: Never (immutable, one row per completion)
- * USED BY: Progress calculation, resume functionality
- *
- * USER STORIES SUPPORTED:
- *   - F20-US01: Granular progress tracking (count completed sections)
- *   - F20-US02: Section-level resume capability
- *   - Progress percentage: COUNT(completed) / COUNT(total sections)
- */
-export const user_lesson_sections = pgTable('user_lesson_sections', {
-  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  section_id: integer('section_id').notNull().references(() => lesson_sections.id, { onDelete: 'cascade' }),
-  completed_at: timestamp('completed_at', { withTimezone: true }).defaultNow(),
-}, (t) => [
-  uniqueIndex('uq_user_lesson_sections__user_section').on(t.user_id, t.section_id),
-  index('ix_user_lesson_sections__user').on(t.user_id),
-  index('ix_user_lesson_sections__section').on(t.section_id),
-]);
-
-/**
  * Activity Events Table - Immutable log of all user actions that earn points or trigger notifications
  *
  * WHEN CREATED: Any trackable user action:
@@ -218,16 +196,6 @@ export const userLessonProgressRelations = relations(user_lesson_progress, ({ on
   }),
 }));
 
-export const userLessonSectionsRelations = relations(user_lesson_sections, ({ one }) => ({
-  user: one(users, {
-    fields: [user_lesson_sections.user_id],
-    references: [users.id],
-  }),
-  section: one(lesson_sections, {
-    fields: [user_lesson_sections.section_id],
-    references: [lesson_sections.id],
-  }),
-}));
 
 export const activityEventsRelations = relations(activity_events, ({ one }) => ({
   user: one(users, {
@@ -273,8 +241,6 @@ export const userAchievementsRelations = relations(user_achievements, ({ one }) 
 export type UserLessonProgress = typeof user_lesson_progress.$inferSelect;
 export type NewUserLessonProgress = typeof user_lesson_progress.$inferInsert;
 
-export type UserLessonSection = typeof user_lesson_sections.$inferSelect;
-export type NewUserLessonSection = typeof user_lesson_sections.$inferInsert;
 
 export type ActivityEvent = typeof activity_events.$inferSelect;
 export type NewActivityEvent = typeof activity_events.$inferInsert;

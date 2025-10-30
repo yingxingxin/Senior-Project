@@ -1,6 +1,5 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser, type NewAccount, type NewMusicTrack } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
-import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
 export async function seed() {
@@ -147,77 +146,172 @@ export async function seed() {
       },
     ]).onConflictDoNothing();
 
-    // Seed sample lessons
-    console.log("Creating sample lessons...");
-    const lessonIds = await db.insert(lessons).values([
+    // Seed Programming Foundations course lessons
+    console.log("Creating Programming Foundations course lessons...");
+    const programmingFoundationsLessons = await db.insert(lessons).values([
       {
-        slug: "intro-to-programming",
+        slug: "programming-foundations-1-introduction",
         title: "Introduction to Programming",
-        description: "Learn the fundamentals of programming with hands-on examples",
+        description: "Learn what programming is and why it matters in today's world",
         difficulty: "easy",
         estimated_duration_sec: 1800, // 30 minutes
       },
       {
-        slug: "web-development-basics",
-        title: "Web Development Basics",
-        description: "Build your first website with HTML, CSS, and JavaScript",
+        slug: "programming-foundations-2-variables",
+        title: "Variables and Data Types",
+        description: "Understand how to store and work with different types of data",
         difficulty: "easy",
-        estimated_duration_sec: 2700, // 45 minutes
+        estimated_duration_sec: 2400, // 40 minutes
       },
       {
-        slug: "database-fundamentals",
-        title: "Database Fundamentals",
-        description: "Understanding databases, SQL, and data management",
+        slug: "programming-foundations-3-control-structures",
+        title: "Control Structures",
+        description: "Learn to make decisions and repeat actions in your code",
+        difficulty: "standard",
+        estimated_duration_sec: 3000, // 50 minutes
+      },
+      {
+        slug: "programming-foundations-4-functions",
+        title: "Functions and Methods",
+        description: "Organize your code into reusable blocks with functions",
         difficulty: "standard",
         estimated_duration_sec: 3600, // 60 minutes
       },
       {
-        slug: "advanced-javascript",
-        title: "Advanced JavaScript Concepts",
-        description: "Deep dive into closures, prototypes, and async programming",
-        difficulty: "hard",
-        estimated_duration_sec: 5400, // 90 minutes
-      },
-      {
-        slug: "react-essentials",
-        title: "React Essentials",
-        description: "Learn to build modern web applications with React",
+        slug: "programming-foundations-5-arrays",
+        title: "Arrays and Lists",
+        description: "Work with collections of data using arrays and lists",
         difficulty: "standard",
-        estimated_duration_sec: 4200, // 70 minutes
-      },
-      {
-        slug: "python-data-science",
-        title: "Python for Data Science",
-        description: "Data analysis and visualization with Python",
-        difficulty: "standard",
-        estimated_duration_sec: 4800, // 80 minutes
+        estimated_duration_sec: 2700, // 45 minutes
       },
     ]).onConflictDoNothing().returning();
 
-    // Add lesson sections for the first lesson
-    if (lessonIds.length > 0) {
-      console.log("Creating lesson sections...");
+    // Add lesson sections for Programming Foundations lessons
+    if (programmingFoundationsLessons.length > 0) {
+      console.log("Creating lesson sections for Programming Foundations...");
+      
+      // Lesson 1: Introduction to Programming
       await db.insert(lesson_sections).values([
         {
-          lesson_id: lessonIds[0].id,
+          lesson_id: programmingFoundationsLessons[0].id,
           order_index: 0,
           slug: "what-is-programming",
           title: "What is Programming?",
-          body_md: "# What is Programming?\n\nProgramming is the process of creating instructions for computers...",
+          body_md: "# What is Programming?\n\nProgramming is the process of creating instructions for computers to follow. It's like writing a recipe, but for machines.",
         },
         {
-          lesson_id: lessonIds[0].id,
+          lesson_id: programmingFoundationsLessons[0].id,
           order_index: 1,
+          slug: "programming-languages",
+          title: "Programming Languages",
+          body_md: "# Programming Languages\n\nJust like human languages, programming languages have their own syntax and rules. We'll explore the most popular ones.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[0].id,
+          order_index: 2,
           slug: "your-first-program",
           title: "Your First Program",
-          body_md: "# Your First Program\n\nLet's write your first line of code...",
+          body_md: "# Your First Program\n\nLet's write your first line of code and see the magic happen!",
+        },
+      ]).onConflictDoNothing();
+
+      // Lesson 2: Variables and Data Types
+      await db.insert(lesson_sections).values([
+        {
+          lesson_id: programmingFoundationsLessons[1].id,
+          order_index: 0,
+          slug: "understanding-variables",
+          title: "Understanding Variables",
+          body_md: "# Understanding Variables\n\nVariables are containers that store data values. Think of them as labeled boxes.",
         },
         {
-          lesson_id: lessonIds[0].id,
+          lesson_id: programmingFoundationsLessons[1].id,
+          order_index: 1,
+          slug: "data-types",
+          title: "Data Types",
+          body_md: "# Data Types\n\nDifferent types of data: numbers, text, true/false values, and more.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[1].id,
           order_index: 2,
-          slug: "variables-and-data",
-          title: "Variables and Data",
-          body_md: "# Variables and Data\n\nVariables are containers for storing data values...",
+          slug: "working-with-variables",
+          title: "Working with Variables",
+          body_md: "# Working with Variables\n\nLearn how to create, assign, and use variables in your programs.",
+        },
+      ]).onConflictDoNothing();
+
+      // Lesson 3: Control Structures
+      await db.insert(lesson_sections).values([
+        {
+          lesson_id: programmingFoundationsLessons[2].id,
+          order_index: 0,
+          slug: "conditional-statements",
+          title: "Conditional Statements",
+          body_md: "# Conditional Statements\n\nMake decisions in your code with if, else, and switch statements.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[2].id,
+          order_index: 1,
+          slug: "loops",
+          title: "Loops",
+          body_md: "# Loops\n\nRepeat actions efficiently with for and while loops.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[2].id,
+          order_index: 2,
+          slug: "practical-examples",
+          title: "Practical Examples",
+          body_md: "# Practical Examples\n\nSee control structures in action with real-world examples.",
+        },
+      ]).onConflictDoNothing();
+
+      // Lesson 4: Functions and Methods
+      await db.insert(lesson_sections).values([
+        {
+          lesson_id: programmingFoundationsLessons[3].id,
+          order_index: 0,
+          slug: "what-are-functions",
+          title: "What are Functions?",
+          body_md: "# What are Functions?\n\nFunctions are reusable blocks of code that perform specific tasks.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[3].id,
+          order_index: 1,
+          slug: "creating-functions",
+          title: "Creating Functions",
+          body_md: "# Creating Functions\n\nLearn how to define and call your own functions.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[3].id,
+          order_index: 2,
+          slug: "function-parameters",
+          title: "Function Parameters",
+          body_md: "# Function Parameters\n\nPass data into functions and get results back.",
+        },
+      ]).onConflictDoNothing();
+
+      // Lesson 5: Arrays and Lists
+      await db.insert(lesson_sections).values([
+        {
+          lesson_id: programmingFoundationsLessons[4].id,
+          order_index: 0,
+          slug: "introduction-to-arrays",
+          title: "Introduction to Arrays",
+          body_md: "# Introduction to Arrays\n\nArrays let you store multiple values in a single variable.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[4].id,
+          order_index: 1,
+          slug: "working-with-arrays",
+          title: "Working with Arrays",
+          body_md: "# Working with Arrays\n\nAdd, remove, and access elements in arrays.",
+        },
+        {
+          lesson_id: programmingFoundationsLessons[4].id,
+          order_index: 2,
+          slug: "array-methods",
+          title: "Array Methods",
+          body_md: "# Array Methods\n\nUse built-in methods to manipulate arrays efficiently.",
         },
       ]).onConflictDoNothing();
     }
@@ -273,11 +367,46 @@ export async function seed() {
     console.log("Creating music tracks...");
     await db.insert(music_tracks).values([
       {
-        title: "Genshin Impact Theme Song",
-        artist: "PenG Lexer",
-        duration_sec: 147, // 2 minutes 27 seconds
-        file_url: "/music/peng-lexer-genshin-theme.mp3",
-        volume: 0.7,
+          title: "Genshin Impact Theme Song",
+          artist: "PenG Lexer",
+          duration_sec: 147, // 2 minutes 27 seconds
+          file_url: "/music/Genshin-Theme.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "A New Day With Hope",
+          artist: "Anipperoni (Remix)",
+          duration_sec: 103, // 1 minute 43 seconds
+          file_url: "/music/A-New-Day-With-Hope.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Crystal Snow (Piano Cover)",
+          artist: "BTS",
+          duration_sec: 426, // 7 minutes 6 seconds
+          file_url: "/music/Crystal-Snow.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Flowing Flow",
+          artist: "Foxtail Grass Studio",
+          duration_sec: 248, // 4 minutes 8 seconds
+          file_url: "/music/Flowing-Flow.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Unravel (Tokyo Ghoul OP)",
+          artist: "Piano Cover by Animenz",
+          duration_sec: 248, // 4 minutes 8 seconds
+          file_url: "/music/Unravel.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Marble Soda",
+          artist: "Shawn Wasabi",
+          duration_sec: 161, // 2 minutes 1 seconds
+          file_url: "/music/Marble-Soda.mp3",
+          volume: 0.7,
       },
     ]).onConflictDoNothing();
 

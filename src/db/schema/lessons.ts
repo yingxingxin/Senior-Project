@@ -7,11 +7,12 @@
 
 import {
   pgTable, serial, varchar, text, integer, real,
-  timestamp, pgEnum, uniqueIndex, index, check
+  timestamp, pgEnum, uniqueIndex, index, check, primaryKey
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { difficultyEnum } from './enums';
-import { user_lesson_progress, user_lesson_sections, activity_events } from './progress';
+import { user_lesson_progress, activity_events } from './progress';
+import { users } from './auth';
 import { quizzes, quiz_questions } from './quizzes';
 import { user_music_tracks, user_theme_settings } from './preferences';
 
@@ -100,6 +101,28 @@ export const lesson_sections = pgTable('lesson_sections', {
   uniqueIndex('uq_lesson_sections__lesson_order').on(t.lesson_id, t.order_index),
   uniqueIndex('uq_lesson_sections__lesson_slug').on(t.lesson_id, t.slug),
   index('ix_lesson_sections__lesson').on(t.lesson_id),
+]);
+
+/**
+ * User Lesson Sections Table - Records completed lesson sections for granular progress tracking
+ *
+ * WHEN CREATED: User completes a lesson section
+ * WHEN UPDATED: Never (immutable, one row per completion)
+ * USED BY: Progress calculation, resume functionality
+ *
+ * USER STORIES SUPPORTED:
+ *   - F20-US01: Granular progress tracking (count completed sections)
+ *   - F20-US02: Section-level resume capability
+ *   - Progress percentage: COUNT(completed) / COUNT(total sections)
+ */
+export const user_lesson_sections = pgTable('user_lesson_sections', {
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  section_id: integer('section_id').notNull().references(() => lesson_sections.id, { onDelete: 'cascade' }),
+  completed_at: timestamp('completed_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.user_id, t.section_id] }),
+  index('ix_user_lesson_sections__user').on(t.user_id),
+  index('ix_user_lesson_sections__section').on(t.section_id),
 ]);
 
 /**
@@ -202,6 +225,17 @@ export const lessonSectionsRelations = relations(lesson_sections, ({ one, many }
   quizQuestions: many(quiz_questions),
 }));
 
+export const userLessonSectionsRelations = relations(user_lesson_sections, ({ one }) => ({
+  user: one(users, {
+    fields: [user_lesson_sections.user_id],
+    references: [users.id],
+  }),
+  section: one(lesson_sections, {
+    fields: [user_lesson_sections.section_id],
+    references: [lesson_sections.id],
+  }),
+}));
+
 export const musicTracksRelations = relations(music_tracks, ({ many }) => ({
   userMusicTracks: many(user_music_tracks),
 }));
@@ -227,6 +261,9 @@ export type NewLesson = typeof lessons.$inferInsert;
 
 export type LessonSection = typeof lesson_sections.$inferSelect;
 export type NewLessonSection = typeof lesson_sections.$inferInsert;
+
+export type UserLessonSection = typeof user_lesson_sections.$inferSelect;
+export type NewUserLessonSection = typeof user_lesson_sections.$inferInsert;
 
 export type MusicTrack = typeof music_tracks.$inferSelect;
 export type NewMusicTrack = typeof music_tracks.$inferInsert;

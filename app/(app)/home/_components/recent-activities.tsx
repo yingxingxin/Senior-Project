@@ -19,15 +19,15 @@ interface RecentActivitiesProps {
 
 export function RecentActivities({ activities }: RecentActivitiesProps) {
   return (
-    <Card>
+    <div className="pc98-card pc98-glow">
       <div className="p-6">
-        <Heading level={5} className="mb-4">Recent Activities</Heading>
+        <Heading level={5} className="mb-4 pc98-font" style={{color: 'var(--pc98-fg)'}}>Recent Activities</Heading>
         <Stack gap="tight">
           {activities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />
           ))}
         </Stack>
       </div>
-    </Card>
+    </div>
   );
 }

@@ -30,7 +30,7 @@ export async function getMusicTrackById(id: number): Promise<MusicTrack | null> 
  */
 export async function getMusicTracksByIds(ids: number[]): Promise<MusicTrack[]> {
   if (ids.length === 0) return [];
-  return await db.select().from(music_tracks).where(eq(music_tracks.id, ids[0])); // Simplified for now
+  return await db.select().from(music_tracks).where(eq(music_tracks.id, ids[9])); // Simplified for now
 }
 
 // User Music Preferences

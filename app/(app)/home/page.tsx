@@ -1,55 +1,58 @@
 import { getExploreData } from "../actions";
 import { UserProfileSection } from "@/app/(app)/home/_components/user-profile-section";
 import { AssistantHero } from "@/app/(app)/home/_components/assistant-hero";
-import { AchievementsSection } from "@/app/(app)/home/_components/achievements-section";
-import { QuickStatsCard } from "@/app/(app)/home/_components/quick-stats-card";
-import { RecentActivities } from "@/app/(app)/home/_components/recent-activities";
-import { ExploreSection } from "@/app/(app)/home/_components/explore-section";
+import { RecommendedCourseSection } from "@/app/(app)/home/_components/recommended-course-section";
 import { Stack, Grid } from "@/components/ui/spacing";
 
 export default async function HomePage() {
   const data = await getExploreData();
-  const earnedBadgesCount = data.badges.filter(b => b.earned).length;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <main className="mx-auto max-w-6xl px-4 pt-6 pb-16">
+    <div 
+      className="min-h-dvh"
+      style={{
+        color: '#e8e8e8',
+        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+        minHeight: '100vh',
+        position: 'relative',
+        background: 'linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e)',
+        backgroundSize: '400% 400%'
+      }}
+    >
+      <main className="mx-auto max-w-6xl px-4 pt-6 pb-16 relative z-10">
         <Stack gap="loose">
-          <UserProfileSection
-            userName={data.userName}
-            email={data.email}
-            skillLevel={data.skillLevel}
-            level={data.level}
-            points={data.points}
-            streakDays={data.streakDays}
-            earnedBadgesCount={earnedBadgesCount}
-            assistantName={data.assistant.name}
-            levelProgress={data.levelProgress}
-          />
+          <div>
+            <UserProfileSection
+              userName={data.userName}
+              email={data.email}
+              skillLevel={data.skillLevel}
+              level={data.level}
+              points={data.points}
+              streakDays={data.streakDays}
+              earnedBadgesCount={0}
+              assistantName={data.assistant.name}
+              levelProgress={data.levelProgress}
+            />
+          </div>
 
           <Grid gap="default" className="lg:grid-cols-[2fr_1fr]">
             <Stack gap="default">
-              <AssistantHero
-                persona={data.persona}
-                assistant={data.assistant}
-                primaryAction={data.primaryAction}
-                speech={data.assistantSpeech}
-              />
-              <RecentActivities activities={data.recent} />
+              <div>
+                <AssistantHero
+                  persona={data.persona}
+                  assistant={data.assistant}
+                  primaryAction={data.primaryAction}
+                  speech={data.assistantSpeech}
+                />
+              </div>
             </Stack>
 
             <Stack gap="default">
-              <AchievementsSection badges={data.badges} />
-              <QuickStatsCard
-                points={data.points}
-                nextMilestonePoints={data.nextMilestonePoints}
-                earnedBadgesCount={earnedBadgesCount}
-                totalBadgesCount={data.badges.length}
-              />
+              <div>
+                <RecommendedCourseSection skillLevel={data.skillLevel} />
+              </div>
             </Stack>
           </Grid>
-
-          <ExploreSection lessons={data.lessons} />
         </Stack>
       </main>
     </div>
