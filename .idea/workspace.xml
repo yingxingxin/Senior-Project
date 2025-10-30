@@ -5,20 +5,66 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/(app)/home/_components/navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/home/_components/navbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/queries/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/queries/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/db/seed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/seed.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/ask-assistant.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/focus-panel.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/room-editor.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/sfx-panel.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/side-dock.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_components/study-shell.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_lib/audio.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_lib/types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/_lib/wallpapers.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(app)/study/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/assistant.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/assistant.ogg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/rain.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/rain.ogg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/white.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/audio/sfx/white.ogg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/lofi-desk.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/lofi-desk.mp4" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/lofi-desk.webm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/none.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/particle-loop.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/particle-loop.mp4" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wallpapers/particle-loop.webm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+        <option value="TypeScript JSX File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Wieefi&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/yingxingxin/Senior-Project.git&quot;,
+    &quot;accountId&quot;: &quot;40e8b435-0b2d-4b40-8148-63bd8f21e8da&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -33,8 +79,9 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1&quot;: &quot;true&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;stephanies-branch-01&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;efrat-branch-01&quot;,
     &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
     &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
@@ -42,15 +89,22 @@
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_interpreter_path&quot;: &quot;C:/Users/ssem1/AppData/Roaming/JetBrains/WebStorm2025.2/node/versions/22.19.0/node&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;npm.Next.js: server-side.executor&quot;: &quot;Run&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;settings.nodejs&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\ssem1\\WebstormProjects\\Senior-Project-1\\node_modules\\typescript\\lib&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\efrat\\WebstormProjects\\Senior-Project1\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\efrat\WebstormProjects\Senior-Project1\public\wallpapers" />
+      <recent name="C:\Users\efrat\WebstormProjects\Senior-Project1\public\audio\sfx" />
+      <recent name="C:\Users\efrat\WebstormProjects\Senior-Project1" />
+    </key>
+  </component>
   <component name="RunManager" selected="JavaScript Debug.Next.js: debug client-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
@@ -86,6 +140,8 @@
       <workItem from="1761242008672" duration="526000" />
       <workItem from="1761242671857" duration="11381000" />
       <workItem from="1761604993360" duration="334000" />
+      <workItem from="1761694557096" duration="12242000" />
+      <workItem from="1761742204855" duration="13748000" />
     </task>
     <servers />
   </component>
