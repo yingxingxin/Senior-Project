@@ -28,6 +28,8 @@ export interface CourseLesson {
   description: string | null;
   difficulty: string;
   estimatedDurationSec: number;
+  orderIndex: number;
+  icon: string | null;
   isCompleted: boolean;
   startedAt: Date | null;
   lastAccessedAt: Date | null;
@@ -79,6 +81,8 @@ export async function getCourseData(courseId: string): Promise<CourseProgress | 
         description: lesson.description,
         difficulty: lesson.difficulty || 'standard',
         estimatedDurationSec: lesson.estimatedDurationSec || 0,
+        orderIndex: lesson.orderIndex,
+        icon: lesson.icon,
         isCompleted: userProgress?.isCompleted || false,
         startedAt: userProgress?.startedAt || null,
         lastAccessedAt: userProgress?.lastAccessedAt || null,

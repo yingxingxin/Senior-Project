@@ -229,7 +229,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div 
+                            <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -247,9 +247,26 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                               {lesson.isCompleted ? (
                                 <CheckCircle className="h-4 w-4" style={{color: '#ffffff'}} />
                               ) : (
-                                index + 1
+                                lesson.orderIndex
                               )}
                             </div>
+                            {lesson.icon && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '8px',
+                                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  fontSize: '18px',
+                                  fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                                  flexShrink: 0
+                                }}>
+                                {lesson.icon}
+                              </div>
+                            )}
                             <div>
                               <Heading level={6} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', marginBottom: '4px'}}>{lesson.title}</Heading>
                               <Muted variant="small" style={{color: '#94a3b8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{lesson.description}</Muted>

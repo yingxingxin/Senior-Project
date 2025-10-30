@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, ArrowLeft } from "lucide-react";
-import { Heading, Body, Muted } from "@/components/ui/typography";
+import { Heading, Body } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
 import { getLessonWithSections } from "@/src/db/queries/lessons";
 import { completeSectionAction, checkSectionCompletion } from "../../_lib/actions";
@@ -9,18 +9,11 @@ import { WhyItMatters } from "../../_components/why-it-matters";
 
 interface LessonPageProps {
   params: Promise<{ id: string; lesson: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function LessonPage({ params, searchParams }: LessonPageProps) {
+export default async function LessonPage({ params }: LessonPageProps) {
   const { id, lesson } = await params;
-  const sp = (await (searchParams || Promise.resolve({}))) as Record<string, string | string[] | undefined>;
-
-  const lessonSlug = `${id}-1-introduction`;
-  if (lesson !== lessonSlug) {
-    // For now, only support the first lesson route; others can be added similarly
-    notFound();
-  }
+  const lessonSlug = lesson; // Use the [lesson] param directly as the lesson slug
 
   const rows = await getLessonWithSections.execute({ lessonSlug });
   if (!rows || rows.length === 0) {

@@ -7,7 +7,7 @@
 
 import {
   pgTable, serial, varchar, text, integer, real,
-  timestamp, pgEnum, uniqueIndex, index, check, primaryKey
+  timestamp, pgEnum, uniqueIndex, index, check, primaryKey, boolean
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { difficultyEnum } from './enums';
@@ -71,10 +71,19 @@ export const lessons = pgTable('lessons', {
   description: text('description'),
   difficulty: difficultyEnum('difficulty'),
   estimated_duration_sec: integer('estimated_duration_sec'),
+
+  // Course grouping & ordering
+  course_slug: varchar('course_slug', { length: 64 }).notNull().default(''),
+  order_index: integer('order_index').notNull().default(0),
+  icon: varchar('icon', { length: 10 }),
+  is_published: boolean('is_published').notNull().default(true),
+
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
   uniqueIndex('uq_lessons__slug').on(t.slug),
+  index('ix_lessons__course_slug').on(t.course_slug),
+  uniqueIndex('uq_lessons__course_order').on(t.course_slug, t.order_index),
 ]);
 
 /**

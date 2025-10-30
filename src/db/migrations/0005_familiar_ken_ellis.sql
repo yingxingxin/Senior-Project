@@ -1,0 +1,1 @@
+ALTER TABLE "lessons" ALTER COLUMN "course_slug" SET DEFAULT '';

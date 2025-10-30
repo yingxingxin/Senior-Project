@@ -85,12 +85,12 @@ export const getAssistantById = db
   .prepare('get_assistant_by_id');
 
 /**
- * Get lessons by course slug pattern
+ * Get lessons by course slug
  *
- * Returns all lessons that match a course pattern (e.g., programming-foundations-*)
+ * Returns all lessons in a course, ordered by lesson order_index
  *
- * @param courseSlug - The course slug pattern
- * @returns Array of lesson records with sections
+ * @param courseSlug - The course slug (e.g., 'programming-foundations')
+ * @returns Array of lesson records
  *
  * @example
  * const lessons = await getLessonsByCourse.execute({ courseSlug: 'programming-foundations' });
@@ -103,10 +103,12 @@ export const getLessonsByCourse = db
     description: lessons.description,
     difficulty: lessons.difficulty,
     estimatedDurationSec: lessons.estimated_duration_sec,
+    orderIndex: lessons.order_index,
+    icon: lessons.icon,
   })
   .from(lessons)
-  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
-  .orderBy(lessons.slug)
+  .where(eq(lessons.course_slug, sql.placeholder('courseSlug')))
+  .orderBy(lessons.order_index)
   .prepare('get_lessons_by_course');
 
 /**
@@ -143,10 +145,10 @@ export const getLessonWithSections = db
 /**
  * Get user lesson progress for a course
  *
- * Returns user's progress through lessons in a course
+ * Returns user's progress through lessons in a course, ordered by lesson order
  *
  * @param userId - The user's ID
- * @param courseSlug - The course slug pattern
+ * @param courseSlug - The course slug (e.g., 'programming-foundations')
  * @returns Array of lesson progress records
  *
  * @example
@@ -157,6 +159,7 @@ export const getUserCourseProgress = db
     lessonId: lessons.id,
     lessonSlug: lessons.slug,
     lessonTitle: lessons.title,
+    orderIndex: lessons.order_index,
     isCompleted: user_lesson_progress.is_completed,
     startedAt: user_lesson_progress.started_at,
     lastAccessedAt: user_lesson_progress.last_accessed_at,
@@ -167,8 +170,8 @@ export const getUserCourseProgress = db
     eq(lessons.id, user_lesson_progress.lesson_id),
     eq(user_lesson_progress.user_id, sql.placeholder('userId'))
   ))
-  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
-  .orderBy(lessons.slug)
+  .where(eq(lessons.course_slug, sql.placeholder('courseSlug')))
+  .orderBy(lessons.order_index)
   .prepare('get_user_course_progress');
 
 /**

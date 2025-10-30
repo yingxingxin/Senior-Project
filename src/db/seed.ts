@@ -156,6 +156,10 @@ export async function seed() {
         description: "Learn what programming is and why it matters in today's world",
         difficulty: "easy",
         estimated_duration_sec: 1800, // 30 minutes
+        course_slug: "programming-foundations",
+        order_index: 1,
+        icon: "📚",
+        is_published: true,
       },
       {
         slug: "programming-foundations-2-variables",
@@ -163,6 +167,10 @@ export async function seed() {
         description: "Understand how to store and work with different types of data",
         difficulty: "easy",
         estimated_duration_sec: 2400, // 40 minutes
+        course_slug: "programming-foundations",
+        order_index: 2,
+        icon: "📝",
+        is_published: true,
       },
       {
         slug: "programming-foundations-3-control-structures",
@@ -170,6 +178,10 @@ export async function seed() {
         description: "Learn to make decisions and repeat actions in your code",
         difficulty: "standard",
         estimated_duration_sec: 3000, // 50 minutes
+        course_slug: "programming-foundations",
+        order_index: 3,
+        icon: "🔀",
+        is_published: true,
       },
       {
         slug: "programming-foundations-4-functions",
@@ -177,6 +189,10 @@ export async function seed() {
         description: "Organize your code into reusable blocks with functions",
         difficulty: "standard",
         estimated_duration_sec: 3600, // 60 minutes
+        course_slug: "programming-foundations",
+        order_index: 4,
+        icon: "⚙️",
+        is_published: true,
       },
       {
         slug: "programming-foundations-5-arrays",
@@ -184,6 +200,10 @@ export async function seed() {
         description: "Work with collections of data using arrays and lists",
         difficulty: "standard",
         estimated_duration_sec: 2700, // 45 minutes
+        course_slug: "programming-foundations",
+        order_index: 5,
+        icon: "📊",
+        is_published: true,
       },
     ]).onConflictDoNothing().returning();
 
