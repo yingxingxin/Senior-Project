@@ -5,16 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex1-init-add-print.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex2-for-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex3-while-1to5.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/ex4-if-positive-negative.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/codeplayground/exercises/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/(app)/api/execute/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/editor/EditorClient.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/editor/EditorClient.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/CodePlayground.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/codeplayground/CodePlayground.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +22,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;yingxingxin&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/yingxingxin/Senior-Project.git&quot;,
+    &quot;accountId&quot;: &quot;2dea9ead-07cc-429e-8fe0-9ae1ad073646&quot;
+  }
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0
 }</component>
@@ -46,7 +52,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "dans-branch-02",
+    "git-widget-placeholder": "#64 on stephanies-branch-01",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",
@@ -59,7 +65,7 @@
     "npm.Next.js: server-side.executor": "Run",
     "settings.editor.selected.configurable": "preferences.lookFeel",
     "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "C:\\Users\\steve\\WebstormProjects\\Senior-Project\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "C:\\Users\\ssem1\\WebstormProjects\\Senior-Project-1\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -102,8 +108,19 @@
       <workItem from="1761241624361" duration="202000" />
       <workItem from="1761242008672" duration="526000" />
       <workItem from="1761242671857" duration="11381000" />
-      <workItem from="1761604993360" duration="334000" />
+      <workItem from="1761604993360" duration="2086000" />
+      <workItem from="1761788549640" duration="392000" />
+      <workItem from="1761789019117" duration="11285000" />
     </task>
+    <task id="LOCAL-00001" summary="add music">
+      <option name="closed" value="true" />
+      <created>1761605662039</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761605662039</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -115,12 +132,16 @@
     <option featureType="dependencySupport" implementationName="javascript:npm:next" />
     <option featureType="dependencySupport" implementationName="javascript:npm:postcss" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add music" />
+    <option name="LAST_COMMIT_MESSAGE" value="add music" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/db/seed.ts</url>
-          <line>5</line>
+          <line>4</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
