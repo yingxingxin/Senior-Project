@@ -40,4 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# IDE junk
+.idea/
+*.iml
+
+
 CLAUDE.md
+.idea/

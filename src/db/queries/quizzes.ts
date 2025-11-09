@@ -5,8 +5,8 @@
  */
 
 import { db } from '@/src/db';
-import { quizzes, quiz_attempts, quiz_questions, quiz_options } from '@/src/db/schema';
-import { eq, desc, sql, and, inArray } from 'drizzle-orm';
+import { quizzes, quiz_attempts } from '@/src/db/schema';
+import { eq, desc, sql, and } from 'drizzle-orm';
 
 /**
  * Get quiz attempts for a user

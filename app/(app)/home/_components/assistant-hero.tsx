@@ -35,7 +35,7 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
     { label: "Courses", href: "/courses", icon: BookOpen },
     { label: "Quiz", href: "/quiz", icon: Sparkles },
     { label: "Ask", href: "/ask", icon: MessageSquare },
-    { label: "Practice", href: "/practice", icon: Swords },
+    { label: "Practice", href: "/editor", icon: Swords },
   ];
 
   return (

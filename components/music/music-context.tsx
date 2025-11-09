@@ -96,8 +96,8 @@ function musicReducer(state: MusicState, action: MusicAction): MusicState {
         currentTrack: action.payload,
         currentTrackIndex: trackIndex,
         error: null,
-        // Auto-start playing when a track is set
-        isPlaying: true,
+        // Do not mark playing here; wait until the audio element actually starts
+        isPlaying: false,
         isPaused: false,
       };
 
@@ -133,6 +133,9 @@ function musicReducer(state: MusicState, action: MusicAction): MusicState {
       };
 
     case 'NEXT_TRACK':
+      if (state.userSelectedTracks.length === 0) {
+        return state;
+      }
       const nextIndex = (state.currentTrackIndex + 1) % state.userSelectedTracks.length;
       const nextTrack = state.userSelectedTracks[nextIndex];
       return {
@@ -140,9 +143,14 @@ function musicReducer(state: MusicState, action: MusicAction): MusicState {
         currentTrackIndex: nextIndex,
         currentTrack: nextTrack || null,
         currentTime: 0,
+        isPlaying: false,
+        isPaused: false,
       };
 
     case 'PREVIOUS_TRACK':
+      if (state.userSelectedTracks.length === 0) {
+        return state;
+      }
       const prevIndex = state.currentTrackIndex <= 0 
         ? state.userSelectedTracks.length - 1 
         : state.currentTrackIndex - 1;
@@ -152,6 +160,8 @@ function musicReducer(state: MusicState, action: MusicAction): MusicState {
         currentTrackIndex: prevIndex,
         currentTrack: prevTrack || null,
         currentTime: 0,
+        isPlaying: false,
+        isPaused: false,
       };
 
     case 'SET_VOLUME':
@@ -267,7 +277,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
       dispatch({ type: 'NEXT_TRACK' });
       // Auto-play the next track
       if (audioRef.current) {
-        audioRef.current.play().catch(error => {
+        audioRef.current.play().catch(() => {
           dispatch({ type: 'SET_ERROR', payload: 'Failed to play next track' });
         });
       }
@@ -328,13 +338,24 @@ export function MusicProvider({ children }: MusicProviderProps) {
             return;
         }
 
-        // Reset previous src to avoid conflicts
+        // Reset and set new source
         audio.pause();
         audio.src = '';
-
-        // Set new source
+        audio.currentTime = 0;
         audio.src = fileUrl;
+
+        // Autoplay when ready
+        const onCanPlay = () => {
+            audio.play().catch(() => {
+                dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
+            });
+        };
+        audio.addEventListener('canplay', onCanPlay, { once: true });
         audio.load();
+
+        return () => {
+            audio.removeEventListener('canplay', onCanPlay);
+        };
     }, [state.currentTrack]);
 
   // Actions
@@ -342,7 +363,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playTrack = (track: MusicTrack) => {
     dispatch({ type: 'SET_CURRENT_TRACK', payload: track });
     if (audioRef.current) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
@@ -365,7 +386,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playNext = () => {
     dispatch({ type: 'NEXT_TRACK' });
     if (audioRef.current && state.userSelectedTracks.length > 0) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
@@ -374,7 +395,7 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const playPrevious = () => {
     dispatch({ type: 'PREVIOUS_TRACK' });
     if (audioRef.current && state.userSelectedTracks.length > 0) {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch(() => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }
@@ -383,10 +404,18 @@ export function MusicProvider({ children }: MusicProviderProps) {
   const togglePlayPause = () => {
     if (!audioRef.current) return;
 
+    // If no current track but we have a playlist, start from first
+    if (!state.currentTrack && state.userSelectedTracks.length > 0) {
+      const first = state.userSelectedTracks[0];
+      dispatch({ type: 'SET_CURRENT_TRACK', payload: first });
+      dispatch({ type: 'SET_CURRENT_TRACK_INDEX', payload: 0 });
+      return;
+    }
+
     if (state.isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play().catch(error => {
+      audioRef.current.play().catch((_err) => {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to play audio' });
       });
     }

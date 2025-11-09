@@ -1,6 +1,5 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, accounts, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser, type NewAccount, type NewMusicTrack } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
-import * as bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 
 export async function seed() {
@@ -444,11 +443,46 @@ export async function seed() {
     console.log("Creating music tracks...");
     await db.insert(music_tracks).values([
       {
-        title: "Genshin Impact Theme Song",
-        artist: "PenG Lexer",
-        duration_sec: 147, // 2 minutes 27 seconds
-        file_url: "/music/peng-lexer-genshin-theme.mp3",
-        volume: 0.7,
+          title: "Genshin Impact Theme Song",
+          artist: "PenG Lexer",
+          duration_sec: 147, // 2 minutes 27 seconds
+          file_url: "/music/Genshin-Theme.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "A New Day With Hope",
+          artist: "Anipperoni (Remix)",
+          duration_sec: 103, // 1 minute 43 seconds
+          file_url: "/music/A-New-Day-With-Hope.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Crystal Snow (Piano Cover)",
+          artist: "BTS",
+          duration_sec: 426, // 7 minutes 6 seconds
+          file_url: "/music/Crystal-Snow.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Flowing Flow",
+          artist: "Foxtail Grass Studio",
+          duration_sec: 248, // 4 minutes 8 seconds
+          file_url: "/music/Flowing-Flow.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Unravel (Tokyo Ghoul OP)",
+          artist: "Piano Cover by Animenz",
+          duration_sec: 248, // 4 minutes 8 seconds
+          file_url: "/music/Unravel.mp3",
+          volume: 0.7,
+      },
+      {
+          title: "Marble Soda",
+          artist: "Shawn Wasabi",
+          duration_sec: 161, // 2 minutes 1 seconds
+          file_url: "/music/Marble-Soda.mp3",
+          volume: 0.7,
       },
     ]).onConflictDoNothing();
 
