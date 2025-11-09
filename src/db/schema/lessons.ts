@@ -73,7 +73,8 @@ export const lessons = pgTable('lessons', {
   estimated_duration_sec: integer('estimated_duration_sec'),
 
   // Hierarchy: parent_lesson_id NULL = top-level course, otherwise topic within a course
-  parent_lesson_id: integer('parent_lesson_id').references(() => lessons.id, { onDelete: 'cascade' }),
+  // Foreign key constraint defined in migration for self-referential relationship
+  parent_lesson_id: integer('parent_lesson_id'),
 
   // Ordering within parent
   order_index: integer('order_index').notNull().default(0),

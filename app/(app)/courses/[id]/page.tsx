@@ -1,25 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, BookOpen, CheckCircle, Play } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, CheckCircle } from "lucide-react";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid } from "@/components/ui/spacing";
 import { getCourseData } from "../_lib/actions";
+import { formatDuration } from "../_lib/utils";
 import { LessonButton } from "../_components/lesson-button";
 
 interface CourseDetailPageProps {
   params: Promise<{ id: string }>;
 }
-
-// Helper function to format duration
-const formatDuration = (seconds: number): string => {
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-};
 
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
   const { id } = await params;
@@ -32,7 +22,12 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   }
 
   const { lessons, completedLessons, totalLessons, progressPercentage, courseTitle, courseIcon, courseDifficulty, courseDescription, courseEstimatedDurationSec } = courseData;
-
+  const startedLesson = lessons.find((lesson) => lesson.startedAt && !lesson.isCompleted);
+  const nextLesson = lessons.find((lesson) => !lesson.isCompleted);
+  const lessonToOpen = startedLesson ?? nextLesson ?? null;
+  const hasProgress = lessons.some((lesson) => lesson.startedAt !== null || lesson.isCompleted);
+  const primaryCtaLabel = hasProgress ? 'Continue Learning' : 'Start Course';
+  const disabledCtaMessage = lessons.length === 0 ? 'Course Content Coming Soon' : 'Course Completed';
 
   return (
     <div 
@@ -167,28 +162,39 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                 </div>
 
                 {/* Start/Continue Button */}
-                <button
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '16px 32px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: '#ffffff',
-                    borderRadius: '12px',
-                    border: 'none',
-                    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Play className="h-5 w-5" />
-                  {completedLessons > 0 ? 'Continue Learning' : 'Start Course'}
-                </button>
+                {lessonToOpen ? (
+                  <LessonButton
+                    variant="hero"
+                    label={primaryCtaLabel}
+                    lessonId={lessonToOpen.id}
+                    lessonSlug={lessonToOpen.slug}
+                    courseId={id}
+                    isCompleted={lessonToOpen.isCompleted}
+                    hasStarted={lessonToOpen.startedAt !== null}
+                  />
+                ) : (
+                  <button
+                    disabled
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '16px 32px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      color: '#e2e8f0',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                      opacity: 0.7,
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    {disabledCtaMessage}
+                  </button>
+                )}
               </Stack>
             </div>
           </div>

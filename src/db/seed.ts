@@ -254,9 +254,17 @@ export async function seed() {
     // Add lesson sections for Programming Foundations lessons
     if (programmingFoundationsLessons.length > 0) {
       console.log("Creating lesson sections for Programming Foundations...");
+      const createWhyItMattersSection = (lessonId: number) => ({
+        lesson_id: lessonId,
+        order_index: -1,
+        slug: "why-it-matters",
+        title: "Why it matters",
+        body_md: "# Why it matters\n\nProgramming builds computational thinking, opens career opportunities, and lets you automate everyday problems.",
+      });
       
       // Lesson 1: Introduction to Programming
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[0].id),
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 0,
@@ -282,6 +290,7 @@ export async function seed() {
 
       // Lesson 2: Variables and Data Types
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[1].id),
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 0,
@@ -307,6 +316,7 @@ export async function seed() {
 
       // Lesson 3: Control Structures
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[2].id),
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 0,
@@ -332,6 +342,7 @@ export async function seed() {
 
       // Lesson 4: Functions and Methods
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[3].id),
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 0,
@@ -357,6 +368,7 @@ export async function seed() {
 
       // Lesson 5: Arrays and Lists
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[4].id),
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 0,

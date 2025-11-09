@@ -43,15 +43,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const isWhyItMattersCompleted = whyItMattersSection 
     ? (await checkSectionCompletion({ lessonSlug, sectionSlug: 'why-it-matters' })).isCompleted
     : false;
+  const showWhyItMatters = Boolean(whyItMattersSection);
 
   async function completeSection(formData: FormData) {
     'use server';
     const sectionSlug = formData.get('sectionSlug') as string;
-    const result = await completeSectionAction({ lessonSlug, sectionSlug });
-    if (result?.lessonCompleted) {
-      // Redirect back to refresh state silently without XP params
-      redirect(`/courses/${id}/${lesson}`);
-    }
+    await completeSectionAction({ lessonSlug, sectionSlug });
+    // Always refresh the page so completion state updates immediately
+    redirect(`/courses/${id}/${lesson}`);
   }
 
   return (
@@ -138,29 +137,31 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </div>
 
           {/* Why it matters - Flip Cards with gated submit */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '16px',
-            padding: '24px',
-          }}>
-            <Stack gap="default">
-              <Heading level={4} style={{color: '#ffffff', fontWeight: 600}}>Why it matters</Heading>
-              <form id="why-submit" action={completeSection}>
-                <input type="hidden" name="sectionSlug" value="why-it-matters" />
-              </form>
-              <WhyItMatters
-                submitFormId="why-submit"
-                isCompleted={isWhyItMattersCompleted}
-                cards={[
-                  { front: 'Computational Thinking', back: 'Break problems into steps and patterns—transferable to any field.' },
-                  { front: 'Career Opportunities', back: 'Programming skills open doors in every industry.' },
-                  { front: 'Automation', back: 'Automate repetitive tasks and build tools that save time.' },
-                ]}
-              />
-            </Stack>
-          </div>
+          {showWhyItMatters && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              padding: '24px',
+            }}>
+              <Stack gap="default">
+                <Heading level={4} style={{color: '#ffffff', fontWeight: 600}}>Why it matters</Heading>
+                <form id="why-submit" action={completeSection}>
+                  <input type="hidden" name="sectionSlug" value="why-it-matters" />
+                </form>
+                <WhyItMatters
+                  submitFormId="why-submit"
+                  isCompleted={isWhyItMattersCompleted}
+                  cards={[
+                    { front: 'Computational Thinking', back: 'Break problems into steps and patterns—transferable to any field.' },
+                    { front: 'Career Opportunities', back: 'Programming skills open doors in every industry.' },
+                    { front: 'Automation', back: 'Automate repetitive tasks and build tools that save time.' },
+                  ]}
+                />
+              </Stack>
+            </div>
+          )}
 
           {/* Reading Section */}
           <div style={{
@@ -265,5 +266,3 @@ export default async function LessonPage({ params }: LessonPageProps) {
     </div>
   );
 }
-
-

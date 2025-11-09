@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowRight, Clock, BookOpen, Users } from "lucide-react";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid } from "@/components/ui/spacing";
-import { getCoursesWithStats, formatDuration } from "./_lib/actions";
+import { getCoursesWithStats } from "./_lib/actions";
+import { formatDuration } from "./_lib/utils";
 
 export default async function CoursesPage() {
   const allCourses = await getCoursesWithStats();

@@ -18,11 +18,8 @@ import {
   getSectionBySlugs,
   isSectionCompleted,
   checkLessonCompletion,
-  getAllCourses as getAllCoursesQuery
+  getAllCourses
 } from "@/src/db/queries/lessons";
-
-// Re-export for page usage
-export const getAllCourses = getAllCoursesQuery;
 
 export interface CourseLesson {
   id: number;
@@ -317,15 +314,3 @@ export async function getCoursesWithStats() {
   }
 }
 
-/**
- * Format duration in seconds to human-readable format
- */
-export function formatDuration(seconds: number): string {
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-}
