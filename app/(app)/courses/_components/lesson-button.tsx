@@ -11,11 +11,25 @@ interface LessonButtonProps {
   courseId: string;
   isCompleted: boolean;
   hasStarted: boolean;
+  variant?: "default" | "hero";
+  label?: string;
 }
 
-export function LessonButton({ lessonId, lessonSlug, courseId, isCompleted, hasStarted }: LessonButtonProps) {
+export function LessonButton({
+  lessonId,
+  lessonSlug,
+  courseId,
+  isCompleted,
+  hasStarted,
+  variant = "default",
+  label,
+}: LessonButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const resolvedLabel = label ?? (hasStarted ? 'Continue' : 'Start');
+  const loadingLabel = hasStarted ? 'Continuing...' : 'Starting...';
+  const iconSize = variant === "hero" ? 20 : 16;
 
   const handleClick = async () => {
     if (isCompleted) return; // Don't allow clicking if already completed
@@ -45,15 +59,15 @@ export function LessonButton({ lessonId, lessonSlug, courseId, isCompleted, hasS
 
   if (isCompleted) {
     return (
-      <button 
+      <button
         disabled
         style={{
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '6px',
-          padding: '8px 16px',
-          fontSize: '14px',
+          gap: variant === "hero" ? '8px' : '6px',
+          padding: variant === "hero" ? '12px 28px' : '8px 16px',
+          fontSize: variant === "hero" ? '16px' : '14px',
           fontWeight: '500',
           background: 'rgba(255, 255, 255, 0.1)',
           color: '#e8e8e8',
@@ -64,43 +78,65 @@ export function LessonButton({ lessonId, lessonSlug, courseId, isCompleted, hasS
           opacity: 0.7
         }}
       >
-        <CheckCircle className="h-4 w-4" />
+        <CheckCircle style={{ width: iconSize, height: iconSize }} />
         Completed
       </button>
     );
   }
+
+  const buttonStyles =
+    variant === "hero"
+      ? {
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '16px 32px',
+          fontSize: '16px',
+          fontWeight: '600',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: '#ffffff',
+          borderRadius: '12px',
+          border: 'none',
+          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+          boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+          transition: 'all 0.2s ease',
+        }
+      : {
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          padding: '8px 16px',
+          fontSize: '14px',
+          fontWeight: '500',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: '#ffffff',
+          borderRadius: '8px',
+          border: 'none',
+          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+          transition: 'all 0.2s ease',
+        };
 
   return (
     <button 
       onClick={handleClick}
       disabled={isLoading}
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '6px',
-        padding: '8px 16px',
-        fontSize: '14px',
-        fontWeight: '500',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: '#ffffff',
-        borderRadius: '8px',
-        border: 'none',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-        transition: 'all 0.2s ease',
+        ...buttonStyles,
         cursor: isLoading ? 'not-allowed' : 'pointer',
         opacity: isLoading ? 0.7 : 1
       }}
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {hasStarted ? 'Completing...' : 'Starting...'}
+          <Loader2 style={{ width: iconSize, height: iconSize }} className="animate-spin" />
+          {loadingLabel}
         </>
       ) : (
         <>
-          <Play className="h-4 w-4" />
-          {hasStarted ? 'Continue' : 'Start'}
+          <Play style={{ width: iconSize, height: iconSize }} />
+          {resolvedLabel}
         </>
       )}
     </button>

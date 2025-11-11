@@ -1,44 +1,33 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, BookOpen, CheckCircle, Play } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, CheckCircle } from "lucide-react";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid } from "@/components/ui/spacing";
-import { COURSES } from "@/src/lib/constants";
 import { getCourseData } from "../_lib/actions";
+import { formatDuration } from "../_lib/utils";
 import { LessonButton } from "../_components/lesson-button";
 
 interface CourseDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-// Helper function to format duration
-const formatDuration = (seconds: number): string => {
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-};
-
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
   const { id } = await params;
-  const course = COURSES.find(c => c.id === id);
 
-  if (!course) {
-    notFound();
-  }
-
-  // Get real course data with progress
+  // Get course data with progress (id is the slug)
   const courseData = await getCourseData(id);
-  
+
   if (!courseData) {
     notFound();
   }
 
-  const { lessons, completedLessons, totalLessons, progressPercentage } = courseData;
-
+  const { lessons, completedLessons, totalLessons, progressPercentage, courseTitle, courseIcon, courseDifficulty, courseDescription, courseEstimatedDurationSec } = courseData;
+  const startedLesson = lessons.find((lesson) => lesson.startedAt && !lesson.isCompleted);
+  const nextLesson = lessons.find((lesson) => !lesson.isCompleted);
+  const lessonToOpen = startedLesson ?? nextLesson ?? null;
+  const hasProgress = lessons.some((lesson) => lesson.startedAt !== null || lesson.isCompleted);
+  const primaryCtaLabel = hasProgress ? 'Continue Learning' : 'Start Course';
+  const disabledCtaMessage = lessons.length === 0 ? 'Course Content Coming Soon' : 'Course Completed';
 
   return (
     <div 
@@ -105,9 +94,9 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
                     boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)'
                   }}>
-                  {course.icon}
+                  {courseIcon}
                 </div>
-                <div 
+                <div
                   style={{
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '8px',
@@ -118,14 +107,14 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     color: '#a78bfa',
                     fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
                   }}>
-                  {course.difficulty}
+                  {courseDifficulty}
                 </div>
               </div>
               
               <Stack gap="default">
-                <Heading level={1} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', fontSize: '32px'}}>{course.title}</Heading>
+                <Heading level={1} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', fontSize: '32px'}}>{courseTitle}</Heading>
                 <Body style={{color: '#e8e8e8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontSize: '18px', lineHeight: '1.6'}}>
-                  {course.description}
+                  {courseDescription}
                 </Body>
 
                     {/* Course Stats */}
@@ -136,7 +125,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        <span>{course.estimatedDuration}</span>
+                        <span>{formatDuration(courseEstimatedDurationSec)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
@@ -173,28 +162,39 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                 </div>
 
                 {/* Start/Continue Button */}
-                <button
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '16px 32px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: '#ffffff',
-                    borderRadius: '12px',
-                    border: 'none',
-                    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
-                    transition: 'all 0.2s ease',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Play className="h-5 w-5" />
-                  {completedLessons > 0 ? 'Continue Learning' : 'Start Course'}
-                </button>
+                {lessonToOpen ? (
+                  <LessonButton
+                    variant="hero"
+                    label={primaryCtaLabel}
+                    lessonId={lessonToOpen.id}
+                    lessonSlug={lessonToOpen.slug}
+                    courseId={id}
+                    isCompleted={lessonToOpen.isCompleted}
+                    hasStarted={lessonToOpen.startedAt !== null}
+                  />
+                ) : (
+                  <button
+                    disabled
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      padding: '16px 32px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      color: '#e2e8f0',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                      opacity: 0.7,
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    {disabledCtaMessage}
+                  </button>
+                )}
               </Stack>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div 
+                            <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -247,9 +247,26 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                               {lesson.isCompleted ? (
                                 <CheckCircle className="h-4 w-4" style={{color: '#ffffff'}} />
                               ) : (
-                                index + 1
+                                lesson.orderIndex
                               )}
                             </div>
+                            {lesson.icon && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '8px',
+                                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  fontSize: '18px',
+                                  fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+                                  flexShrink: 0
+                                }}>
+                                {lesson.icon}
+                              </div>
+                            )}
                             <div>
                               <Heading level={6} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600', marginBottom: '4px'}}>{lesson.title}</Heading>
                               <Muted variant="small" style={{color: '#94a3b8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{lesson.description}</Muted>

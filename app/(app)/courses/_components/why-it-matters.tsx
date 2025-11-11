@@ -1,21 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Body, Muted } from "@/components/ui/typography";
 
 type Card = { front: string; back: string };
 
 interface WhyItMattersProps {
   cards: Card[];
-  submitFormId: string; // id of the server form to submit
+  submitFormId?: string; // id of the server form to submit (deprecated - kept for backwards compatibility)
   isCompleted?: boolean; // whether this section is already completed
+  onReadyStateChange?: (ready: boolean) => void; // signal readiness to parent
 }
 
-export function WhyItMatters({ cards, submitFormId, isCompleted = false }: WhyItMattersProps) {
+export function WhyItMatters({ cards, isCompleted = false, onReadyStateChange }: WhyItMattersProps) {
   const [flipped, setFlipped] = useState<boolean[]>(() => cards.map(() => false));
 
   const allReviewed = flipped.every(Boolean);
-  const canSubmit = allReviewed && !isCompleted;
+
+  // Signal readiness when all cards are flipped
+  useEffect(() => {
+    onReadyStateChange?.(allReviewed || isCompleted);
+  }, [allReviewed, isCompleted, onReadyStateChange]);
 
   const toggle = (idx: number) => {
     if (!isCompleted) {
@@ -75,37 +80,15 @@ export function WhyItMatters({ cards, submitFormId, isCompleted = false }: WhyIt
         </button>
       ))}
 
-      <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
-        <button
-          form={submitFormId}
-          type="submit"
-          disabled={!canSubmit}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '10px 16px', borderRadius: 8,
-            background: isCompleted 
-              ? 'rgba(16, 185, 129, 0.2)' 
-              : canSubmit 
-                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                : 'rgba(255,255,255,0.08)',
-            color: isCompleted 
-              ? '#10b981' 
-              : canSubmit 
-                ? '#fff' 
-                : '#a3a3a3', 
-            border: isCompleted ? '1px solid rgba(16, 185, 129, 0.3)' : 'none', 
-            fontWeight: 600,
-            cursor: canSubmit ? 'pointer' : 'not-allowed'
-          }}
-          aria-disabled={!canSubmit}
-        >
-          {isCompleted 
-            ? '✓ Already Completed (+10 XP)' 
-            : allReviewed 
-              ? 'Mark Reviewed (+10 XP)' 
-              : 'Flip all cards to continue'}
-        </button>
-      </div>
+      {(allReviewed || isCompleted) && (
+        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '16px 0' }}>
+          <Muted>
+            {isCompleted
+              ? '✓ Already Completed (+10 XP)'
+              : '✓ All cards reviewed! Ready to continue'}
+          </Muted>
+        </div>
+      )}
     </div>
   );
 }

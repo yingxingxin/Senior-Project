@@ -85,15 +85,41 @@ export const getAssistantById = db
   .prepare('get_assistant_by_id');
 
 /**
- * Get lessons by course slug pattern
+ * Get all top-level courses
  *
- * Returns all lessons that match a course pattern (e.g., programming-foundations-*)
+ * Returns all courses (lessons with parent_lesson_id IS NULL)
  *
- * @param courseSlug - The course slug pattern
- * @returns Array of lesson records with sections
+ * @returns Array of course records
  *
  * @example
- * const lessons = await getLessonsByCourse.execute({ courseSlug: 'programming-foundations' });
+ * const courses = await getAllCourses.execute({});
+ */
+export const getAllCourses = db
+  .select({
+    id: lessons.id,
+    slug: lessons.slug,
+    title: lessons.title,
+    description: lessons.description,
+    difficulty: lessons.difficulty,
+    estimatedDurationSec: lessons.estimated_duration_sec,
+    icon: lessons.icon,
+    orderIndex: lessons.order_index,
+  })
+  .from(lessons)
+  .where(sql`${lessons.parent_lesson_id} IS NULL`)
+  .orderBy(lessons.order_index)
+  .prepare('get_all_courses');
+
+/**
+ * Get lessons by course ID
+ *
+ * Returns all lessons (topics) within a course
+ *
+ * @param courseId - The course ID (parent_lesson_id)
+ * @returns Array of lesson records
+ *
+ * @example
+ * const lessons = await getLessonsByCourse.execute({ courseId: 1 });
  */
 export const getLessonsByCourse = db
   .select({
@@ -103,10 +129,12 @@ export const getLessonsByCourse = db
     description: lessons.description,
     difficulty: lessons.difficulty,
     estimatedDurationSec: lessons.estimated_duration_sec,
+    orderIndex: lessons.order_index,
+    icon: lessons.icon,
   })
   .from(lessons)
-  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
-  .orderBy(lessons.slug)
+  .where(eq(lessons.parent_lesson_id, sql.placeholder('courseId')))
+  .orderBy(lessons.order_index)
   .prepare('get_lessons_by_course');
 
 /**
@@ -143,20 +171,21 @@ export const getLessonWithSections = db
 /**
  * Get user lesson progress for a course
  *
- * Returns user's progress through lessons in a course
+ * Returns user's progress through lessons in a course, ordered by lesson order
  *
  * @param userId - The user's ID
- * @param courseSlug - The course slug pattern
+ * @param courseId - The course ID (parent_lesson_id)
  * @returns Array of lesson progress records
  *
  * @example
- * const progress = await getUserCourseProgress.execute({ userId: 123, courseSlug: 'programming-foundations' });
+ * const progress = await getUserCourseProgress.execute({ userId: 123, courseId: 1 });
  */
 export const getUserCourseProgress = db
   .select({
     lessonId: lessons.id,
     lessonSlug: lessons.slug,
     lessonTitle: lessons.title,
+    orderIndex: lessons.order_index,
     isCompleted: user_lesson_progress.is_completed,
     startedAt: user_lesson_progress.started_at,
     lastAccessedAt: user_lesson_progress.last_accessed_at,
@@ -167,8 +196,8 @@ export const getUserCourseProgress = db
     eq(lessons.id, user_lesson_progress.lesson_id),
     eq(user_lesson_progress.user_id, sql.placeholder('userId'))
   ))
-  .where(sql`${lessons.slug} LIKE ${sql.placeholder('courseSlug')} || '-%'`)
-  .orderBy(lessons.slug)
+  .where(eq(lessons.parent_lesson_id, sql.placeholder('courseId')))
+  .orderBy(lessons.order_index)
   .prepare('get_user_course_progress');
 
 /**

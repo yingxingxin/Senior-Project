@@ -1,29 +1,29 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Loader2, LogIn } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Loader2, LogIn } from "lucide-react"
+import { useForm, FormProvider } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 
-import { SocialButtons } from "@/app/(auth)/_components/social-buttons";
-import { Button } from "@/components/ui/button";
-import { Form, EmailField, PasswordField, RootError } from "@/components/ui/form";
-import { Stack } from "@/components/ui/spacing";
-import { loginSchema, type LoginInput } from "@/app/(auth)/_lib/schemas";
-import { authClient } from "@/lib/auth-client";
+import { SocialButtons } from "@/app/(auth)/_components/social-buttons"
+import { Button } from "@/components/ui/button"
+import { EmailField, PasswordField, RootError } from "@/app/(auth)/_lib/field-helpers"
+import { Stack } from "@/components/ui/spacing"
+import { loginSchema, type LoginInput } from "@/app/(auth)/_lib/schemas"
+import { authClient } from "@/lib/auth-client"
 
 export function LoginForm() {
-  const router = useRouter();
+  const router = useRouter()
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
     mode: "onSubmit",
-  });
+  })
 
-  const { handleSubmit, setError, formState } = form;
-  const { isSubmitting } = formState;
+  const { handleSubmit, setError, formState } = form
+  const { isSubmitting } = formState
 
   const onSubmit = handleSubmit(async (values) => {
     // Better Auth client call replaces your postJson(...)
@@ -34,29 +34,33 @@ export function LoginForm() {
           // Example: email not verified or wrong creds
           // 403 is common when requireEmailVerification is enabled
           // Map to form errors
-          setError("root.serverError", { type: "server", message: ctx.error.message });
+          setError("root.serverError", { type: "server", message: ctx.error.message })
         },
       }
-    );
+    )
 
     if (error) {
       // Fallback mapping for other errors
-      const msg = error.message || "Sign in failed";
-      setError("root.serverError", { type: "server", message: msg });
-      return;
+      const msg = error.message || "Sign in failed"
+      setError("root.serverError", { type: "server", message: msg })
+      return
     }
 
     // Success: session cookie is set by the client fetch
-    router.push("/home");
-  });
+    router.push("/home")
+  })
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form onSubmit={onSubmit} noValidate aria-busy={isSubmitting}>
         <Stack gap="default">
           <RootError />
 
-          <Stack gap="tight" as="fieldset" {...({ disabled: isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}>
+          <Stack
+            gap="tight"
+            as="fieldset"
+            {...({ disabled: isSubmitting } as React.FieldsetHTMLAttributes<HTMLFieldSetElement>)}
+          >
             <EmailField name="email" label="Email" />
 
             <PasswordField
@@ -99,6 +103,6 @@ export function LoginForm() {
           <SocialButtons disabled={isSubmitting} />
         </Stack>
       </form>
-    </Form>
-  );
+    </FormProvider>
+  )
 }

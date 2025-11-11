@@ -7,7 +7,7 @@
 
 import {
   pgTable, serial, varchar, text, integer, real,
-  timestamp, pgEnum, uniqueIndex, index, check, primaryKey
+  timestamp, pgEnum, uniqueIndex, index, check, primaryKey, boolean
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { difficultyEnum } from './enums';
@@ -71,10 +71,22 @@ export const lessons = pgTable('lessons', {
   description: text('description'),
   difficulty: difficultyEnum('difficulty'),
   estimated_duration_sec: integer('estimated_duration_sec'),
+
+  // Hierarchy: parent_lesson_id NULL = top-level course, otherwise topic within a course
+  // Foreign key constraint defined in migration for self-referential relationship
+  parent_lesson_id: integer('parent_lesson_id'),
+
+  // Ordering within parent
+  order_index: integer('order_index').notNull().default(0),
+  icon: varchar('icon', { length: 10 }),
+  is_published: boolean('is_published').notNull().default(true),
+
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
   uniqueIndex('uq_lessons__slug').on(t.slug),
+  index('ix_lessons__parent').on(t.parent_lesson_id),
+  uniqueIndex('uq_lessons__parent_order').on(t.parent_lesson_id, t.order_index),
 ]);
 
 /**

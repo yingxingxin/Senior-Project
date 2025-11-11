@@ -29,6 +29,27 @@
       "when": 1760460696676,
       "tag": "0003_thin_radioactive_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1761833695694,
+      "tag": "0004_deep_zaran",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1761835051313,
+      "tag": "0005_familiar_ken_ellis",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762832109095,
+      "tag": "0006_minor_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

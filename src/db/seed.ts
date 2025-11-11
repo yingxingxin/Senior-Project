@@ -146,52 +146,124 @@ export async function seed() {
       },
     ]).onConflictDoNothing();
 
-    // Seed Programming Foundations course lessons
-    console.log("Creating Programming Foundations course lessons...");
-    const programmingFoundationsLessons = await db.insert(lessons).values([
+    // Seed top-level courses
+    console.log("Creating courses...");
+    const courses = await db.insert(lessons).values([
       {
-        slug: "programming-foundations-1-introduction",
-        title: "Introduction to Programming",
-        description: "Learn what programming is and why it matters in today's world",
+        slug: "programming-foundations",
+        title: "Programming Foundations",
+        description: "Learn the fundamentals of programming from scratch. Perfect for beginners!",
         difficulty: "easy",
-        estimated_duration_sec: 1800, // 30 minutes
+        estimated_duration_sec: 14400, // 4 hours total
+        icon: "💻",
+        order_index: 1,
+        is_published: true,
+        parent_lesson_id: null,
       },
       {
-        slug: "programming-foundations-2-variables",
-        title: "Variables and Data Types",
-        description: "Understand how to store and work with different types of data",
-        difficulty: "easy",
-        estimated_duration_sec: 2400, // 40 minutes
-      },
-      {
-        slug: "programming-foundations-3-control-structures",
-        title: "Control Structures",
-        description: "Learn to make decisions and repeat actions in your code",
+        slug: "data-structures-algorithms",
+        title: "Data Structures & Algorithms",
+        description: "Master the core data structures and algorithmic thinking.",
         difficulty: "standard",
-        estimated_duration_sec: 3000, // 50 minutes
+        estimated_duration_sec: 28800, // 8 hours total
+        icon: "🔗",
+        order_index: 2,
+        is_published: true,
+        parent_lesson_id: null,
       },
       {
-        slug: "programming-foundations-4-functions",
-        title: "Functions and Methods",
-        description: "Organize your code into reusable blocks with functions",
+        slug: "oop-principles",
+        title: "Object-Oriented Programming",
+        description: "Learn OOP principles and best practices.",
         difficulty: "standard",
-        estimated_duration_sec: 3600, // 60 minutes
-      },
-      {
-        slug: "programming-foundations-5-arrays",
-        title: "Arrays and Lists",
-        description: "Work with collections of data using arrays and lists",
-        difficulty: "standard",
-        estimated_duration_sec: 2700, // 45 minutes
+        estimated_duration_sec: 21600, // 6 hours total
+        icon: "🏗️",
+        order_index: 3,
+        is_published: true,
+        parent_lesson_id: null,
       },
     ]).onConflictDoNothing().returning();
+
+    // Seed Programming Foundations topics (lessons within course)
+    console.log("Creating Programming Foundations topics...");
+    const programmingFoundationsTopics = courses.filter(c => c.slug === "programming-foundations");
+    const programmingFoundationsCourseId = programmingFoundationsTopics[0]?.id;
+
+    let programmingFoundationsLessons: typeof lessons.$inferSelect[] = [];
+    if (programmingFoundationsCourseId) {
+      programmingFoundationsLessons = await db.insert(lessons).values([
+        {
+          slug: "programming-foundations-1-introduction",
+          title: "Introduction to Programming",
+          description: "Learn what programming is and why it matters in today's world",
+          difficulty: "easy",
+          estimated_duration_sec: 1800, // 30 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 1,
+          icon: "📚",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-2-variables",
+          title: "Variables and Data Types",
+          description: "Understand how to store and work with different types of data",
+          difficulty: "easy",
+          estimated_duration_sec: 2400, // 40 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 2,
+          icon: "📝",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-3-control-structures",
+          title: "Control Structures",
+          description: "Learn to make decisions and repeat actions in your code",
+          difficulty: "standard",
+          estimated_duration_sec: 3000, // 50 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 3,
+          icon: "🔀",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-4-functions",
+          title: "Functions and Methods",
+          description: "Organize your code into reusable blocks with functions",
+          difficulty: "standard",
+          estimated_duration_sec: 3600, // 60 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 4,
+          icon: "⚙️",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-5-arrays",
+          title: "Arrays and Lists",
+          description: "Work with collections of data using arrays and lists",
+          difficulty: "standard",
+          estimated_duration_sec: 2700, // 45 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 5,
+          icon: "📊",
+          is_published: true,
+        },
+      ]).onConflictDoNothing().returning();
+    }
 
     // Add lesson sections for Programming Foundations lessons
     if (programmingFoundationsLessons.length > 0) {
       console.log("Creating lesson sections for Programming Foundations...");
+      const createWhyItMattersSection = (lessonId: number) => ({
+        lesson_id: lessonId,
+        order_index: -1,
+        slug: "why-it-matters",
+        title: "Why it matters",
+        body_md: "# Why it matters\n\nProgramming builds computational thinking, opens career opportunities, and lets you automate everyday problems.",
+      });
       
       // Lesson 1: Introduction to Programming
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[0].id),
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 0,
@@ -217,6 +289,7 @@ export async function seed() {
 
       // Lesson 2: Variables and Data Types
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[1].id),
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 0,
@@ -242,6 +315,7 @@ export async function seed() {
 
       // Lesson 3: Control Structures
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[2].id),
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 0,
@@ -267,6 +341,7 @@ export async function seed() {
 
       // Lesson 4: Functions and Methods
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[3].id),
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 0,
@@ -292,6 +367,7 @@ export async function seed() {
 
       // Lesson 5: Arrays and Lists
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[4].id),
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 0,

@@ -1,24 +1,12 @@
 import Link from "next/link";
 import { ArrowRight, Clock, BookOpen, Users } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid } from "@/components/ui/spacing";
-import { COURSES } from "@/src/lib/constants";
+import { getCoursesWithStats } from "./_lib/actions";
+import { formatDuration } from "./_lib/utils";
 
-export default function CoursesPage() {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'advanced':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+export default async function CoursesPage() {
+  const allCourses = await getCoursesWithStats();
 
   return (
     <div 
@@ -55,7 +43,7 @@ export default function CoursesPage() {
 
           {/* Courses Grid */}
           <Grid cols={3} gap="default">
-            {COURSES.map((course) => (
+            {allCourses.map((course) => (
               <div 
                 key={course.id} 
                 style={{
@@ -118,13 +106,13 @@ export default function CoursesPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        <span>{course.estimatedDuration}</span>
+                        <span>{formatDuration(course.estimatedDurationSec)}</span>
                       </div>
                     </div>
 
                     {/* CTA Button */}
                     <Link
-                      href={`/courses/${course.id}`}
+                      href={`/courses/${course.slug}`}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
