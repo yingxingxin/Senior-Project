@@ -43,6 +43,13 @@
       "when": 1761835051313,
       "tag": "0005_familiar_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762832109095,
+      "tag": "0006_minor_valeria_richards",
+      "breakpoints": true
     }
   ]
 }
