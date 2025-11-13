@@ -59,7 +59,7 @@ export const user_preferences = pgTable('user_preferences', {
  */
 export const user_theme_settings = pgTable('user_theme_settings', {
   user_id: integer('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
-  theme_id: integer('theme_id').references(() => themes.id, { onDelete: 'set null' }),
+  active_theme_id: integer('active_theme_id').references(() => themes.id, { onDelete: 'set null' }),
   wallpaper_url: varchar('wallpaper_url', { length: 500 }),
   low_motion: boolean('low_motion').notNull().default(false),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
@@ -120,7 +120,7 @@ export const userThemeSettingsRelations = relations(user_theme_settings, ({ one 
     references: [users.id],
   }),
   theme: one(themes, {
-    fields: [user_theme_settings.theme_id],
+    fields: [user_theme_settings.active_theme_id],
     references: [themes.id],
   }),
 }));

@@ -1,14 +1,45 @@
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Stack } from "@/components/ui/spacing";
-import { Heading, Muted } from "@/components/ui/typography";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ThemeSettings } from "./_components/theme-settings";
-import { MusicSettingsTab } from "./_components/music-settings-tab";
-import { AccountSettingsTab } from "./_components/account-settings-tab";
-import { PreferencesTab } from "./_components/preferences-tab";
-import { getAllThemes, getUserThemeSettings } from "./_lib/theme-actions";
+import { Body } from "@/components/ui/typography";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Palette, Music, User, Settings as SettingsIcon } from "lucide-react";
+
+/**
+ * Settings Overview Page
+ *
+ * Landing page showing all available settings sections as cards.
+ * Users can click a card to navigate to that settings section.
+ */
+
+const SETTINGS_SECTIONS = [
+  {
+    title: "Themes",
+    description: "Customize colors, typography, and visual appearance",
+    href: "/settings/themes",
+    icon: Palette,
+  },
+  {
+    title: "Music",
+    description: "Configure background music and audio preferences",
+    href: "/settings/music",
+    icon: Music,
+  },
+  {
+    title: "Account",
+    description: "Manage your profile, email, and account security",
+    href: "/settings/account",
+    icon: User,
+  },
+  {
+    title: "Preferences",
+    description: "Set learning goals, difficulty, and notifications",
+    href: "/settings/preferences",
+    icon: SettingsIcon,
+  },
+];
 
 export default async function SettingsPage() {
   const session = await auth.api.getSession({
@@ -19,55 +50,36 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  const userId = Number(session.user.id);
-  const user = session.user;
-
-  // Fetch themes and user theme settings
-  const [themes, userThemeSettings] = await Promise.all([
-    getAllThemes(),
-    getUserThemeSettings(userId),
-  ]);
-
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <Stack gap="loose">
-        {/* Page Header */}
-        <div>
-          <Heading level={1}>Settings</Heading>
-          <Muted>Manage your account and preferences</Muted>
-        </div>
+    <Stack gap="default">
+      <Body>Choose a settings section to get started.</Body>
 
-        {/* Settings Tabs */}
-        <Tabs defaultValue="themes" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="themes">Themes</TabsTrigger>
-            <TabsTrigger value="music">Music</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="themes" className="mt-6">
-            <ThemeSettings
-              themes={themes}
-              userThemeSettings={userThemeSettings}
-              userId={userId}
-            />
-          </TabsContent>
-
-          <TabsContent value="music" className="mt-6">
-            <MusicSettingsTab userId={userId} />
-          </TabsContent>
-
-          <TabsContent value="account" className="mt-6">
-            <AccountSettingsTab user={user} userId={userId} />
-          </TabsContent>
-
-          <TabsContent value="preferences" className="mt-6">
-            <PreferencesTab userId={userId} />
-          </TabsContent>
-        </Tabs>
-      </Stack>
-    </main>
+      {/* Settings Section Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {SETTINGS_SECTIONS.map((section) => {
+          const Icon = section.icon;
+          return (
+            <Link key={section.href} href={section.href}>
+              <Card className="h-full transition-colors hover:bg-muted/50 cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle>{section.title}</CardTitle>
+                      <CardDescription className="mt-1.5">
+                        {section.description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+    </Stack>
   );
 }
 

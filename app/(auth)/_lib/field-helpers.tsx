@@ -6,6 +6,7 @@ import { Eye, EyeOff } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldContent, FieldError } from "@/components/ui/field"
+import { ErrorAlert } from "@/components/ui/error-alert"
 
 type BaseFieldProps<TFieldValues extends FieldValues> = {
   name: FieldPath<TFieldValues>
@@ -133,7 +134,12 @@ function PasswordField<TFieldValues extends FieldValues>({
  * RootError Component
  *
  * Displays root-level form errors (e.g., server errors from authentication failure).
- * Extracted from form.tsx and adapted for field.tsx styling.
+ * Uses the ErrorAlert component for consistent, subtle error styling.
+ *
+ * Design decisions:
+ * - Uses ErrorAlert for consistency across the app
+ * - Supports custom render function for specialized error formatting
+ * - Checks multiple error paths (root.serverError, root) for flexibility
  */
 function RootError({
   name = ["root.serverError", "root"],
@@ -166,17 +172,22 @@ function RootError({
 
   if (!messageValue) return null
 
-  const body = render ? render(String(messageValue)) : String(messageValue)
+  // If custom render function provided, use legacy styling for backward compatibility
+  if (render) {
+    const body = render(String(messageValue))
+    return (
+      <div
+        role="alert"
+        aria-live="polite"
+        className={className || "rounded border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"}
+      >
+        • {body}
+      </div>
+    )
+  }
 
-  return (
-    <div
-      role="alert"
-      aria-live="polite"
-      className={className || "rounded border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"}
-    >
-      • {body}
-    </div>
-  )
+  // Use ErrorAlert component for consistent styling
+  return <ErrorAlert message={String(messageValue)} className={className} />
 }
 
 export { EmailField, PasswordField, RootError }

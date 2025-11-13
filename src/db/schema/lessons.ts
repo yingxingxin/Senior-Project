@@ -205,14 +205,78 @@ export const themes = pgTable('themes', {
   id: serial('id').primaryKey(),
   slug: varchar('slug', { length: 64 }).notNull(),
   name: varchar('name', { length: 100 }).notNull(),
+  // Original fields (kept for backward compatibility)
   radius: varchar('radius', { length: 8 }),
   font: varchar('font', { length: 64 }),
-  primary: varchar('primary', { length: 16 }),
-  secondary: varchar('secondary', { length: 16 }),
-  accent: varchar('accent', { length: 16 }),
+  primary: varchar('primary', { length: 32 }),
+  secondary: varchar('secondary', { length: 32 }),
+  accent: varchar('accent', { length: 32 }),
+  // Extended color fields (kept for backward compatibility)
+  base_bg: varchar('base_bg', { length: 32 }),
+  base_fg: varchar('base_fg', { length: 32 }),
+  card_bg: varchar('card_bg', { length: 32 }),
+  card_fg: varchar('card_fg', { length: 32 }),
+  popover_bg: varchar('popover_bg', { length: 32 }),
+  popover_fg: varchar('popover_fg', { length: 32 }),
+  muted_bg: varchar('muted_bg', { length: 32 }),
+  muted_fg: varchar('muted_fg', { length: 32 }),
+  destructive_bg: varchar('destructive_bg', { length: 32 }),
+  destructive_fg: varchar('destructive_fg', { length: 32 }),
+  // Light mode color variants
+  primary_light: varchar('primary_light', { length: 32 }),
+  secondary_light: varchar('secondary_light', { length: 32 }),
+  accent_light: varchar('accent_light', { length: 32 }),
+  base_bg_light: varchar('base_bg_light', { length: 32 }),
+  base_fg_light: varchar('base_fg_light', { length: 32 }),
+  card_bg_light: varchar('card_bg_light', { length: 32 }),
+  card_fg_light: varchar('card_fg_light', { length: 32 }),
+  popover_bg_light: varchar('popover_bg_light', { length: 32 }),
+  popover_fg_light: varchar('popover_fg_light', { length: 32 }),
+  muted_bg_light: varchar('muted_bg_light', { length: 32 }),
+  muted_fg_light: varchar('muted_fg_light', { length: 32 }),
+  destructive_bg_light: varchar('destructive_bg_light', { length: 32 }),
+  destructive_fg_light: varchar('destructive_fg_light', { length: 32 }),
+  // Dark mode color variants
+  primary_dark: varchar('primary_dark', { length: 32 }),
+  secondary_dark: varchar('secondary_dark', { length: 32 }),
+  accent_dark: varchar('accent_dark', { length: 32 }),
+  base_bg_dark: varchar('base_bg_dark', { length: 32 }),
+  base_fg_dark: varchar('base_fg_dark', { length: 32 }),
+  card_bg_dark: varchar('card_bg_dark', { length: 32 }),
+  card_fg_dark: varchar('card_fg_dark', { length: 32 }),
+  popover_bg_dark: varchar('popover_bg_dark', { length: 32 }),
+  popover_fg_dark: varchar('popover_fg_dark', { length: 32 }),
+  muted_bg_dark: varchar('muted_bg_dark', { length: 32 }),
+  muted_fg_dark: varchar('muted_fg_dark', { length: 32 }),
+  destructive_bg_dark: varchar('destructive_bg_dark', { length: 32 }),
+  destructive_fg_dark: varchar('destructive_fg_dark', { length: 32 }),
+  // Typography fields
+  font_sans: varchar('font_sans', { length: 128 }),
+  font_serif: varchar('font_serif', { length: 128 }),
+  font_mono: varchar('font_mono', { length: 128 }),
+  letter_spacing: real('letter_spacing'),
+  // Advanced styling
+  hue_shift: integer('hue_shift').default(0),
+  saturation_adjust: integer('saturation_adjust').default(0),
+  lightness_adjust: integer('lightness_adjust').default(0),
+  spacing_scale: real('spacing_scale').default(1),
+  shadow_strength: varchar('shadow_strength', { length: 16 }).default('medium'),
+  // Metadata
+  is_dark_mode: boolean('is_dark_mode').default(false), // Kept for backward compatibility
+  supports_both_modes: boolean('supports_both_modes').default(false), // New unified format flag
+  parent_theme_id: integer('parent_theme_id').references(() => themes.id),
+  user_id: integer('user_id').references(() => users.id),
+  is_built_in: boolean('is_built_in').default(false),
 }, (t) => [
   uniqueIndex('uq_themes__slug').on(t.slug),
 ]);
+
+export const userThemeSettings = pgTable('user_theme_settings', {
+  user_id: integer('user_id').primaryKey().references(() => users.id),
+  active_theme_id: integer('active_theme_id').references(() => themes.id),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
 
 // ============ RELATIONS ============
 

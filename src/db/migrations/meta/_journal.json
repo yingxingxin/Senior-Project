@@ -50,6 +50,20 @@
       "when": 1762832109095,
       "tag": "0006_minor_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1762895058293,
+      "tag": "0007_chunky_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1762984470412,
+      "tag": "0008_numerous_scalphunter",
+      "breakpoints": true
     }
   ]
 }

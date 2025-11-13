@@ -69,16 +69,7 @@ export default function Navbar({ data }: NavbarProps) {
   };
 
   return (
-    <nav style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-      background: 'rgba(26, 26, 46, 0.8)',
-      backdropFilter: 'blur(20px)',
-      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-      animation: 'fade-in-down 400ms ease-out'
-    }}>
+    <nav className="sticky top-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-xl animate-[fade-in-down_400ms_ease-out]">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Left: Logo and Navigation */}
@@ -87,20 +78,10 @@ export default function Navbar({ data }: NavbarProps) {
               href="/home"
               className="flex items-center gap-2.5"
             >
-                  <div 
-                    style={{
-                      height: '36px',
-                      width: '36px',
-                      borderRadius: '12px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      display: 'grid',
-                      placeItems: 'center',
-                      boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
-                      animation: 'logo-pulse 4s ease-in-out infinite'
-                    }}>
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 grid place-items-center shadow-lg shadow-primary/30 animate-[logo-pulse_4s_ease-in-out_infinite]">
                 <Bot className="h-5 w-5 text-white" />
               </div>
-              <Heading level={4} as="span" style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600'}}>
+              <Heading level={4} as="span" className="text-foreground font-semibold">
                 Sprite.exe
               </Heading>
             </Link>
@@ -114,23 +95,11 @@ export default function Navbar({ data }: NavbarProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 14px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-                      textDecoration: 'none',
-                      transition: 'all 0.2s ease',
-                      background: isActive ? 'rgba(102, 126, 234, 0.2)' : 'transparent',
-                      color: isActive ? '#ffffff' : '#94a3b8',
-                      border: isActive ? '1px solid rgba(102, 126, 234, 0.3)' : '1px solid transparent',
-                      transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
-                      boxShadow: isActive ? '0 6px 20px rgba(102,126,234,0.25)' : 'none'
-                    }}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-primary/20 text-foreground border border-primary/30 -translate-y-px shadow-lg shadow-primary/25'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
+                    }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
@@ -144,42 +113,25 @@ export default function Navbar({ data }: NavbarProps) {
           <div className="flex items-center gap-3">
             {/* Quick Stats - Simplified */}
             <div className="hidden lg:flex items-center gap-2">
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '12px',
-                background: 'rgba(245, 158, 11, 0.1)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-              }}>
-                <Flame className="h-4 w-4" style={{color: '#f59e0b'}} />
-                <span style={{fontSize: '14px', fontWeight: '600', color: '#ffffff'}}>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <Flame className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-semibold text-foreground">
                   {userStats.streak}
                 </span>
               </div>
 
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '12px',
-                background: (search?.get('xpGained') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)'),
-                border: (search?.get('xpGained') ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)'),
-                fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-              }}>
-                <Trophy className="h-4 w-4" style={{color: '#a78bfa'}} />
-                <span style={{fontSize: '14px', fontWeight: '600', color: '#ffffff', display: 'flex', alignItems: 'center', gap: 6}}>
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${
+                search?.get('xpGained')
+                  ? 'bg-emerald-500/15 border-emerald-500/40'
+                  : 'bg-muted/50 border-border'
+              }`}>
+                <Trophy className="h-4 w-4 text-purple-400" />
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                   Lvl {userStats.level}
                   {search?.get('xpGained') && (
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                      padding: '2px 6px', borderRadius: 6,
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: 12,
-                      border: '1px solid rgba(255,255,255,0.15)'
-                    }}>+{search.get('xpGained')} XP</span>
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-xs border border-white/15">
+                      +{search.get('xpGained')} XP
+                    </span>
                   )}
                 </span>
               </div>
@@ -201,173 +153,73 @@ export default function Navbar({ data }: NavbarProps) {
             </button>
 
             {/* Notifications */}
-            <button 
-              style={{
-                position: 'relative',
-                padding: '8px',
-                borderRadius: '12px',
-                color: '#94a3b8',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-              }}
->
+            <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
               <Bell className="h-5 w-5" />
-              <span style={{
-                position: 'absolute',
-                top: '6px',
-                right: '6px',
-                height: '8px',
-                width: '8px',
-                borderRadius: '50%',
-                background: '#667eea'
-              }} />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
             </button>
 
             {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button 
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '4px',
-                    borderRadius: '50%',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
->
-                  <Avatar style={{
-                    height: '36px',
-                    width: '36px',
-                    border: '2px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '50%'
-                  }}>
+                <button className="relative flex items-center gap-2 p-1 rounded-full hover:opacity-80 transition-all">
+                  <Avatar className="h-9 w-9 border-2 border-border/20">
                     <AvatarImage src={userData.avatarUrl || undefined} alt={userData.name} />
-                    <AvatarFallback style={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: '#ffffff',
-                      fontWeight: '600',
-                      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                    }}>
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
                       {userData.initials}
                     </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{
-                width: '224px',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                background: 'rgba(26, 26, 46, 0.95)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-              }}>
-                <div style={{
-                  padding: '12px 16px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                }}>
-                  <Heading level={6} as="div" style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600'}}>{userData.name}</Heading>
-                  <Muted variant="tiny" style={{color: '#94a3b8', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"}}>{userData.email}</Muted>
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl">
+                <div className="px-4 py-3 border-b border-border/50">
+                  <Heading level={6} as="div" className="text-foreground font-semibold">{userData.name}</Heading>
+                  <Muted variant="tiny" className="text-muted-foreground">{userData.email}</Muted>
                 </div>
 
                 {/* Mobile Stats */}
-                <div style={{
-                  display: 'none',
-                  padding: '12px 16px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                  fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                }} className="lg:hidden">
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
-                    <span style={{fontSize: '14px', color: '#94a3b8'}}>Level</span>
-                    <span style={{fontSize: '14px', fontWeight: '600', color: '#ffffff'}}>{userStats.level}</span>
+                <div className="lg:hidden px-4 py-3 border-b border-border/50 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Level</span>
+                    <span className="text-sm font-semibold text-foreground">{userStats.level}</span>
                   </div>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
-                    <span style={{fontSize: '14px', color: '#94a3b8'}}>Streak</span>
-                    <span style={{fontSize: '14px', fontWeight: '600', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '4px'}}>
-                      <Flame className="h-3.5 w-3.5" style={{color: '#f59e0b'}} />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Streak</span>
+                    <span className="text-sm font-semibold text-foreground flex items-center gap-1">
+                      <Flame className="h-3.5 w-3.5 text-amber-500" />
                       {userStats.streak} days
                     </span>
                   </div>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <span style={{fontSize: '14px', color: '#94a3b8'}}>Points</span>
-                    <span style={{fontSize: '14px', fontWeight: '600', color: '#ffffff'}}>{userStats.points.toLocaleString()}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Points</span>
+                    <span className="text-sm font-semibold text-foreground">{userStats.points.toLocaleString()}</span>
                   </div>
                 </div>
 
-                <div style={{padding: '4px 0'}}>
-                  <DropdownMenuItem asChild style={{
-                    padding: '8px 16px',
-                    color: '#e8e8e8',
-                    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                  }}>
-                    <Link href="/profile" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      textDecoration: 'none',
-                      color: '#e8e8e8'
-                    }}>
+                <div className="py-1">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
                       <User className="h-4 w-4" />
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild style={{
-                    padding: '8px 16px',
-                    color: '#e8e8e8',
-                    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                  }}>
-                    <Link href="/achievements" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      textDecoration: 'none',
-                      color: '#e8e8e8'
-                    }}>
+                  <DropdownMenuItem asChild>
+                    <Link href="/achievements" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
                       <Trophy className="h-4 w-4" />
                       <span>Achievements</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild style={{
-                    padding: '8px 16px',
-                    color: '#e8e8e8',
-                    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
-                  }}>
-                    <Link href="/settings" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      textDecoration: 'none',
-                      color: '#e8e8e8'
-                    }}>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
                       <Settings className="h-4 w-4" />
                       <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
                 </div>
 
-                <div style={{
-                  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                  padding: '4px 0'
-                }}>
+                <div className="border-t border-border/50 py-1">
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    style={{
-                      padding: '8px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: '#ef4444',
-                      fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-                      cursor: 'pointer'
-                    }}
+                    className="flex items-center gap-2.5 px-4 py-2 text-destructive hover:bg-destructive/10 cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign out</span>

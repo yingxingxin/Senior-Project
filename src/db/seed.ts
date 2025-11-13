@@ -1,5 +1,6 @@
 import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
+import { BUILT_IN_THEMES } from '@/app/(app)/settings/_components/theme-editor/built-in-themes';
 import { eq } from 'drizzle-orm';
 
 export async function seed() {
@@ -392,37 +393,163 @@ export async function seed() {
       ]).onConflictDoNothing();
     }
 
-    // Seed themes
-    console.log("Creating themes...");
-    await db.insert(themes).values([
-      {
-        slug: "light",
-        name: "Light",
-        radius: "0.5",
-        font: "Inter",
-        primary: "#0066cc",
-        secondary: "#f5f5f5",
-        accent: "#00a86b",
-      },
-      {
-        slug: "dark",
-        name: "Dark",
-        radius: "0.5",
-        font: "Inter",
-        primary: "#3b82f6",
-        secondary: "#1e1e1e",
-        accent: "#10b981",
-      },
-      {
-        slug: "midnight",
-        name: "Midnight",
-        radius: "0.75",
-        font: "Inter",
-        primary: "#8b5cf6",
-        secondary: "#0f0f23",
-        accent: "#f59e0b",
-      },
-    ]).onConflictDoNothing();
+    // Seed built-in themes with unified format
+    // Each theme contains both light and dark variants in a single record
+    console.log("Creating built-in themes...");
+
+    // Build unified theme records from BUILT_IN_THEMES (7 themes, not 14)
+    // Each theme now has *_light and *_dark color fields
+    const themeRecords = [];
+    for (const theme of BUILT_IN_THEMES) {
+      themeRecords.push({
+        slug: theme.slug,
+        name: theme.name,
+
+        // Legacy color tokens (using light mode as default for backward compatibility)
+        primary: theme.primary,
+        secondary: theme.secondary,
+        accent: theme.accent,
+        base_bg: theme.base_bg,
+        base_fg: theme.base_fg,
+        card_bg: theme.card_bg,
+        card_fg: theme.card_fg,
+        popover_bg: theme.popover_bg,
+        popover_fg: theme.popover_fg,
+        muted_bg: theme.muted_bg,
+        muted_fg: theme.muted_fg,
+        destructive_bg: theme.destructive_bg,
+        destructive_fg: theme.destructive_fg,
+
+        // Light mode colors
+        primary_light: theme.primary_light,
+        secondary_light: theme.secondary_light,
+        accent_light: theme.accent_light,
+        base_bg_light: theme.base_bg_light,
+        base_fg_light: theme.base_fg_light,
+        card_bg_light: theme.card_bg_light,
+        card_fg_light: theme.card_fg_light,
+        popover_bg_light: theme.popover_bg_light,
+        popover_fg_light: theme.popover_fg_light,
+        muted_bg_light: theme.muted_bg_light,
+        muted_fg_light: theme.muted_fg_light,
+        destructive_bg_light: theme.destructive_bg_light,
+        destructive_fg_light: theme.destructive_fg_light,
+
+        // Dark mode colors
+        primary_dark: theme.primary_dark,
+        secondary_dark: theme.secondary_dark,
+        accent_dark: theme.accent_dark,
+        base_bg_dark: theme.base_bg_dark,
+        base_fg_dark: theme.base_fg_dark,
+        card_bg_dark: theme.card_bg_dark,
+        card_fg_dark: theme.card_fg_dark,
+        popover_bg_dark: theme.popover_bg_dark,
+        popover_fg_dark: theme.popover_fg_dark,
+        muted_bg_dark: theme.muted_bg_dark,
+        muted_fg_dark: theme.muted_fg_dark,
+        destructive_bg_dark: theme.destructive_bg_dark,
+        destructive_fg_dark: theme.destructive_fg_dark,
+
+        // Typography
+        font: theme.font,
+        font_sans: theme.font_sans,
+        font_serif: theme.font_serif,
+        font_mono: theme.font_mono,
+        letter_spacing: theme.letter_spacing,
+
+        // Layout & styling
+        radius: theme.radius,
+        hue_shift: theme.hue_shift,
+        saturation_adjust: theme.saturation_adjust,
+        lightness_adjust: theme.lightness_adjust,
+        spacing_scale: theme.spacing_scale,
+        shadow_strength: theme.shadow_strength,
+
+        // Metadata - unified format
+        is_built_in: true,
+        supports_both_modes: true,
+        user_id: null,
+        parent_theme_id: null,
+      });
+    }
+
+    // Insert with upsert to update existing themes
+    for (const themeRecord of themeRecords) {
+      await db.insert(themes)
+        .values(themeRecord)
+        .onConflictDoUpdate({
+          target: themes.slug,
+          set: {
+            name: themeRecord.name,
+
+            // Legacy fields
+            primary: themeRecord.primary,
+            secondary: themeRecord.secondary,
+            accent: themeRecord.accent,
+            base_bg: themeRecord.base_bg,
+            base_fg: themeRecord.base_fg,
+            card_bg: themeRecord.card_bg,
+            card_fg: themeRecord.card_fg,
+            popover_bg: themeRecord.popover_bg,
+            popover_fg: themeRecord.popover_fg,
+            muted_bg: themeRecord.muted_bg,
+            muted_fg: themeRecord.muted_fg,
+            destructive_bg: themeRecord.destructive_bg,
+            destructive_fg: themeRecord.destructive_fg,
+
+            // Light mode colors
+            primary_light: themeRecord.primary_light,
+            secondary_light: themeRecord.secondary_light,
+            accent_light: themeRecord.accent_light,
+            base_bg_light: themeRecord.base_bg_light,
+            base_fg_light: themeRecord.base_fg_light,
+            card_bg_light: themeRecord.card_bg_light,
+            card_fg_light: themeRecord.card_fg_light,
+            popover_bg_light: themeRecord.popover_bg_light,
+            popover_fg_light: themeRecord.popover_fg_light,
+            muted_bg_light: themeRecord.muted_bg_light,
+            muted_fg_light: themeRecord.muted_fg_light,
+            destructive_bg_light: themeRecord.destructive_bg_light,
+            destructive_fg_light: themeRecord.destructive_fg_light,
+
+            // Dark mode colors
+            primary_dark: themeRecord.primary_dark,
+            secondary_dark: themeRecord.secondary_dark,
+            accent_dark: themeRecord.accent_dark,
+            base_bg_dark: themeRecord.base_bg_dark,
+            base_fg_dark: themeRecord.base_fg_dark,
+            card_bg_dark: themeRecord.card_bg_dark,
+            card_fg_dark: themeRecord.card_fg_dark,
+            popover_bg_dark: themeRecord.popover_bg_dark,
+            popover_fg_dark: themeRecord.popover_fg_dark,
+            muted_bg_dark: themeRecord.muted_bg_dark,
+            muted_fg_dark: themeRecord.muted_fg_dark,
+            destructive_bg_dark: themeRecord.destructive_bg_dark,
+            destructive_fg_dark: themeRecord.destructive_fg_dark,
+
+            // Typography
+            font: themeRecord.font,
+            font_sans: themeRecord.font_sans,
+            font_serif: themeRecord.font_serif,
+            font_mono: themeRecord.font_mono,
+            letter_spacing: themeRecord.letter_spacing,
+
+            // Layout
+            radius: themeRecord.radius,
+            hue_shift: themeRecord.hue_shift,
+            saturation_adjust: themeRecord.saturation_adjust,
+            lightness_adjust: themeRecord.lightness_adjust,
+            spacing_scale: themeRecord.spacing_scale,
+            shadow_strength: themeRecord.shadow_strength,
+
+            // Metadata
+            is_built_in: true,
+            supports_both_modes: true,
+          },
+        });
+    }
+
+    console.log(`✅ Created/updated ${themeRecords.length} built-in unified themes`);
 
     // Seed levels
     console.log("Creating levels...");

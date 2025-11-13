@@ -1,14 +1,16 @@
 "use client";
 
 import { ThemeEditor } from "./theme-editor";
-import { selectTheme, applyCustomTheme } from "../_lib/theme-actions";
-import type { Theme, UserThemeSetting } from "@/src/db/schema/lessons";
+import { selectTheme } from "../_lib/theme-actions";
+import type { Theme } from "@/src/db/schema/lessons";
+import type { UserThemeSetting } from "@/src/db/schema/preferences";
 
 /**
  * Theme Settings Client Component
  *
  * Wraps ThemeEditor with server action handlers.
  * Receives themes and user settings as props from server component.
+ * Advanced theme customization is handled via /settings/themes/editor routes.
  */
 
 interface ThemeSettingsProps {
@@ -26,16 +28,11 @@ export function ThemeSettings({
     await selectTheme(userId, themeId);
   };
 
-  const handleThemeCustomize = async (customTheme: Partial<Theme>) => {
-    await applyCustomTheme(userId, customTheme);
-  };
-
   return (
     <ThemeEditor
       themes={themes}
-      currentThemeId={userThemeSettings?.theme_id}
+      currentThemeId={userThemeSettings?.active_theme_id}
       onThemeSelect={handleThemeSelect}
-      onThemeCustomize={handleThemeCustomize}
     />
   );
 }
