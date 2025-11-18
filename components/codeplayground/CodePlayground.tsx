@@ -151,7 +151,7 @@ export default function CodePlayground(): JSX.Element {
         const ex: Exercise | undefined = getById(exerciseId);
         if (!ex) return;
 
-        // 🔹 NEW: generate dynamic prompt/expected if this exercise supports it
+
         if (ex.generate) {
             setGeneratedEx(ex.generate());
         } else {
@@ -222,8 +222,38 @@ export default function CodePlayground(): JSX.Element {
     };
 
     async function saveTimedRun(elapsed: number) {
-        // TODO: implement API call + database save in part three
-        console.log('Timed run completed in', elapsed, 'ms');
+        try {
+            // make sure we have the data we need
+            if (!exerciseId || !lang) {
+                console.warn("Missing exerciseId or lang, skipping save");
+                return;
+            }
+
+            const res = await fetch("/api/timed-runs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    exerciseId,
+                    lang,
+                    elapsedMs: elapsed,
+                }),
+            });
+
+            if (!res.ok) {
+                console.error("Timed run save failed:", await res.text());
+                return;
+            }
+
+            const data: { ok: boolean; bestMs: number } = await res.json();
+            console.log("Saved timed run:", data);
+
+            if (data.ok) {
+                // update the UI with the best time we got back from the API
+                setBestTimeMs(data.bestMs);
+            }
+        } catch (err) {
+            console.error("Error calling /api/timed-runs:", err);
+        }
     }
 
     // ===================== Runners =====================
@@ -392,18 +422,17 @@ export default function CodePlayground(): JSX.Element {
 
                 // ===== Timed run completion (stdout mode) =====
                 if (mode === 'exercise' && timedRunActive && runStartMs != null && ok) {
-                    const elapsed = Date.now() - runStartMs;
+                    const elapsed: number = Date.now() - runStartMs;
 
                     setElapsedMs(elapsed);
                     setTimedRunActive(false);
                     setRunStartMs(null);
 
-                    setBestTimeMs(prev =>
-                        prev == null ? elapsed : Math.min(prev, elapsed)
-                    );
+                    // Save to database (important: await so it's guaranteed to send)
+                    await saveTimedRun(elapsed);
 
-                    // Comment this in when your /api/timed-run endpoint is ready:
-                    // void saveTimedRun(elapsed);
+                    // Update UI best time (from DB or fallback to local calc)
+                    setBestTimeMs(prev => (prev == null ? elapsed : Math.min(prev, elapsed)));
                 }
             } else if (ex_expected.mode === 'html') {
                 const ok: boolean = (ex_expected.requiredText ?? []).every((t: string) =>
@@ -414,17 +443,17 @@ export default function CodePlayground(): JSX.Element {
 
                 // Timed run completion for HTML mode
                 if (mode === 'exercise' && timedRunActive && runStartMs != null && ok) {
-                    const elapsed = Date.now() - runStartMs;
+                    const elapsed: number = Date.now() - runStartMs;
 
                     setElapsedMs(elapsed);
                     setTimedRunActive(false);
                     setRunStartMs(null);
 
-                    setBestTimeMs(prev =>
-                        prev == null ? elapsed : Math.min(prev, elapsed)
-                    );
+                    // Save to database (important: await so it's guaranteed to send)
+                    await saveTimedRun(elapsed);
 
-                    void saveTimedRun(elapsed);
+                    // Update UI best time (from DB or fallback to local calc)
+                    setBestTimeMs(prev => (prev == null ? elapsed : Math.min(prev, elapsed)));
                 }
             }
         }
