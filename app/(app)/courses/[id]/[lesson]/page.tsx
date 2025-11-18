@@ -50,7 +50,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <Stack gap="default" className="text-center">
           <Heading level={2}>No sections found</Heading>
           <Body className="text-muted-foreground">
-            This lesson doesn't have any content yet.
+            This lesson doesn&apos;t have any content yet.
           </Body>
         </Stack>
       </div>
@@ -70,7 +70,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
 /**
  * Detect section type from slug
  */
-function detectSectionType(slug: string) {
+function detectSectionType(
+  slug: string
+): "reading" | "flip-cards" | "quiz" | "exercise" {
   if (slug.includes("why-it-matters") || slug.includes("flip")) {
     return "flip-cards";
   }
@@ -84,10 +86,29 @@ function detectSectionType(slug: string) {
 }
 
 /**
- * Parse metadata from section content
+ * Metadata structure for different section types
  */
-function parseMetadata(slug: string, body: string) {
-  const metadata: Record<string, any> = {};
+type SectionMetadata = {
+  description?: string;
+  instructions?: string;
+  cards?: Array<{ front: string; back: string }>;
+  questions?: Array<{
+    id: string;
+    question: string;
+    options: Array<{ id: string; label: string }>;
+    correctOptionId: string;
+    explanation: string;
+  }>;
+  exerciseType?: string;
+  items?: Array<{ id: string; label: string; correctPosition: number }>;
+};
+
+/**
+ * Parse metadata from section content
+ * @param _body - Section body content (currently unused, hardcoded metadata for demo)
+ */
+function parseMetadata(slug: string, _body: string): SectionMetadata {
+  const metadata: SectionMetadata = {};
 
   // Pre-configured metadata for known sections
   if (slug === "why-it-matters") {

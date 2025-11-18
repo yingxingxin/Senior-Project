@@ -7,7 +7,8 @@
 
 import {
   pgTable, serial, varchar, text, integer, real,
-  timestamp, pgEnum, uniqueIndex, index, check, primaryKey, boolean
+  timestamp, pgEnum, uniqueIndex, index, check, primaryKey, boolean,
+  type AnyPgColumn
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { difficultyEnum } from './enums';
@@ -264,7 +265,7 @@ export const themes = pgTable('themes', {
   // Metadata
   is_dark_mode: boolean('is_dark_mode').default(false), // Kept for backward compatibility
   supports_both_modes: boolean('supports_both_modes').default(false), // New unified format flag
-  parent_theme_id: integer('parent_theme_id').references(() => themes.id),
+  parent_theme_id: integer('parent_theme_id').references((): AnyPgColumn => themes.id),
   user_id: integer('user_id').references(() => users.id),
   is_built_in: boolean('is_built_in').default(false),
 }, (t) => [

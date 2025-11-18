@@ -129,10 +129,11 @@ export default function EditorLayout({
           if (field in updates) {
             const suffix = isDark ? '_dark' : '_light';
             const targetField = `${field}${suffix}` as keyof AdvancedTheme;
-            mappedUpdates[targetField] = updates[field as keyof AdvancedTheme] as string | null;
+            const value = updates[field as keyof AdvancedTheme];
+            (mappedUpdates as Record<string, unknown>)[targetField] = value ?? undefined;
 
             // Also update the legacy field for backward compatibility
-            mappedUpdates[field as keyof AdvancedTheme] = updates[field as keyof AdvancedTheme];
+            (mappedUpdates as Record<string, unknown>)[field] = value ?? undefined;
           }
         });
       }

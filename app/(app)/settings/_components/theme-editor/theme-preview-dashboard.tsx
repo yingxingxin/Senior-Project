@@ -33,7 +33,7 @@ export function ThemePreviewDashboard({ theme }: ThemePreviewDashboardProps) {
     "--preview-destructive": `hsl(${theme.destructive_bg})`,
     "--preview-radius": theme.radius,
     "--preview-font-sans": theme.font_sans,
-    fontFamily: theme.font_sans,
+    fontFamily: theme.font_sans ?? undefined,
     letterSpacing: `${theme.letter_spacing}em`,
   } as React.CSSProperties;
 
@@ -184,20 +184,20 @@ export function ThemePreviewDashboard({ theme }: ThemePreviewDashboardProps) {
         <div className="space-y-2">
           <p
             className="text-xl font-semibold"
-            style={{ fontFamily: theme.font_sans }}
+            style={{ fontFamily: theme.font_sans ?? undefined }}
           >
             Sans-Serif Heading
           </p>
           <p
             className="text-lg"
-            style={{ fontFamily: theme.font_serif }}
+            style={{ fontFamily: theme.font_serif ?? undefined }}
           >
             Serif Body Text
           </p>
           <code
             className="text-sm block"
             style={{
-              fontFamily: theme.font_mono,
+              fontFamily: theme.font_mono ?? undefined,
               backgroundColor: "var(--preview-muted-bg)",
               padding: "0.5rem",
               borderRadius: "var(--preview-radius)",

@@ -24,7 +24,6 @@ export function SectionNavigator({
   canProceed = true,
 }: SectionNavigatorProps) {
   const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < totalSections - 1;
   const progress = Math.round(((currentIndex + 1) / totalSections) * 100);
 
   return (

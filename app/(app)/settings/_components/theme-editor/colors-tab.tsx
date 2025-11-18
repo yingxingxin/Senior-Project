@@ -72,13 +72,13 @@ export function ColorsTab({ theme, onChange }: ColorsTabProps) {
           {primaryColors.map((color) => (
             <ColorPickerItem
               key={color.key}
-              colorKey={color.key}
+              colorKey={color.key as string}
               label={color.label}
               description={color.description}
               value={(theme[color.key] as string) ?? "220 70% 50%"}
               onChange={(value) => handleColorChange(color.key, value)}
               isExpanded={expandedColorKey === color.key}
-              onToggleExpanded={() => handleToggleExpanded(color.key)}
+              onToggleExpanded={() => handleToggleExpanded(color.key as string)}
             />
           ))}
         </div>
@@ -93,13 +93,13 @@ export function ColorsTab({ theme, onChange }: ColorsTabProps) {
           {semanticColors.map((color) => (
             <ColorPickerItem
               key={color.key}
-              colorKey={color.key}
+              colorKey={color.key as string}
               label={color.label}
               description={color.description}
               value={(theme[color.key] as string) ?? "220 70% 50%"}
               onChange={(value) => handleColorChange(color.key, value)}
               isExpanded={expandedColorKey === color.key}
-              onToggleExpanded={() => handleToggleExpanded(color.key)}
+              onToggleExpanded={() => handleToggleExpanded(color.key as string)}
             />
           ))}
         </div>
@@ -117,13 +117,13 @@ export function ColorsTab({ theme, onChange }: ColorsTabProps) {
           {surfaceColors.map((color) => (
             <ColorPickerItem
               key={color.key}
-              colorKey={color.key}
+              colorKey={color.key as string}
               label={color.label}
               description={color.description}
               value={(theme[color.key] as string) ?? "0 0% 100%"}
               onChange={(value) => handleColorChange(color.key, value)}
               isExpanded={expandedColorKey === color.key}
-              onToggleExpanded={() => handleToggleExpanded(color.key)}
+              onToggleExpanded={() => handleToggleExpanded(color.key as string)}
             />
           ))}
         </div>

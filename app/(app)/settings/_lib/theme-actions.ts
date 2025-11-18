@@ -122,6 +122,7 @@ export async function getDefaultTheme(): Promise<Theme> {
       shadow_strength: "medium",
 
       // Metadata - unified format
+      is_dark_mode: false,
       supports_both_modes: true,
       is_built_in: true,
       parent_theme_id: null,

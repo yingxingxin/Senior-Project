@@ -34,15 +34,16 @@ function flattenZodIssues(issues: ZodIssue[], parentPath: string[] = []): Format
 
     // Handle union errors by recursing into nested errors
     if (issue.code === "invalid_union" && "unionErrors" in issue) {
+      const unionErrors = issue.unionErrors as Array<{ issues: ZodIssue[] }>;
       // Add a summary for the union itself
       formatted.push({
         path: pathString,
-        message: `Union validation failed (tried ${issue.unionErrors.length} options)`,
+        message: `Union validation failed (tried ${unionErrors.length} options)`,
         code: issue.code,
       });
 
       // Recurse into each union option's errors
-      issue.unionErrors.forEach((unionError, index) => {
+      unionErrors.forEach((unionError, index) => {
         const nestedPath = [...fullPath, `union_option_${index + 1}`];
         formatted.push(...flattenZodIssues(unionError.issues, nestedPath));
       });
@@ -55,19 +56,17 @@ function flattenZodIssues(issues: ZodIssue[], parentPath: string[] = []): Format
       };
 
       // Add type information if available
-      if (issue.code === "invalid_type") {
-        error.expected = issue.expected;
-        error.received = issue.received;
+      if ("expected" in issue && "received" in issue) {
+        error.expected = String(issue.expected);
+        error.received = String(issue.received);
       }
 
-      // Add literal/enum values if available
-      if (issue.code === "invalid_literal" && "expected" in issue) {
-        error.expected = JSON.stringify(issue.expected);
-      }
-
-      if (issue.code === "invalid_enum_value" && "options" in issue) {
-        error.expected = `one of: ${issue.options.join(", ")}`;
-        error.received = JSON.stringify(issue.received);
+      // Add enum values if available (options property indicates an enum/union error)
+      if ("options" in issue) {
+        error.expected = `one of: ${(issue.options as string[]).join(", ")}`;
+        if ("received" in issue) {
+          error.received = JSON.stringify(issue.received);
+        }
       }
 
       formatted.push(error);
