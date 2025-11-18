@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 // Adjust these imports to match where you keep exercise + lang data:
 import { EXERCISES } from '@/components/codeplayground/exercises';
+import { formatMs } from "@/lib/utils"
 
 type LeaderboardEntry = {
     userId: number;
@@ -17,8 +18,13 @@ type LeaderboardEntry = {
 const LANG_OPTIONS = [
     { value: 'all', label: 'All languages' },
     { value: 'javascript', label: 'JavaScript' },
+    { value: 'typescript', label: 'TypeScript' },
     { value: 'python', label: 'Python' },
-    // add any others you support
+    { value: 'html', label: 'HTML' },
+    { value: 'sql', label: 'SQL' },
+    { value: 'c', label: 'C' },
+    { value: 'cpp', label: 'C++' },
+    { value: 'java', label: 'Java' }
 ];
 
 export default function LeaderboardPage() {
@@ -106,7 +112,7 @@ export default function LeaderboardPage() {
                         <th className="px-3 py-2 text-left">User</th>
                         <th className="px-3 py-2 text-left">Email</th>
                         <th className="px-3 py-2 text-left">Language</th>
-                        <th className="px-3 py-2 text-right">Best time (ms)</th>
+                        <th className="px-3 py-2 text-right">Best time (mm:ss.ms)</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -145,7 +151,7 @@ export default function LeaderboardPage() {
                                 <td className="px-3 py-2">{entry.name ?? '(no name)'}</td>
                                 <td className="px-3 py-2">{entry.email}</td>
                                 <td className="px-3 py-2">{entry.lang}</td>
-                                <td className="px-3 py-2 text-right">{entry.bestMs}</td>
+                                <td className="px-3 py-2 text-right">{formatMs(entry.bestMs)}</td>
                             </tr>
                         ))}
                     </tbody>
