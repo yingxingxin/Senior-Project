@@ -213,8 +213,8 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             <Stack gap="default">
               <Heading level={3} style={{color: '#ffffff', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: '600'}}>Course Content</Heading>
                   <Grid cols={1} gap="tight">
-                    {lessons.map((lesson, index) => (
-                      <div 
+                    {lessons.map((lesson) => (
+                      <div
                         key={lesson.id} 
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',

@@ -8,17 +8,7 @@ export default async function HomePage() {
   const data = await getExploreData();
 
   return (
-    <div 
-      className="min-h-dvh"
-      style={{
-        color: '#e8e8e8',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-        minHeight: '100vh',
-        position: 'relative',
-        background: 'linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e)',
-        backgroundSize: '400% 400%'
-      }}
-    >
+    <div className="min-h-dvh relative text-foreground animate-gradient">
       <main className="mx-auto max-w-6xl px-4 pt-6 pb-16 relative z-10">
         <Stack gap="loose">
           <div>

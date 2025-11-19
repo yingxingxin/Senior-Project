@@ -192,7 +192,7 @@ export async function completeSectionAction(params: { lessonSlug: string; sectio
     const alreadyCompleted = existingCompletion.length > 0;
 
     // Mark section complete (idempotent)
-    const inserted = await completeLessonSection(parseInt(session.user.id), sectionId);
+    await completeLessonSection(parseInt(session.user.id), sectionId);
 
     // Update last_section_id and ensure progress row exists
     await upsertProgressLastSection(parseInt(session.user.id), lessonId, sectionId);

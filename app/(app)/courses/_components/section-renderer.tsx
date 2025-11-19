@@ -10,7 +10,20 @@ export interface Section {
   title: string;
   body: string;
   type?: "reading" | "flip-cards" | "quiz" | "exercise";
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    description?: string;
+    instructions?: string;
+    cards?: Array<{ front: string; back: string }>;
+    questions?: Array<{
+      id: string;
+      question: string;
+      options: Array<{ id: string; label: string }>;
+      correctOptionId: string;
+      explanation: string;
+    }>;
+    exerciseType?: string;
+    items?: Array<{ id: string; label: string; correctPosition: number }>;
+  };
   isCompleted?: boolean;
 }
 
@@ -112,8 +125,9 @@ function WhyItMattersSection({ section, onReadyStateChange }: { section: Section
  * - Front: text
  * - Back: text
  * ---
+ * @param _body - Section body content (currently unused, returns hardcoded example data)
  */
-function parseFlipCards(body: string): Array<{ front: string; back: string }> {
+function parseFlipCards(_body: string): Array<{ front: string; back: string }> {
   // For now, return a simple example
   // This should be enhanced based on actual markdown format
   return [

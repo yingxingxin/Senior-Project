@@ -43,6 +43,12 @@ This project has been configured with:
 - `npm run db:push` - Push schema changes to database
 - `npm run db:studio` - Open Drizzle Studio to view/edit data
 
+### AI Theme Generator
+- Powered by the [Vercel AI SDK](https://sdk.vercel.ai/) (`ai`, `@ai-sdk/react`, and `@ai-sdk/openai`) configured to call [OpenRouter](https://openrouter.ai/)
+- Set `OPENROUTER_API_KEY` in `.env` (optionally override the defaults with `OPENROUTER_THEME_MODEL`, `OPENROUTER_SITE_URL`, etc.)
+- The Advanced Theme Editor's **Generate** tab streams chat responses via `/api/theme-generator`, which returns a complete theme payload through a tool call
+- When the tool call finishes, the preview automatically applies the generated colors, fonts, and spacing so you can fine-tune them in the other tabs
+
 ## Getting Started
 
 First, run the development server:

@@ -1,0 +1,27 @@
+ALTER TABLE "themes" ADD COLUMN "primary_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "secondary_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "accent_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "base_bg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "base_fg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "card_bg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "card_fg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "popover_bg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "popover_fg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "muted_bg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "muted_fg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "destructive_bg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "destructive_fg_light" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "primary_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "secondary_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "accent_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "base_bg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "base_fg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "card_bg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "card_fg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "popover_bg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "popover_fg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "muted_bg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "muted_fg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "destructive_bg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "destructive_fg_dark" varchar(32);--> statement-breakpoint
+ALTER TABLE "themes" ADD COLUMN "supports_both_modes" boolean DEFAULT false;
