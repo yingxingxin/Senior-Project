@@ -28,8 +28,17 @@ export type Expected =
 export type Exercise = {
     id: string;
     title: string;
-    prompt: string;           // human-readable instructions
-    starter: StarterMap;      // starter code per language
-    expected: Expected;       // how we validate
+
+    generate?: () => {
+        prompt: string;
+        expected: Expected;
+        params: Record<string, number | string>;
+    };
+
+
+    prompt: string;        // human-readable instructions
+    starter: StarterMap;   // starter code per language
+    expected: Expected;    // how we validate
+
     tags?: string[];
 };

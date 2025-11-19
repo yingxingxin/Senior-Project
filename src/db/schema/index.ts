@@ -23,3 +23,6 @@ export * from './progress';
 
 // User Preferences & Settings
 export * from './preferences';
+
+// Exercise timed runs
+export * from "./timedRuns";

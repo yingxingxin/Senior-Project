@@ -64,6 +64,20 @@
       "when": 1762984470412,
       "tag": "0008_numerous_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1763423488191,
+      "tag": "0009_ambiguous_may_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763430364425,
+      "tag": "0010_blushing_star_brand",
+      "breakpoints": true
     }
   ]
 }

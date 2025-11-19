@@ -54,7 +54,7 @@ export default function Navbar({ data }: NavbarProps) {
     { href: "/ask", label: "Ask AI", icon: MessageSquare },
   ];
 
-  // Use real data from props, with fallbacks
+  // Use real data from props, with fallbacksnpm
   const userStats = data?.stats || {
     level: 1,
     streak: 0,
