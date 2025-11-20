@@ -16,6 +16,12 @@ import { Palette, Music, User, Settings as SettingsIcon } from "lucide-react";
 
 const SETTINGS_SECTIONS = [
   {
+    title: "Profile",
+    description: "Manage your public portfolio profile",
+    href: "/settings/profile",
+    icon: User,
+  },
+  {
     title: "Themes",
     description: "Customize colors, typography, and visual appearance",
     href: "/settings/themes",

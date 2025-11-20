@@ -42,11 +42,31 @@ export type ThemeGenerationPayload = z.infer<typeof themeGenerationSchema>;
 export function parseGeneratedTheme(
   payload: unknown
 ): Partial<AdvancedTheme> | null {
-  const parsed = themeGenerationSchema.safeParse(payload);
+  // The applyTheme tool currently returns { success, theme }. Unwrap that
+  // envelope so callers can pass either the raw theme payload or the tool
+  // response object.
+  const toolResponse =
+    payload && typeof payload === "object" && payload !== null ? payload : null;
+
+  if (
+    toolResponse &&
+    "success" in toolResponse &&
+    (toolResponse as { success?: unknown }).success === false
+  ) {
+    console.error("Theme tool returned an error:", toolResponse);
+    return null;
+  }
+
+  const themePayload =
+    toolResponse && "theme" in toolResponse
+      ? (toolResponse as { theme?: unknown }).theme
+      : payload;
+
+  const parsed = themeGenerationSchema.safeParse(themePayload);
 
   if (!parsed.success) {
     console.error("Invalid theme payload:", parsed.error);
-    console.error("Payload:", payload);
+    console.error("Payload:", themePayload);
     return null;
   }
 

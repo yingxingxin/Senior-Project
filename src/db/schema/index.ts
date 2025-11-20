@@ -27,3 +27,6 @@ export * from './preferences';
 
 // Exercise timed runs
 export * from "./timedRuns";
+
+// User Profiles & Portfolio
+export * from './profile';

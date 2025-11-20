@@ -199,7 +199,7 @@ export default function Navbar({ data }: NavbarProps) {
 
                 <div className="py-1">
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
+                    <Link href="/settings/profile" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
                       <User className="h-4 w-4" />
                       <span>Profile</span>
                     </Link>

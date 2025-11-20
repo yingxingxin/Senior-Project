@@ -13,7 +13,7 @@
  * See: https://openrouter.ai/docs for API documentation
  */
 
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 // OpenRouter API Configuration
 // These values are hardcoded since they rarely change
@@ -27,14 +27,14 @@ const DEFAULT_MODEL = "openai/gpt-4o";
  * OpenRouter client instance
  * Configured to work with Vercel AI SDK
  */
-export const openrouter = createOpenAI({
-  baseURL: OPENROUTER_BASE_URL,
+export const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: OPENROUTER_BASE_URL,
+  compatibility: "strict",
   headers: {
     "HTTP-Referer": OPENROUTER_SITE_URL,
     "X-Title": OPENROUTER_APP_NAME,
   },
-  name: "openrouter",
 });
 
 /**

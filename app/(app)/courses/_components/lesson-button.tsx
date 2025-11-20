@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Play, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { startLesson } from "../_lib/actions";
 
 interface LessonButtonProps {
@@ -59,86 +60,38 @@ export function LessonButton({
 
   if (isCompleted) {
     return (
-      <button
+      <Button
         disabled
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: variant === "hero" ? '8px' : '6px',
-          padding: variant === "hero" ? '12px 28px' : '8px 16px',
-          fontSize: variant === "hero" ? '16px' : '14px',
-          fontWeight: '500',
-          background: 'rgba(255, 255, 255, 0.1)',
-          color: '#e8e8e8',
-          borderRadius: '8px',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-          cursor: 'not-allowed',
-          opacity: 0.7
-        }}
+        variant="outline"
+        size={variant === "hero" ? "default" : "sm"}
+        className="opacity-70 cursor-not-allowed"
       >
-        <CheckCircle style={{ width: iconSize, height: iconSize }} />
+        <CheckCircle className={variant === "hero" ? "h-5 w-5" : "h-4 w-4"} />
         Completed
-      </button>
+      </Button>
     );
   }
 
-  const buttonStyles =
-    variant === "hero"
-      ? {
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          padding: '16px 32px',
-          fontSize: '16px',
-          fontWeight: '600',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#ffffff',
-          borderRadius: '12px',
-          border: 'none',
-          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-          boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
-          transition: 'all 0.2s ease',
-        }
-      : {
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          padding: '8px 16px',
-          fontSize: '14px',
-          fontWeight: '500',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#ffffff',
-          borderRadius: '8px',
-          border: 'none',
-          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-          transition: 'all 0.2s ease',
-        };
-
   return (
-    <button 
+    <Button
       onClick={handleClick}
       disabled={isLoading}
-      style={{
-        ...buttonStyles,
-        cursor: isLoading ? 'not-allowed' : 'pointer',
-        opacity: isLoading ? 0.7 : 1
-      }}
+      size={variant === "hero" ? "lg" : "sm"}
+      className={`bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-primary/30 shadow-lg ${
+        isLoading ? 'opacity-70 cursor-not-allowed' : ''
+      }`}
     >
       {isLoading ? (
         <>
-          <Loader2 style={{ width: iconSize, height: iconSize }} className="animate-spin" />
+          <Loader2 className={`${variant === "hero" ? "h-5 w-5" : "h-4 w-4"} animate-spin`} />
           {loadingLabel}
         </>
       ) : (
         <>
-          <Play style={{ width: iconSize, height: iconSize }} />
+          <Play className={variant === "hero" ? "h-5 w-5" : "h-4 w-4"} />
           {resolvedLabel}
         </>
       )}
-    </button>
+    </Button>
   );
 }
