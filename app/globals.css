@@ -677,10 +677,171 @@
   }
 }
 
-  
+
   .animate-gradient {
     background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e) !important;
     background-size: 400% 400% !important;
     animation: gradientShift 15s ease infinite !important;
+  }
+
+  /* ============================================
+   * Tiptap Editor Styles
+   * ============================================
+   * Custom styles for Tiptap content rendering
+   * Using design system colors for consistent theming
+   */
+
+  /* Callout Boxes */
+  .callout {
+    @apply rounded-lg border p-4 my-4;
+    position: relative;
+  }
+
+  .callout-content {
+    @apply space-y-2;
+  }
+
+  /* Callout Types - Using design system semantic colors */
+  .callout-tip {
+    @apply bg-primary/10 border-primary/20;
+  }
+
+  .callout-tip::before {
+    content: "💡";
+    @apply inline-block mr-2;
+  }
+
+  .callout-warning {
+    @apply bg-warning/10 border-warning/20;
+  }
+
+  .callout-warning::before {
+    content: "⚠️";
+    @apply inline-block mr-2;
+  }
+
+  .callout-note {
+    @apply bg-accent/10 border-accent/20;
+  }
+
+  .callout-note::before {
+    content: "📝";
+    @apply inline-block mr-2;
+  }
+
+  .callout-info {
+    @apply bg-muted border-border;
+  }
+
+  .callout-info::before {
+    content: "ℹ️";
+    @apply inline-block mr-2;
+  }
+
+  .callout-success {
+    @apply bg-success/10 border-success/20;
+  }
+
+  .callout-success::before {
+    content: "✅";
+    @apply inline-block mr-2;
+  }
+
+  .callout-error {
+    @apply bg-destructive/10 border-destructive/20;
+  }
+
+  .callout-error::before {
+    content: "❌";
+    @apply inline-block mr-2;
+  }
+
+  /* Enhanced Code Blocks */
+  .code-block-enhanced {
+    @apply relative rounded-lg my-4 bg-muted border border-border overflow-hidden;
+  }
+
+  .code-block-enhanced[data-filename]::before {
+    content: attr(data-filename);
+    @apply block px-4 py-2 text-sm font-mono text-muted-foreground border-b border-border bg-muted/50;
+  }
+
+  .code-block-enhanced[data-language]::after {
+    content: attr(data-language);
+    @apply absolute top-2 right-2 px-2 py-1 text-xs font-mono rounded bg-background/80 text-muted-foreground uppercase;
+  }
+
+  .code-block-enhanced[data-filename][data-language]::after {
+    @apply top-14;
+  }
+
+  .code-block-enhanced code {
+    @apply block p-4 text-sm font-mono overflow-x-auto;
+  }
+
+  .code-block-enhanced[data-line-numbers] code {
+    counter-reset: line;
+  }
+
+  .code-block-enhanced[data-line-numbers] code .line::before {
+    counter-increment: line;
+    content: counter(line);
+    @apply inline-block w-8 text-right mr-4 text-muted-foreground select-none;
+  }
+
+  /* Syntax Highlighting - Using lowlight classes */
+  /* Base syntax highlighting for common tokens */
+  .hljs-comment,
+  .hljs-quote {
+    @apply text-muted-foreground italic;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-type {
+    @apply text-primary font-semibold;
+  }
+
+  .hljs-string,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-addition {
+    @apply text-success;
+  }
+
+  .hljs-number,
+  .hljs-literal,
+  .hljs-built_in {
+    @apply text-warning;
+  }
+
+  .hljs-function,
+  .hljs-title,
+  .hljs-class .hljs-title {
+    @apply text-accent-foreground font-semibold;
+  }
+
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-tag .hljs-attr {
+    @apply text-foreground;
+  }
+
+  .hljs-deletion {
+    @apply text-destructive;
+  }
+
+  .hljs-meta,
+  .hljs-meta-keyword {
+    @apply text-muted-foreground;
+  }
+
+  .hljs-emphasis {
+    @apply italic;
+  }
+
+  .hljs-strong {
+    @apply font-bold;
   }
 }

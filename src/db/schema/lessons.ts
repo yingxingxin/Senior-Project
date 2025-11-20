@@ -8,7 +8,7 @@
 import {
   pgTable, serial, varchar, text, integer, real,
   timestamp, pgEnum, uniqueIndex, index, check, primaryKey, boolean,
-  type AnyPgColumn
+  type AnyPgColumn, jsonb
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { difficultyEnum } from './enums';
@@ -91,10 +91,10 @@ export const lessons = pgTable('lessons', {
 ]);
 
 /**
- * Lesson Sections Table - Breaks lessons into ordered, addressable sections with markdown content for granular progress tracking
+ * Lesson Sections Table - Breaks lessons into ordered, addressable sections with rich Tiptap JSON content for granular progress tracking
  *
  * WHEN CREATED: Content creation/lesson structuring
- * WHEN UPDATED: Content edits (body_md, title)
+ * WHEN UPDATED: Content edits (body_json, title)
  * USED BY: Lesson display, progress tracking, deep linking
  *
  * USER STORIES SUPPORTED:
@@ -102,6 +102,17 @@ export const lessons = pgTable('lessons', {
  *   - F09-US01/02: Deep links to specific sections for re-explanation
  *   - Modular content management
  *   - Section-level resume functionality
+ *
+ * CONTENT FORMAT:
+ *   - body_md: Legacy markdown content (being migrated to body_json)
+ *   - body_json: Tiptap JSON document with rich formatting (headings, lists, callouts, code blocks)
+ *   - Supports custom nodes: callout boxes, enhanced code blocks, inline quizzes (future)
+ *   - Server-side rendered to HTML for performance and SEO
+ *
+ * MIGRATION STRATEGY:
+ *   - Temporarily both fields exist during migration
+ *   - Migration script converts body_md → body_json
+ *   - After migration complete, body_md will be dropped
  */
 export const lesson_sections = pgTable('lesson_sections', {
   id: serial('id').primaryKey(),
@@ -109,7 +120,8 @@ export const lesson_sections = pgTable('lesson_sections', {
   order_index: integer('order_index').notNull().default(0),
   slug: varchar('slug', { length: 64 }).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
-  body_md: text('body_md').notNull(),
+  body_md: text('body_md').notNull(), // Legacy - will be dropped after migration
+  body_json: jsonb('body_json'), // New format - nullable during migration, NOT NULL after
 }, (t) => [
   uniqueIndex('uq_lesson_sections__lesson_order').on(t.lesson_id, t.order_index),
   uniqueIndex('uq_lesson_sections__lesson_slug').on(t.lesson_id, t.slug),

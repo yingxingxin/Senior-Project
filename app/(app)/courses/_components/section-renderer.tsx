@@ -4,11 +4,14 @@ import { ExerciseSection } from "./sections/exercise-section";
 import { WhyItMatters } from "./why-it-matters";
 import { Heading, Muted } from "@/components/ui/typography";
 
+import type { JSONContent } from '@tiptap/core';
+
 export interface Section {
   id: number;
   slug: string;
   title: string;
-  body: string;
+  body: string; // Legacy markdown content (for quiz, exercise, flip-cards)
+  bodyJson?: JSONContent; // Tiptap JSON content (for reading sections)
   type?: "reading" | "flip-cards" | "quiz" | "exercise";
   metadata?: {
     description?: string;

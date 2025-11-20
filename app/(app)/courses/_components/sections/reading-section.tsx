@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Body, Heading, Muted } from "@/components/ui/typography";
+import { TiptapRenderer } from "@/components/editor/tiptap-renderer";
 import type { Section } from "../section-renderer";
 
 interface ReadingSectionProps {
@@ -11,9 +12,12 @@ interface ReadingSectionProps {
 
 /**
  * Reading section component
- * Renders content from the section body
+ * Renders rich content using Tiptap renderer
  * No required actions - signals readiness immediately
- * TODO: Add markdown parsing with remark/rehype for better formatting
+ *
+ * Content rendering strategy:
+ * - Tiptap JSON (body_json field from database)
+ * - Fallback to plain text for legacy content
  */
 export function ReadingSection({ section, onReadyStateChange }: ReadingSectionProps) {
   // Signal ready immediately - no required action for reading sections
@@ -32,9 +36,13 @@ export function ReadingSection({ section, onReadyStateChange }: ReadingSectionPr
         )}
       </div>
 
-      <div className="space-y-4 leading-relaxed text-foreground whitespace-pre-wrap">
-        <Body>{section.body}</Body>
-      </div>
+      {section.bodyJson ? (
+        <TiptapRenderer content={section.bodyJson} />
+      ) : (
+        <div className="space-y-4 leading-relaxed text-foreground whitespace-pre-wrap">
+          <Body>{section.body}</Body>
+        </div>
+      )}
     </div>
   );
 }

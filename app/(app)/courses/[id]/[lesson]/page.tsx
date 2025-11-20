@@ -36,10 +36,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
       id: r.sectionId as number,
       slug: r.sectionSlug as string,
       title: r.sectionTitle as string,
-      body: r.sectionBody as string,
+      // Use body_json (Tiptap format) if available, fallback to body_md for legacy content
+      bodyJson: r.sectionBodyJson,
+      body: r.sectionBodyMd as string, // Keep for legacy sections (quiz, exercise, flip-cards)
       order: r.sectionOrder as number,
       type: detectSectionType(r.sectionSlug as string),
-      metadata: parseMetadata(r.sectionSlug as string, r.sectionBody as string),
+      metadata: parseMetadata(r.sectionSlug as string, r.sectionBodyMd as string),
     }))
     .sort((a, b) => a.order - b.order);
 
