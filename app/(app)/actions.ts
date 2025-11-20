@@ -411,3 +411,24 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
     },
   };
 }
+
+export async function getUserAssistantData(): Promise<{ name: string; avatarUrl: string | null } | null> {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const userId = Number(session.user.id);
+
+  const [userData] = await getUserWithAssistant.execute({ userId });
+
+  if (!userData || !userData.assistantName) {
+    return null;
+  }
+
+  return {
+    name: userData.assistantName,
+    avatarUrl: userData.assistantAvatar,
+  };
+}

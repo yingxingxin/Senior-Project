@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Stack } from "@/components/ui/spacing";
 import { Body } from "@/components/ui/typography";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Palette, Music, User, Settings as SettingsIcon, Sparkles } from "lucide-react";
+import { Palette, Music, User, UserCircle, Settings as SettingsIcon, Sparkles } from "lucide-react";
 
 /**
  * Settings Overview Page
@@ -25,7 +25,7 @@ const SETTINGS_SECTIONS = [
     title: "Profile",
     description: "Manage your public portfolio profile",
     href: "/settings/profile",
-    icon: User,
+    icon: UserCircle,
   },
   {
     title: "Themes",

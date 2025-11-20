@@ -4,12 +4,13 @@ import { headers } from "next/headers";
 import { db, SkillLevel, users } from "@/src/db";
 import { eq } from "drizzle-orm";
 import Navbar from "@/app/(app)/home/_components/navbar";
-import { getUserNavbarData } from "./actions";
+import { getUserNavbarData, getUserAssistantData } from "./actions";
 import { getNextAllowedStep } from "@/app/onboarding/_lib/guard";
 import { getOnboardingStepHref } from "@/app/onboarding/_lib/steps";
 import type { OnboardingStep, AssistantPersona } from "@/src/db/schema";
 import { MusicProvider } from "@/components/music";
 import { MusicPlayer } from "@/components/music";
+import { FloatingAIChat } from "@/components/floating-ai-chat";
 
 export default async function AppLayout({
   children,
@@ -69,11 +70,20 @@ export default async function AppLayout({
   // Fetch navbar data from database
   const navbarData = await getUserNavbarData();
 
+  // Fetch assistant data for AI chat
+  const assistantData = await getUserAssistantData();
+
   return (
     <MusicProvider>
       <Navbar data={navbarData} />
       <main>{children}</main>
       <MusicPlayer userId={userId} />
+      {assistantData && (
+        <FloatingAIChat
+          assistantAvatarUrl={assistantData.avatarUrl}
+          assistantName={assistantData.name}
+        />
+      )}
     </MusicProvider>
   );
 }
