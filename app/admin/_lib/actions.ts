@@ -122,12 +122,12 @@ export async function getAdminDashboard(range: RangeKey): Promise<AdminDashboard
     db
       .select({ c: count() })
       .from(quiz_attempts)
-      .where(gte(quiz_attempts.started_at, start))
+      .where(gte(quiz_attempts.completed_at, start))
       .limit(1),
     db
       .select({ c: count() })
       .from(quiz_attempts)
-      .where(and(gte(quiz_attempts.started_at, prevStart), lt(quiz_attempts.started_at, prevEnd)))
+      .where(and(gte(quiz_attempts.completed_at, prevStart), lt(quiz_attempts.completed_at, prevEnd)))
       .limit(1),
     db
       .select({ c: sql<number>`COUNT(DISTINCT ${sessions.user_id})` })
@@ -157,7 +157,7 @@ export async function getAdminDashboard(range: RangeKey): Promise<AdminDashboard
     db
       .select({
         id: quizzes.id,
-        topic: quizzes.topic,
+        topic: quizzes.topic_slug,
         createdAt: quizzes.created_at,
       })
       .from(quizzes)

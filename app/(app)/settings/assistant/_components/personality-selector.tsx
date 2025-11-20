@@ -48,7 +48,7 @@ export function PersonalitySelector({
       <CardHeader>
         <CardTitle>Assistant Personality</CardTitle>
         <CardDescription>
-          Adjust your assistant's teaching style to match your preferences
+          Adjust your assistant&apos;s teaching style to match your preferences
         </CardDescription>
       </CardHeader>
       <CardContent>

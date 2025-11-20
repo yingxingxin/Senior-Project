@@ -31,3 +31,6 @@ export * from './admin';
 
 // Music queries
 export * from './music';
+
+// Profile queries
+export * from './profile';

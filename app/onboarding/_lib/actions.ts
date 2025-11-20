@@ -12,7 +12,6 @@ import {
   users,
   quizzes,
   quiz_questions,
-  quiz_options,
   quiz_attempts,
   quiz_attempt_answers,
 } from '@/src/db';
@@ -23,7 +22,6 @@ import {
   updateUserPersona,
   completeOnboarding,
   resetOnboarding,
-  getQuizAttemptCount,
 } from '@/src/db/queries';
 import { getAssistantById } from '@/src/db/queries/lessons';
 import type { AssistantPersona, OnboardingStep, SkillLevel } from '@/src/db/schema';
@@ -201,7 +199,7 @@ export async function resetOnboardingAction() {
 export async function getSkillQuizQuestions() {
   // Find the skill assessment quiz
   const skillQuiz = await db.query.quizzes.findFirst({
-    where: eq(quizzes.topic, 'Skill Assessment'),
+    where: eq(quizzes.topic_slug, 'Skill Assessment'),
   });
 
   if (!skillQuiz) {
@@ -212,22 +210,17 @@ export async function getSkillQuizQuestions() {
   const questions = await db.query.quiz_questions.findMany({
     where: eq(quiz_questions.quiz_id, skillQuiz.id),
     orderBy: asc(quiz_questions.order_index),
-    with: {
-      options: {
-        orderBy: asc(quiz_options.order_index),
-      },
-    },
     limit: 5,
   });
 
   return questions.map(q => ({
     id: q.id,
-    text: q.text,
+    text: q.prompt,
     orderIndex: q.order_index,
-    options: q.options.map(o => ({
-      id: o.id,
-      text: o.text,
-      orderIndex: o.order_index
+    options: q.options.map((text, index) => ({
+      id: index,
+      text,
+      orderIndex: index
     })),
   }));
 }
@@ -236,7 +229,7 @@ export async function getSkillQuizQuestions() {
 type SkillQuizSubmission = {
   answers: Array<{
     questionId: number;
-    optionId: number;
+    selectedIndex: number; // 0-3, index into question.options array
   }>;
 };
 
@@ -275,7 +268,7 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
   // Find the skill assessment quiz
   console.log('[Server Action] Finding skill assessment quiz...');
   const skillQuiz = await db.query.quizzes.findFirst({
-    where: eq(quizzes.topic, 'Skill Assessment'),
+    where: eq(quizzes.topic_slug, 'Skill Assessment'),
   });
 
   if (!skillQuiz) {
@@ -285,51 +278,44 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
 
   console.log('[Server Action] Found quiz:', skillQuiz.id);
 
-  // Check how many attempts the user has made
-  const existingAttempts = await getQuizAttemptCount.execute({
-    userId,
-    quizId: skillQuiz.id
-  });
+  // Get questions to check correctness
+  const questionIds = answers.map(a => a.questionId);
+  const questions = await db
+    .select({
+      id: quiz_questions.id,
+      correct_index: quiz_questions.correct_index,
+    })
+    .from(quiz_questions)
+    .where(inArray(quiz_questions.id, questionIds));
 
-  const attemptNumber = existingAttempts.length > 0
-    ? Math.max(...existingAttempts.map(a => a.attempt_number)) + 1
-    : 1;
+  // Calculate score
+  const correctMap = new Map(questions.map(q => [q.id, q.correct_index]));
+  const score = answers.reduce((acc, a) => {
+    const correctIndex = correctMap.get(a.questionId);
+    return acc + (correctIndex !== undefined && a.selectedIndex === correctIndex ? 1 : 0);
+  }, 0);
+  const totalQuestions = answers.length;
+  const percentage = Math.round((score / totalQuestions) * 100);
+  const level = mapScoreToLevel(score, totalQuestions);
 
   // Create a quiz attempt
   const [attempt] = await db.insert(quiz_attempts).values({
     user_id: userId,
     quiz_id: skillQuiz.id,
-    attempt_number: attemptNumber,
-    started_at: new Date(),
-    submitted_at: new Date(),
-    duration_sec: 0, // Could be tracked client-side if needed
+    score,
+    total_questions: totalQuestions,
+    percentage,
+    completed_at: new Date(),
   }).returning();
-
-  // Get all the options to check correctness
-  const optionIds = answers.map(a => a.optionId);
-  const options = await db
-    .select({
-      id: quiz_options.id,
-      is_correct: quiz_options.is_correct,
-      question_id: quiz_options.question_id,
-    })
-    .from(quiz_options)
-    .where(inArray(quiz_options.id, optionIds));
 
   // Create answer records
   const answerRecords = answers.map(answer => ({
     attempt_id: attempt.id,
     question_id: answer.questionId,
-    selected_option_id: answer.optionId,
-    time_taken_ms: 0, // Could be tracked client-side if needed
+    selected_index: answer.selectedIndex,
   }));
 
   await db.insert(quiz_attempt_answers).values(answerRecords);
-
-  // Calculate score
-  const correctSet = new Set(options.filter(o => o.is_correct).map(o => o.id));
-  const score = answers.reduce((acc, a) => acc + (correctSet.has(a.optionId) ? 1 : 0), 0);
-  const level = mapScoreToLevel(score, answers.length);
 
   console.log('[Server Action] Quiz results:', {
     score,

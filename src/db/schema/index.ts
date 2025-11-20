@@ -17,6 +17,7 @@ export * from './lessons';
 
 // Quizzes & Assessment
 export * from './quizzes';
+export * from './quiz-progress';
 
 // Progress & Gamification
 export * from './progress';
@@ -26,3 +27,6 @@ export * from './preferences';
 
 // Exercise timed runs
 export * from "./timedRuns";
+
+// User Profiles & Portfolio
+export * from './profile';

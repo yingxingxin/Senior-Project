@@ -69,7 +69,7 @@ export default async function AssistantSettingsPage() {
       <div>
         <Heading level={2}>Assistant Customization</Heading>
         <Body className="mt-2 text-muted-foreground">
-          Change your assistant's appearance and personality to match your learning style.
+          Change your assistant&apos;s appearance and personality to match your learning style.
         </Body>
       </div>
 

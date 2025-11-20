@@ -5,169 +5,128 @@
  */
 
 import {
-  pgTable, serial, integer, text, boolean,
-  timestamp, uniqueIndex, index, check, foreignKey
+  pgTable, serial, integer, text,
+  timestamp, uniqueIndex, index, check,
+  varchar, jsonb
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
-import { difficultyEnum } from './enums';
-import { lessons, lesson_sections } from './lessons';
+import { skillLevelEnum } from './enums';
 import { users } from './auth';
 import { activity_events } from './progress';
 
 // ============ TABLES ============
 
 /**
- * Quizzes Table - Defines quizzes with configurable difficulty, time limits, and passing thresholds
+ * Quizzes Table - Standalone quizzes for practice, separate from lessons
  *
  * WHEN CREATED: Content creation
- * WHEN UPDATED: Quiz edits (topic, difficulty, time_limit_sec, passing_pct)
- * USED BY: Quiz system, progress tracking
+ * WHEN UPDATED: Quiz edits (title, description, topic_slug, skill_level, default_length)
+ * USED BY: Quiz system, practice area
  *
  * USER STORIES SUPPORTED:
- *   - F06-US01: Assistant quizzes learner (quiz definitions)
- *   - F06-US03: Passing based on percentage threshold
- *   - F20-US01: Track quiz completion (via quizAttempts)
- *   - Difficulty-based personalization
+ *   - Standalone quiz practice area
+ *   - Topic-based quiz organization
+ *   - Skill level filtering
  */
 export const quizzes = pgTable('quizzes', {
   id: serial('id').primaryKey(),
-  topic: text('topic'),
-  difficulty: difficultyEnum('difficulty'),
-  time_limit_sec: integer('time_limit_sec'),
-  passing_pct: integer('passing_pct').notNull().default(70),
-  lesson_id: integer('lesson_id').references(() => lessons.id),
+  slug: varchar('slug', { length: 255 }).notNull().unique(),
+  title: text('title').notNull(),
+  description: text('description'),
+  topic_slug: varchar('topic_slug', { length: 100 }).notNull(),
+  skill_level: skillLevelEnum('skill_level').notNull(),
+  default_length: integer('default_length').notNull().default(5),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
-  index('ix_quizzes__lesson').on(t.lesson_id),
-  index('ix_quizzes__created').on(t.created_at),
-  check('ck_quizzes__passing_pct', sql`${t.passing_pct} BETWEEN 0 AND 100`),
+  uniqueIndex('uq_quizzes__slug').on(t.slug),
+  index('ix_quizzes__topic_slug').on(t.topic_slug),
+  index('ix_quizzes__skill_level').on(t.skill_level),
+  check('ck_quizzes__default_length', sql`${t.default_length} > 0`),
 ]);
 
 /**
- * Quiz Questions Table - Stores individual quiz questions with point values and optional hints
+ * Quiz Questions Table - Stores individual quiz questions with options array and correct index
  *
  * WHEN CREATED: Quiz creation/editing
- * WHEN UPDATED: Question edits (text, points, hint)
+ * WHEN UPDATED: Question edits (prompt, options, correct_index, explanation)
  * USED BY: Quiz engine, question display
  *
  * USER STORIES SUPPORTED:
- *   - F06-US01: Single-answer MCQ questions only
- *   - F07-US01/02: Progressive hints (hint field)
- *   - Dynamic scoring (points per question)
- *   - Question ordering (orderIndex)
+ *   - Single-answer MCQ questions with 4 options
+ *   - Markdown support for prompts and explanations
+ *   - Static explanations for feedback
  */
 export const quiz_questions = pgTable('quiz_questions', {
   id: serial('id').primaryKey(),
   quiz_id: integer('quiz_id').notNull().references(() => quizzes.id, { onDelete: 'cascade' }),
   order_index: integer('order_index').notNull().default(0),
-  text: text('text').notNull(),
-  points: integer('points').notNull().default(1),
-  hint: text('hint'),
-  lesson_section_id: integer('lesson_section_id').references(() => lesson_sections.id, { onDelete: 'set null' }),
+  prompt: text('prompt').notNull(), // Markdown text
+  options: jsonb('options').$type<string[]>().notNull(), // Array of 4 strings
+  correct_index: integer('correct_index').notNull(), // 0-3
+  explanation: text('explanation'), // Optional markdown explanation
 }, (t) => [
   index('ix_quiz_questions__quiz').on(t.quiz_id),
   uniqueIndex('uq_quiz_questions__quiz_order').on(t.quiz_id, t.order_index),
-  check('ck_quiz_questions__points_positive', sql`${t.points} > 0`),
+  check('ck_quiz_questions__correct_index', sql`${t.correct_index} >= 0 AND ${t.correct_index} <= 3`),
 ]);
 
-/**
- * Quiz Options Table (formerly quiz_question_answers) - Stores multiple choice answer options with correctness indicators
- *
- * WHEN CREATED: Question creation (required for ALL questions)
- * WHEN UPDATED: Option edits (text, is_correct, order_index)
- * USED BY: Quiz display, answer validation
- *
- * USER STORIES SUPPORTED:
- *   - F06-US01: Single-answer multiple choice questions
- *   - F06-US02: Instant feedback (isCorrect validation)
- *   - Exactly one correct answer per question
- */
-export const quiz_options = pgTable('quiz_options', {
-  id: serial('id').primaryKey(),
-  // the question that the answer belongs to
-  question_id: integer('question_id').notNull().references(() => quiz_questions.id, { onDelete: 'cascade' }),
-  // the order in which the answer is displayed to the user
-  order_index: integer('order_index').notNull().default(0),
-  // the text of the answer
-  text: text('text').notNull(),
-  // whether the answer is correct
-  is_correct: boolean('is_correct').notNull().default(false),
-}, (t) => [
-  index('ix_quiz_options__question').on(t.question_id),
-  uniqueIndex('uq_quiz_options__question_order').on(t.question_id, t.order_index),
-  // Ensures exactly one correct option per question
-  uniqueIndex('uq_quiz_options__one_correct_per_question')
-    .on(t.question_id)
-    .where(sql`${t.is_correct} = true`),
-  // Composite unique for foreign key constraint
-  uniqueIndex('uq_quiz_options__qid_id').on(t.question_id, t.id),
-]);
+// Note: quiz_options table removed - options are now stored as JSON array in quiz_questions
 
 /**
- * Quiz Attempts Table - Records metadata for each quiz attempt including timing and attempt number
+ * Quiz Attempts Table - Records quiz submission with score and completion data
  *
- * WHEN CREATED: User starts a quiz
- * WHEN UPDATED: Quiz submission (set submitted_at, duration_sec)
+ * WHEN CREATED: User submits a quiz
+ * WHEN UPDATED: Never (immutable after submission)
  * USED BY: Quiz history, progress tracking, analytics
  *
  * USER STORIES SUPPORTED:
- *   - F20-US01: Track quiz progress (attempt_number)
- *   - Multiple attempt tracking
- *   - Timing and completion tracking (duration_sec)
+ *   - Track quiz completion and scores
+ *   - Calculate percentage scores
+ *   - Record completion timestamps
  */
 export const quiz_attempts = pgTable('quiz_attempts', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   quiz_id: integer('quiz_id').notNull().references(() => quizzes.id, { onDelete: 'cascade' }),
-
-  attempt_number: integer('attempt_number').notNull().default(1),
-  started_at: timestamp('started_at', { withTimezone: true }).defaultNow(),
-  submitted_at: timestamp('submitted_at', { withTimezone: true }),
-  duration_sec: integer('duration_sec'),
+  score: integer('score').notNull(), // Number of correct answers
+  total_questions: integer('total_questions').notNull(), // Total questions in attempt
+  percentage: integer('percentage').notNull(), // Score / total * 100
+  completed_at: timestamp('completed_at', { withTimezone: true }).defaultNow().notNull(),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
-  uniqueIndex('uq_quiz_attempts__user_quiz_num').on(t.user_id, t.quiz_id, t.attempt_number),
   index('ix_quiz_attempts__user').on(t.user_id),
-  index('ix_quiz_attempts__quiz_started').on(t.quiz_id, t.started_at),
+  index('ix_quiz_attempts__quiz').on(t.quiz_id),
+  index('ix_quiz_attempts__completed_at').on(t.completed_at),
+  check('ck_quiz_attempts__score', sql`${t.score} >= 0 AND ${t.score} <= ${t.total_questions}`),
+  check('ck_quiz_attempts__percentage', sql`${t.percentage} >= 0 AND ${t.percentage} <= 100`),
 ]);
 
 /**
- * Quiz Attempt Answers Table - Records user's selected answer for each question with timing data
+ * Quiz Attempt Answers Table - Records user's selected answer index for each question
  *
- * WHEN CREATED: User answers a question
+ * WHEN CREATED: User submits quiz with answers
  * WHEN UPDATED: Never (immutable)
  * USED BY: Answer review, analytics
  *
  * USER STORIES SUPPORTED:
- *   - F06-US02: Track selected answers (selected_option_id)
- *   - F07-US02: Time tracking for hint usage (time_taken_ms)
+ *   - Track selected answer indices (0-3)
  *   - Detailed quiz analytics per question
  */
 export const quiz_attempt_answers = pgTable('quiz_attempt_answers', {
   id: serial('id').primaryKey(),
-  // the quiz attempts session that the users attempt belongs to
   attempt_id: integer('attempt_id').notNull().references(() => quiz_attempts.id, { onDelete: 'cascade' }),
   question_id: integer('question_id').notNull().references(() => quiz_questions.id, { onDelete: 'cascade' }),
-  selected_option_id: integer('selected_option_id').notNull().references(() => quiz_options.id, { onDelete: 'restrict' }),
-  time_taken_ms: integer('time_taken_ms'),
-}, (t) => ({
-  uqAttemptQuestion: uniqueIndex('uq_quiz_attempt_answers__attempt_question').on(t.attempt_id, t.question_id),
-  ixByAttempt: index('ix_quiz_attempt_answers__attempt').on(t.attempt_id),
-  ixByOption: index('ix_quiz_attempt_answers__selected_option').on(t.selected_option_id),
-  // Composite FK to ensure selected option belongs to the question
-  fkOptionBelongsToQuestion: foreignKey({
-    columns: [t.question_id, t.selected_option_id],
-    foreignColumns: [quiz_options.question_id, quiz_options.id],
-    name: 'fk_quiz_attempt_answers__option_belongs_to_question',
-  }),
-}));
+  selected_index: integer('selected_index').notNull(), // 0-3, index into question.options array
+}, (t) => [
+  uniqueIndex('uq_quiz_attempt_answers__attempt_question').on(t.attempt_id, t.question_id),
+  index('ix_quiz_attempt_answers__attempt').on(t.attempt_id),
+  check('ck_quiz_attempt_answers__selected_index', sql`${t.selected_index} >= 0 AND ${t.selected_index} <= 3`),
+]);
 
 // ============ RELATIONS ============
 
-export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
-  lesson: one(lessons, {
-    fields: [quizzes.lesson_id],
-    references: [lessons.id],
-  }),
+export const quizzesRelations = relations(quizzes, ({ many }) => ({
   quizQuestions: many(quiz_questions),
   quizAttempts: many(quiz_attempts),
   activityEvents: many(activity_events),
@@ -178,21 +137,10 @@ export const quizQuestionsRelations = relations(quiz_questions, ({ one, many }) 
     fields: [quiz_questions.quiz_id],
     references: [quizzes.id],
   }),
-  sourceSection: one(lesson_sections, {
-    fields: [quiz_questions.lesson_section_id],
-    references: [lesson_sections.id],
-  }),
-  options: many(quiz_options),
   attemptAnswers: many(quiz_attempt_answers),
 }));
 
-export const quizOptionsRelations = relations(quiz_options, ({ one, many }) => ({
-  question: one(quiz_questions, {
-    fields: [quiz_options.question_id],
-    references: [quiz_questions.id],
-  }),
-  selectedInAnswers: many(quiz_attempt_answers),
-}));
+// quiz_options table removed - options stored in quiz_questions.options JSON array
 
 export const quizAttemptsRelations = relations(quiz_attempts, ({ one, many }) => ({
   user: one(users, {
@@ -216,11 +164,6 @@ export const quizAttemptAnswersRelations = relations(quiz_attempt_answers, ({ on
     fields: [quiz_attempt_answers.question_id],
     references: [quiz_questions.id],
   }),
-  // Direct relationship to the single selected option
-  selectedOption: one(quiz_options, {
-    fields: [quiz_attempt_answers.selected_option_id],
-    references: [quiz_options.id],
-  }),
 }));
 
 // ============ TYPES ============
@@ -231,8 +174,7 @@ export type NewQuiz = typeof quizzes.$inferInsert;
 export type QuizQuestion = typeof quiz_questions.$inferSelect;
 export type NewQuizQuestion = typeof quiz_questions.$inferInsert;
 
-export type QuizOption = typeof quiz_options.$inferSelect;
-export type NewQuizOption = typeof quiz_options.$inferInsert;
+// QuizOption type removed - options are stored as string[] in QuizQuestion
 
 export type QuizAttempt = typeof quiz_attempts.$inferSelect;
 export type NewQuizAttempt = typeof quiz_attempts.$inferInsert;
