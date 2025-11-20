@@ -104,7 +104,7 @@ export const getRecentActivityWithDetails = db
     quizId: activity_events.quiz_id,
     achievementId: activity_events.achievement_id,
     lessonTitle: lessons.title,
-    quizTopic: quizzes.topic,
+    quizTopic: quizzes.topic_slug,
     achievementName: achievements.name,
   })
   .from(activity_events)

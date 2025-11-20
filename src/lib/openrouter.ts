@@ -1,15 +1,14 @@
 /**
  * OpenRouter Configuration
  *
- * Centralized OpenRouter client for AI theme generation.
+ * Centralized OpenRouter client for AI features (theme generation, quiz hints, explanations).
  * Uses the Vercel AI SDK's OpenAI adapter pointed at OpenRouter.
  *
  * Configuration:
  * - API Key: Must be set via OPENROUTER_API_KEY environment variable
  * - All other settings are hardcoded constants
  *
- * Note: Using a specific model (anthropic/claude-3.5-sonnet) instead of
- * openrouter/auto for better tool calling compatibility.
+ * Note: Using GPT-4o for reliable responses at lower cost.
  *
  * See: https://openrouter.ai/docs for API documentation
  */

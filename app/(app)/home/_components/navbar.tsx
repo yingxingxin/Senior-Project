@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Swords,
   Music,
+  GraduationCap,
 } from "lucide-react";
 
 import { NavbarData } from "@/app/(app)/actions";
@@ -49,7 +50,8 @@ export default function Navbar({ data }: NavbarProps) {
   const navItems = [
     { href: "/home", label: "Home", icon: Home },
     { href: "/courses", label: "Courses", icon: BookOpen },
-    { href: "/quiz", label: "Quiz", icon: Sparkles },
+    { href: "/quizzes", label: "Quiz", icon: Sparkles },
+    { href: "/study", label: "Study", icon: GraduationCap },
     { href: "/editor", label: "Practice", icon: Swords },
     { href: "/ask", label: "Ask AI", icon: MessageSquare },
   ];

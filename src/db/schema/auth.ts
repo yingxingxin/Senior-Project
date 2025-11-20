@@ -10,6 +10,7 @@ import {
   timestamp, pgEnum, uniqueIndex
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
+import { skillLevelEnum } from './enums';
 import { assistants } from './lessons';
 import { study_settings, user_preferences, user_theme_settings, user_music_tracks } from './preferences';
 import { user_lesson_progress, activity_events, user_achievements } from './progress';
@@ -23,10 +24,9 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
 
 export const onboardingStepEnum = pgEnum('onboarding_step', ['welcome', 'gender', 'skill_quiz', 'persona', 'guided_intro']);
 
-/** Skill level for initial placement from onboarding quiz */
-export const skillLevelEnum = pgEnum('skill_level', ['beginner', 'intermediate', 'advanced']);
-
 export const assistantPersonaEnum = pgEnum('assistant_persona', ['calm', 'kind', 'direct']);
+
+// Note: skillLevelEnum moved to ./enums.ts to avoid circular dependency
 
 // ============ TABLES ============
 
@@ -229,8 +229,7 @@ export type UserRole = (typeof userRoleValues)[number];
 export const onboardingStepValues = onboardingStepEnum.enumValues;
 export type OnboardingStep = (typeof onboardingStepValues)[number];
 
-export const skillLevelValues = skillLevelEnum.enumValues;
-export type SkillLevel = (typeof skillLevelValues)[number];
+// skillLevelValues and SkillLevel type moved to ./enums.ts
 
 export const assistantPersonaValues = assistantPersonaEnum.enumValues;
 export type AssistantPersona = (typeof assistantPersonaValues)[number];
