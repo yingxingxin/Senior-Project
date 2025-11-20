@@ -255,6 +255,54 @@ export const completeOnboarding = db
   .prepare('complete_onboarding');
 
 /**
+ * Update user assistant (post-onboarding)
+ *
+ * Updates user's selected assistant without modifying onboarding state.
+ * Used in Wardrobe/Settings after onboarding is complete.
+ *
+ * USER STORIES SUPPORTED:
+ *   - F02-US03: Switch personalities later
+ *   - F04-US01: Change assistant's gender after setup
+ *
+ * @param userId - The user's ID
+ * @param assistantId - The selected assistant ID
+ *
+ * @example
+ * await updateUserAssistantOnly.execute({ userId: 123, assistantId: 2 });
+ */
+export const updateUserAssistantOnly = db
+  .update(users)
+  .set({
+    assistant_id: sql`${sql.placeholder('assistantId')}`,
+  })
+  .where(eq(users.id, sql.placeholder('userId')))
+  .prepare('update_user_assistant_only');
+
+/**
+ * Update user persona (post-onboarding)
+ *
+ * Updates user's assistant persona without modifying onboarding state.
+ * Used in Wardrobe/Settings after onboarding is complete.
+ *
+ * USER STORIES SUPPORTED:
+ *   - F02-US03: Switch personalities later
+ *   - F04-US01: Change assistant's personality after setup
+ *
+ * @param userId - The user's ID
+ * @param persona - The selected persona ('kind' | 'direct' | 'calm')
+ *
+ * @example
+ * await updateUserPersonaOnly.execute({ userId: 123, persona: 'kind' });
+ */
+export const updateUserPersonaOnly = db
+  .update(users)
+  .set({
+    assistant_persona: sql`${sql.placeholder('persona')}`,
+  })
+  .where(eq(users.id, sql.placeholder('userId')))
+  .prepare('update_user_persona_only');
+
+/**
  * Reset onboarding
  *
  * Resets all onboarding progress to start from gender selection.

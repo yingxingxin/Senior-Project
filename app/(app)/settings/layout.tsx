@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Stack } from "@/components/ui/spacing";
 import { Heading, Muted } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import { Palette, Paintbrush, Music, User, Settings as SettingsIcon } from "lucide-react";
+import { Palette, Paintbrush, Music, User, UserCircle, Settings as SettingsIcon, Sparkles } from "lucide-react";
 
 /**
  * Settings Layout
@@ -18,6 +18,16 @@ import { Palette, Paintbrush, Music, User, Settings as SettingsIcon } from "luci
  */
 
 const SETTINGS_NAV = [
+  {
+    label: "Assistant",
+    href: "/settings/assistant",
+    icon: Sparkles,
+  },
+  {
+    label: "Profile",
+    href: "/settings/profile",
+    icon: UserCircle,
+  },
   {
     label: "Themes",
     href: "/settings/themes",

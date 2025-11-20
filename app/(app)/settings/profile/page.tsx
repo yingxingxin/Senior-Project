@@ -10,7 +10,7 @@ import { ProjectsForm } from "./_components/projects-form";
 import { ExperiencesForm } from "./_components/experiences-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stack } from "@/components/ui/spacing";
-import { Body } from "@/components/ui/typography";
+import { Body, Heading } from "@/components/ui/typography";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -43,7 +43,7 @@ export default async function ProfileSettingsPage() {
     <Stack gap="default">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Profile Settings</h1>
+          <Heading level={2}>Profile Settings</Heading>
           <Body className="text-muted-foreground">
             Manage your public portfolio profile
           </Body>

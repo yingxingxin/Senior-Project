@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Stack } from "@/components/ui/spacing";
 import { Body } from "@/components/ui/typography";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Palette, Music, User, Settings as SettingsIcon } from "lucide-react";
+import { Palette, Music, User, Settings as SettingsIcon, Sparkles } from "lucide-react";
 
 /**
  * Settings Overview Page
@@ -15,6 +15,12 @@ import { Palette, Music, User, Settings as SettingsIcon } from "lucide-react";
  */
 
 const SETTINGS_SECTIONS = [
+  {
+    title: "Assistant",
+    description: "Customize your assistant's appearance and personality",
+    href: "/settings/assistant",
+    icon: Sparkles,
+  },
   {
     title: "Profile",
     description: "Manage your public portfolio profile",
