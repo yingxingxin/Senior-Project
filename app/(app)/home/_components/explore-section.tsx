@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Heading, Muted } from "@/components/ui/typography";
 import { Grid } from "@/components/ui/spacing";
+import { formatDuration } from "../../courses/_lib/utils";
 
 type Lesson = {
   id: number;
@@ -18,17 +19,6 @@ interface ExploreSectionProps {
 }
 
 export function ExploreSection({ lessons }: ExploreSectionProps) {
-  // Format duration from seconds to human-readable format
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds) return "";
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  };
-
   // Get difficulty label with proper casing
   const getDifficultyLabel = (difficulty: string | null) => {
     if (!difficulty) return "";

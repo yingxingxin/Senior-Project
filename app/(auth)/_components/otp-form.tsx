@@ -7,14 +7,12 @@
 
 import { Fragment, forwardRef, useImperativeHandle } from "react"
 import { MailPlus } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Controller, FormProvider, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import {
   InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot,
 } from "@/components/ui/input-otp"
@@ -137,45 +135,45 @@ export const OtpCodeField = forwardRef<OtpCodeFieldHandle, OtpCodeFieldProps>(
     })
 
     return (
-      <Form {...form}>
+      <FormProvider {...form}>
         <form onSubmit={handleFormSubmit} noValidate>
-          <FormField
+          <Controller
             control={control}
             name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base sm:text-sm font-medium text-foreground">{label}</FormLabel>
-                <FormControl>
-                  <InputOTP
-                    maxLength={OTP_CODE_LENGTH}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    disabled={disabled || isSubmitting}
-                    containerClassName="justify-center"
-                    onComplete={handleFormSubmit}
-                  >
-                    <InputOTPGroup className="gap-2">
-                      {Array.from({ length: OTP_CODE_LENGTH }, (_, index) => (
-                        <Fragment key={index}>
-                          <InputOTPSlot
-                            index={index}
-                            className="h-14 w-12 sm:h-12 sm:w-10 border-input bg-background text-xl sm:text-lg font-semibold text-foreground"
-                          />
-                          {index === Math.floor(OTP_CODE_LENGTH / 2) - 1 && (
-                            <InputOTPSeparator className="mx-1" />
-                          )}
-                        </Fragment>
-                      ))}
-                    </InputOTPGroup>
-                  </InputOTP>
-                </FormControl>
-                <FormMessage className="text-destructive" />
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name} className="text-base sm:text-sm font-medium text-foreground">
+                  {label}
+                </FieldLabel>
+                <InputOTP
+                  maxLength={OTP_CODE_LENGTH}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={disabled || isSubmitting}
+                  containerClassName="justify-center"
+                  onComplete={handleFormSubmit}
+                >
+                  <InputOTPGroup className="gap-2">
+                    {Array.from({ length: OTP_CODE_LENGTH }, (_, index) => (
+                      <Fragment key={index}>
+                        <InputOTPSlot
+                          index={index}
+                          className="h-14 w-12 sm:h-12 sm:w-10 border-input bg-background text-xl sm:text-lg font-semibold text-foreground"
+                        />
+                        {index === Math.floor(OTP_CODE_LENGTH / 2) - 1 && (
+                          <InputOTPSeparator className="mx-1" />
+                        )}
+                      </Fragment>
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
           />
         </form>
-      </Form>
+      </FormProvider>
     )
   }
 )

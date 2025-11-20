@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Play, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { startLesson } from "../_lib/actions";
 
 interface LessonButtonProps {
@@ -11,11 +12,25 @@ interface LessonButtonProps {
   courseId: string;
   isCompleted: boolean;
   hasStarted: boolean;
+  variant?: "default" | "hero";
+  label?: string;
 }
 
-export function LessonButton({ lessonId, lessonSlug, courseId, isCompleted, hasStarted }: LessonButtonProps) {
+export function LessonButton({
+  lessonId,
+  lessonSlug,
+  courseId,
+  isCompleted,
+  hasStarted,
+  variant = "default",
+  label,
+}: LessonButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const resolvedLabel = label ?? (hasStarted ? 'Continue' : 'Start');
+  const loadingLabel = hasStarted ? 'Continuing...' : 'Starting...';
+  const iconSize = variant === "hero" ? 20 : 16;
 
   const handleClick = async () => {
     if (isCompleted) return; // Don't allow clicking if already completed
@@ -45,64 +60,38 @@ export function LessonButton({ lessonId, lessonSlug, courseId, isCompleted, hasS
 
   if (isCompleted) {
     return (
-      <button 
+      <Button
         disabled
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          padding: '8px 16px',
-          fontSize: '14px',
-          fontWeight: '500',
-          background: 'rgba(255, 255, 255, 0.1)',
-          color: '#e8e8e8',
-          borderRadius: '8px',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-          cursor: 'not-allowed',
-          opacity: 0.7
-        }}
+        variant="outline"
+        size={variant === "hero" ? "default" : "sm"}
+        className="opacity-70 cursor-not-allowed"
       >
-        <CheckCircle className="h-4 w-4" />
+        <CheckCircle className={variant === "hero" ? "h-5 w-5" : "h-4 w-4"} />
         Completed
-      </button>
+      </Button>
     );
   }
 
   return (
-    <button 
+    <Button
       onClick={handleClick}
       disabled={isLoading}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '6px',
-        padding: '8px 16px',
-        fontSize: '14px',
-        fontWeight: '500',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: '#ffffff',
-        borderRadius: '8px',
-        border: 'none',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-        transition: 'all 0.2s ease',
-        cursor: isLoading ? 'not-allowed' : 'pointer',
-        opacity: isLoading ? 0.7 : 1
-      }}
+      size={variant === "hero" ? "lg" : "sm"}
+      className={`bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-primary/30 shadow-lg ${
+        isLoading ? 'opacity-70 cursor-not-allowed' : ''
+      }`}
     >
       {isLoading ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {hasStarted ? 'Completing...' : 'Starting...'}
+          <Loader2 className={`${variant === "hero" ? "h-5 w-5" : "h-4 w-4"} animate-spin`} />
+          {loadingLabel}
         </>
       ) : (
         <>
-          <Play className="h-4 w-4" />
-          {hasStarted ? 'Continue' : 'Start'}
+          <Play className={variant === "hero" ? "h-5 w-5" : "h-4 w-4"} />
+          {resolvedLabel}
         </>
       )}
-    </button>
+    </Button>
   );
 }

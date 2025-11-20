@@ -1,5 +1,6 @@
 import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
+import { BUILT_IN_THEMES } from '@/app/(app)/settings/_components/theme-editor/built-in-themes';
 import { eq } from 'drizzle-orm';
 
 export async function seed() {
@@ -146,52 +147,124 @@ export async function seed() {
       },
     ]).onConflictDoNothing();
 
-    // Seed Programming Foundations course lessons
-    console.log("Creating Programming Foundations course lessons...");
-    const programmingFoundationsLessons = await db.insert(lessons).values([
+    // Seed top-level courses
+    console.log("Creating courses...");
+    const courses = await db.insert(lessons).values([
       {
-        slug: "programming-foundations-1-introduction",
-        title: "Introduction to Programming",
-        description: "Learn what programming is and why it matters in today's world",
+        slug: "programming-foundations",
+        title: "Programming Foundations",
+        description: "Learn the fundamentals of programming from scratch. Perfect for beginners!",
         difficulty: "easy",
-        estimated_duration_sec: 1800, // 30 minutes
+        estimated_duration_sec: 14400, // 4 hours total
+        icon: "💻",
+        order_index: 1,
+        is_published: true,
+        parent_lesson_id: null,
       },
       {
-        slug: "programming-foundations-2-variables",
-        title: "Variables and Data Types",
-        description: "Understand how to store and work with different types of data",
-        difficulty: "easy",
-        estimated_duration_sec: 2400, // 40 minutes
-      },
-      {
-        slug: "programming-foundations-3-control-structures",
-        title: "Control Structures",
-        description: "Learn to make decisions and repeat actions in your code",
+        slug: "data-structures-algorithms",
+        title: "Data Structures & Algorithms",
+        description: "Master the core data structures and algorithmic thinking.",
         difficulty: "standard",
-        estimated_duration_sec: 3000, // 50 minutes
+        estimated_duration_sec: 28800, // 8 hours total
+        icon: "🔗",
+        order_index: 2,
+        is_published: true,
+        parent_lesson_id: null,
       },
       {
-        slug: "programming-foundations-4-functions",
-        title: "Functions and Methods",
-        description: "Organize your code into reusable blocks with functions",
+        slug: "oop-principles",
+        title: "Object-Oriented Programming",
+        description: "Learn OOP principles and best practices.",
         difficulty: "standard",
-        estimated_duration_sec: 3600, // 60 minutes
-      },
-      {
-        slug: "programming-foundations-5-arrays",
-        title: "Arrays and Lists",
-        description: "Work with collections of data using arrays and lists",
-        difficulty: "standard",
-        estimated_duration_sec: 2700, // 45 minutes
+        estimated_duration_sec: 21600, // 6 hours total
+        icon: "🏗️",
+        order_index: 3,
+        is_published: true,
+        parent_lesson_id: null,
       },
     ]).onConflictDoNothing().returning();
+
+    // Seed Programming Foundations topics (lessons within course)
+    console.log("Creating Programming Foundations topics...");
+    const programmingFoundationsTopics = courses.filter(c => c.slug === "programming-foundations");
+    const programmingFoundationsCourseId = programmingFoundationsTopics[0]?.id;
+
+    let programmingFoundationsLessons: typeof lessons.$inferSelect[] = [];
+    if (programmingFoundationsCourseId) {
+      programmingFoundationsLessons = await db.insert(lessons).values([
+        {
+          slug: "programming-foundations-1-introduction",
+          title: "Introduction to Programming",
+          description: "Learn what programming is and why it matters in today's world",
+          difficulty: "easy",
+          estimated_duration_sec: 1800, // 30 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 1,
+          icon: "📚",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-2-variables",
+          title: "Variables and Data Types",
+          description: "Understand how to store and work with different types of data",
+          difficulty: "easy",
+          estimated_duration_sec: 2400, // 40 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 2,
+          icon: "📝",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-3-control-structures",
+          title: "Control Structures",
+          description: "Learn to make decisions and repeat actions in your code",
+          difficulty: "standard",
+          estimated_duration_sec: 3000, // 50 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 3,
+          icon: "🔀",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-4-functions",
+          title: "Functions and Methods",
+          description: "Organize your code into reusable blocks with functions",
+          difficulty: "standard",
+          estimated_duration_sec: 3600, // 60 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 4,
+          icon: "⚙️",
+          is_published: true,
+        },
+        {
+          slug: "programming-foundations-5-arrays",
+          title: "Arrays and Lists",
+          description: "Work with collections of data using arrays and lists",
+          difficulty: "standard",
+          estimated_duration_sec: 2700, // 45 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 5,
+          icon: "📊",
+          is_published: true,
+        },
+      ]).onConflictDoNothing().returning();
+    }
 
     // Add lesson sections for Programming Foundations lessons
     if (programmingFoundationsLessons.length > 0) {
       console.log("Creating lesson sections for Programming Foundations...");
+      const createWhyItMattersSection = (lessonId: number) => ({
+        lesson_id: lessonId,
+        order_index: -1,
+        slug: "why-it-matters",
+        title: "Why it matters",
+        body_md: "# Why it matters\n\nProgramming builds computational thinking, opens career opportunities, and lets you automate everyday problems.",
+      });
       
       // Lesson 1: Introduction to Programming
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[0].id),
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 0,
@@ -217,6 +290,7 @@ export async function seed() {
 
       // Lesson 2: Variables and Data Types
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[1].id),
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 0,
@@ -242,6 +316,7 @@ export async function seed() {
 
       // Lesson 3: Control Structures
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[2].id),
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 0,
@@ -267,6 +342,7 @@ export async function seed() {
 
       // Lesson 4: Functions and Methods
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[3].id),
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 0,
@@ -292,6 +368,7 @@ export async function seed() {
 
       // Lesson 5: Arrays and Lists
       await db.insert(lesson_sections).values([
+        createWhyItMattersSection(programmingFoundationsLessons[4].id),
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 0,
@@ -316,37 +393,163 @@ export async function seed() {
       ]).onConflictDoNothing();
     }
 
-    // Seed themes
-    console.log("Creating themes...");
-    await db.insert(themes).values([
-      {
-        slug: "light",
-        name: "Light",
-        radius: "0.5",
-        font: "Inter",
-        primary: "#0066cc",
-        secondary: "#f5f5f5",
-        accent: "#00a86b",
-      },
-      {
-        slug: "dark",
-        name: "Dark",
-        radius: "0.5",
-        font: "Inter",
-        primary: "#3b82f6",
-        secondary: "#1e1e1e",
-        accent: "#10b981",
-      },
-      {
-        slug: "midnight",
-        name: "Midnight",
-        radius: "0.75",
-        font: "Inter",
-        primary: "#8b5cf6",
-        secondary: "#0f0f23",
-        accent: "#f59e0b",
-      },
-    ]).onConflictDoNothing();
+    // Seed built-in themes with unified format
+    // Each theme contains both light and dark variants in a single record
+    console.log("Creating built-in themes...");
+
+    // Build unified theme records from BUILT_IN_THEMES (7 themes, not 14)
+    // Each theme now has *_light and *_dark color fields
+    const themeRecords = [];
+    for (const theme of BUILT_IN_THEMES) {
+      themeRecords.push({
+        slug: theme.slug,
+        name: theme.name,
+
+        // Legacy color tokens (using light mode as default for backward compatibility)
+        primary: theme.primary,
+        secondary: theme.secondary,
+        accent: theme.accent,
+        base_bg: theme.base_bg,
+        base_fg: theme.base_fg,
+        card_bg: theme.card_bg,
+        card_fg: theme.card_fg,
+        popover_bg: theme.popover_bg,
+        popover_fg: theme.popover_fg,
+        muted_bg: theme.muted_bg,
+        muted_fg: theme.muted_fg,
+        destructive_bg: theme.destructive_bg,
+        destructive_fg: theme.destructive_fg,
+
+        // Light mode colors
+        primary_light: theme.primary_light,
+        secondary_light: theme.secondary_light,
+        accent_light: theme.accent_light,
+        base_bg_light: theme.base_bg_light,
+        base_fg_light: theme.base_fg_light,
+        card_bg_light: theme.card_bg_light,
+        card_fg_light: theme.card_fg_light,
+        popover_bg_light: theme.popover_bg_light,
+        popover_fg_light: theme.popover_fg_light,
+        muted_bg_light: theme.muted_bg_light,
+        muted_fg_light: theme.muted_fg_light,
+        destructive_bg_light: theme.destructive_bg_light,
+        destructive_fg_light: theme.destructive_fg_light,
+
+        // Dark mode colors
+        primary_dark: theme.primary_dark,
+        secondary_dark: theme.secondary_dark,
+        accent_dark: theme.accent_dark,
+        base_bg_dark: theme.base_bg_dark,
+        base_fg_dark: theme.base_fg_dark,
+        card_bg_dark: theme.card_bg_dark,
+        card_fg_dark: theme.card_fg_dark,
+        popover_bg_dark: theme.popover_bg_dark,
+        popover_fg_dark: theme.popover_fg_dark,
+        muted_bg_dark: theme.muted_bg_dark,
+        muted_fg_dark: theme.muted_fg_dark,
+        destructive_bg_dark: theme.destructive_bg_dark,
+        destructive_fg_dark: theme.destructive_fg_dark,
+
+        // Typography
+        font: theme.font,
+        font_sans: theme.font_sans,
+        font_serif: theme.font_serif,
+        font_mono: theme.font_mono,
+        letter_spacing: theme.letter_spacing,
+
+        // Layout & styling
+        radius: theme.radius,
+        hue_shift: theme.hue_shift,
+        saturation_adjust: theme.saturation_adjust,
+        lightness_adjust: theme.lightness_adjust,
+        spacing_scale: theme.spacing_scale,
+        shadow_strength: theme.shadow_strength,
+
+        // Metadata - unified format
+        is_built_in: true,
+        supports_both_modes: true,
+        user_id: null,
+        parent_theme_id: null,
+      });
+    }
+
+    // Insert with upsert to update existing themes
+    for (const themeRecord of themeRecords) {
+      await db.insert(themes)
+        .values(themeRecord)
+        .onConflictDoUpdate({
+          target: themes.slug,
+          set: {
+            name: themeRecord.name,
+
+            // Legacy fields
+            primary: themeRecord.primary,
+            secondary: themeRecord.secondary,
+            accent: themeRecord.accent,
+            base_bg: themeRecord.base_bg,
+            base_fg: themeRecord.base_fg,
+            card_bg: themeRecord.card_bg,
+            card_fg: themeRecord.card_fg,
+            popover_bg: themeRecord.popover_bg,
+            popover_fg: themeRecord.popover_fg,
+            muted_bg: themeRecord.muted_bg,
+            muted_fg: themeRecord.muted_fg,
+            destructive_bg: themeRecord.destructive_bg,
+            destructive_fg: themeRecord.destructive_fg,
+
+            // Light mode colors
+            primary_light: themeRecord.primary_light,
+            secondary_light: themeRecord.secondary_light,
+            accent_light: themeRecord.accent_light,
+            base_bg_light: themeRecord.base_bg_light,
+            base_fg_light: themeRecord.base_fg_light,
+            card_bg_light: themeRecord.card_bg_light,
+            card_fg_light: themeRecord.card_fg_light,
+            popover_bg_light: themeRecord.popover_bg_light,
+            popover_fg_light: themeRecord.popover_fg_light,
+            muted_bg_light: themeRecord.muted_bg_light,
+            muted_fg_light: themeRecord.muted_fg_light,
+            destructive_bg_light: themeRecord.destructive_bg_light,
+            destructive_fg_light: themeRecord.destructive_fg_light,
+
+            // Dark mode colors
+            primary_dark: themeRecord.primary_dark,
+            secondary_dark: themeRecord.secondary_dark,
+            accent_dark: themeRecord.accent_dark,
+            base_bg_dark: themeRecord.base_bg_dark,
+            base_fg_dark: themeRecord.base_fg_dark,
+            card_bg_dark: themeRecord.card_bg_dark,
+            card_fg_dark: themeRecord.card_fg_dark,
+            popover_bg_dark: themeRecord.popover_bg_dark,
+            popover_fg_dark: themeRecord.popover_fg_dark,
+            muted_bg_dark: themeRecord.muted_bg_dark,
+            muted_fg_dark: themeRecord.muted_fg_dark,
+            destructive_bg_dark: themeRecord.destructive_bg_dark,
+            destructive_fg_dark: themeRecord.destructive_fg_dark,
+
+            // Typography
+            font: themeRecord.font,
+            font_sans: themeRecord.font_sans,
+            font_serif: themeRecord.font_serif,
+            font_mono: themeRecord.font_mono,
+            letter_spacing: themeRecord.letter_spacing,
+
+            // Layout
+            radius: themeRecord.radius,
+            hue_shift: themeRecord.hue_shift,
+            saturation_adjust: themeRecord.saturation_adjust,
+            lightness_adjust: themeRecord.lightness_adjust,
+            spacing_scale: themeRecord.spacing_scale,
+            shadow_strength: themeRecord.shadow_strength,
+
+            // Metadata
+            is_built_in: true,
+            supports_both_modes: true,
+          },
+        });
+    }
+
+    console.log(`✅ Created/updated ${themeRecords.length} built-in unified themes`);
 
     // Seed levels
     console.log("Creating levels...");

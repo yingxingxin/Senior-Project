@@ -58,7 +58,11 @@ export default async function AdminHome({
       <section className="rounded-2xl border bg-card">
         <Grid gap="default" className="p-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-            <Inline gap="tight" align="center" className="rounded-md border bg-background px-3 py-2">
+            <Inline
+              gap="tight"
+              align="center"
+              className="mb-6 rounded-lg border bg-background px-4 py-3"
+            >
               <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <input
                 className="w-full bg-transparent text-sm outline-none"

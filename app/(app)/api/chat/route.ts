@@ -1,106 +1,94 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { openrouter } from "@/src/lib/openrouter";
+import {
+  streamText,
+  UIMessage,
+  convertToModelMessages,
+  tool,
+} from "ai";
+import {
+  themeGenerationSchema,
+  parseGeneratedTheme,
+} from "../../settings/_lib/theme-generator-schema";
 
-// OpenRouter API Configuration
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
-if (!OPENROUTER_API_KEY) {
-  console.warn('OpenRouter API key not configured. Chat will not work.');
-}
-
-// Supported models - OpenRouter supports many models, mapping to OpenRouter model IDs
-const SUPPORTED_MODELS: Record<string, string> = {
-  'nova': 'openai/gpt-4o-mini', // Using mini as free alternative to nova
-  'gpt-4o': 'openai/gpt-4o',
-  'gpt-4o-mini': 'openai/gpt-4o-mini',
-  'gpt-3.5-turbo': 'openai/gpt-3.5-turbo',
-};
-
-export type SupportedModel = 'nova' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-3.5-turbo';
-
-interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
-
-interface ChatRequest {
-  messages: ChatMessage[];
-  model?: SupportedModel;
-  temperature?: number;
-  max_tokens?: number;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    if (!OPENROUTER_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenRouter API key not configured' },
-        { status: 500 }
-      );
-    }
+    const { messages }: { messages: UIMessage[] } = await req.json();
 
-    const body = (await request.json()) as ChatRequest;
-    const { messages, model = 'nova', temperature = 0.7, max_tokens = 1000 } = body;
+    console.log(`[Chat API] Received ${messages.length} messages`);
+    console.log("[Chat API] Last message:", messages[messages.length - 1]);
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { error: 'Messages array is required' },
-        { status: 400 }
-      );
-    }
+    console.log("[Chat API] Calling streamText with model: openai/gpt-4o");
 
-    // Map user's model selection to OpenRouter model ID
-    const openrouterModel = SUPPORTED_MODELS[model] || SUPPORTED_MODELS['nova'];
+    const result = streamText({
+      model: openrouter("openai/gpt-4o"),
+      system: `You are a helpful theme design assistant. You help users create beautiful, accessible color themes for their applications.
 
-    // Call OpenRouter API
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        'X-Title': 'Senior Project Chat',
+When users describe a theme they want (e.g., "dark theme with purple accents", "warm sunset theme"), you should:
+1. Create appropriate HSL color values that match their description
+2. Ensure sufficient contrast between background and foreground colors (WCAG AA minimum)
+3. Choose complementary accent colors
+4. Suggest appropriate font stacks and typography settings
+5. Call the applyTheme tool with your generated theme
+
+HSL Format: All colors should be in the format "hue saturation% lightness%" (e.g., "220 70% 50%")
+
+Tips:
+- Dark themes: base_bg around 220 10% 5-15%, base_fg around 0 0% 95-100%
+- Light themes: base_bg around 0 0% 95-100%, base_fg around 220 10% 5-15%
+- Primary colors: Use distinctive hues that stand out
+- Maintain color harmony by using related hues or complementary colors
+
+Visible assistant text should stay minimal: give a short acknowledgment (under 25 words) and avoid listing the palette. Do not include long explanations or "Here's the theme I've designed"—let the applyTheme tool output speak for itself.`,
+      messages: convertToModelMessages(messages),
+      tools: {
+        applyTheme: tool({
+          description:
+            "Apply a generated theme to the user's application. Call this after generating theme colors based on the user's request.",
+          inputSchema: themeGenerationSchema,
+          execute: async (payload) => {
+            console.log("[Chat API] applyTheme tool called");
+            console.log("[Chat API] Payload:", JSON.stringify(payload, null, 2));
+
+            // Parse the theme payload
+            const theme = parseGeneratedTheme(payload);
+
+            if (!theme) {
+              console.log("[Chat API] Failed to parse theme");
+              return {
+                success: false,
+                error: "Invalid theme data",
+              };
+            }
+
+            console.log("[Chat API] Theme parsed successfully:", theme.name);
+
+            // Return the theme data to be handled by the client
+            return {
+              success: true,
+              theme,
+            };
+          },
+        }),
       },
-      body: JSON.stringify({
-        model: openrouterModel,
-        messages: messages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        temperature,
-        max_tokens,
-        stream: false,
-      }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('OpenRouter API Error:', errorData);
-      return NextResponse.json(
-        { error: errorData.error?.message || 'Failed to get response from OpenRouter' },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-
-    if (!data.choices || !data.choices[0]) {
-      return NextResponse.json(
-        { error: 'Invalid response from OpenRouter' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      message: data.choices[0].message.content,
-      model: data.model,
-      usage: data.usage,
-    });
+    console.log("[Chat API] Streaming response...");
+    return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error('Chat API Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
+    console.error("[Chat API] Error:", error);
+
+    return new Response(
+      JSON.stringify({
+        error: "Failed to process chat request",
+        details: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
-

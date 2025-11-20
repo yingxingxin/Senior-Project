@@ -80,7 +80,7 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
         },
       ];
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
