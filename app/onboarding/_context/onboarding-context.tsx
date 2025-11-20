@@ -40,7 +40,7 @@ type OnboardingContext = {
   setError: (msg: string | null) => void;
   selectAssistant: (id: number) => Promise<void>;
   selectPersona: (p: AssistantPersona) => Promise<void>;
-  submitQuiz: (answers: Array<{ questionId: number; optionId: number }>) => Promise<void>;
+  submitQuiz: (answers: Array<{ questionId: number; selectedIndex: number }>) => Promise<void>;
   complete: () => Promise<void>;
   reset: () => Promise<void>;
 };

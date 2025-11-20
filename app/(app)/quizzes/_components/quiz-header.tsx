@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Stack, Inline } from '@/components/ui/spacing';
 import { Heading, Body, Muted } from '@/components/ui/typography';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
@@ -53,7 +53,12 @@ export function QuizHeader({
 
         <Inline gap="default" align="center" wrap>
           {assistantAvatar && (
-            <Avatar src={assistantAvatar} alt={assistantName} size="lg" />
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={assistantAvatar} alt={assistantName} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
+                {assistantName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           )}
           <Stack gap="tight">
             <Body className="font-medium">Hosted by {assistantName}</Body>

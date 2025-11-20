@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Heading, Body, Muted, Caption } from "@/components/ui/typography";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Stack, Inline } from "@/components/ui/spacing";
 
@@ -97,11 +97,12 @@ export default async function QuizzesPage() {
           <Card className="p-6">
             <Inline gap="default" align="center">
               {userData.assistantAvatar && (
-                <Avatar
-                  src={userData.assistantAvatar}
-                  alt={userData.assistantName}
-                  size="lg"
-                />
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={userData.assistantAvatar} alt={userData.assistantName} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
+                    {userData.assistantName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               )}
               <Stack gap="tight">
                 <Body className="font-medium">Hosted by {userData.assistantName}</Body>

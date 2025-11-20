@@ -85,7 +85,7 @@ export async function POST(
     const validation = saveProgressSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: validation.error.errors },
+        { error: 'Invalid request body', details: validation.error.issues },
         { status: 400 }
       );
     }

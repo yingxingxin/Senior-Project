@@ -305,13 +305,13 @@ export async function saveQuizProgress(userId: number, quizId: number, answers: 
     .values({
       user_id: userId,
       quiz_id: quizId,
-      answers: answers as any, // JSONB type
+      answers: answers, // JSONB type - Record<number, number> matches schema
       updated_at: new Date(),
     })
     .onConflictDoUpdate({
       target: [quiz_progress.user_id, quiz_progress.quiz_id],
       set: {
-        answers: answers as any,
+        answers: answers, // JSONB type - Record<number, number> matches schema
         updated_at: new Date(),
       },
     })

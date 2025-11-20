@@ -47,7 +47,7 @@ export default async function QuizPage({ params }: Props) {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Stack gap="default">
           <h1 className="text-2xl font-bold">No questions available</h1>
-          <p>This quiz doesn't have any questions yet.</p>
+          <p>This quiz doesn&apos;t have any questions yet.</p>
         </Stack>
       </div>
     );

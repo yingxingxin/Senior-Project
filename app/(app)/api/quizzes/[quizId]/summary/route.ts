@@ -41,7 +41,7 @@ export async function POST(
     const validation = summaryRequestSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request body', details: validation.error.errors },
+        { error: 'Invalid request body', details: validation.error.issues },
         { status: 400 }
       );
     }
@@ -129,7 +129,6 @@ Keep the summary focused and actionable (3-5 sentences).`;
       model: openrouter('openai/gpt-4o'),
       system: systemPrompt,
       prompt: userPrompt,
-      maxTokens: 300,
     });
 
     return NextResponse.json({ summary });

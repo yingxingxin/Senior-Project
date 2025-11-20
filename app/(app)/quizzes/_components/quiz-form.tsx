@@ -372,7 +372,7 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
 
         <Card className="p-6">
           <Stack gap="default">
-            <Heading level={3}>What's Next?</Heading>
+            <Heading level={3}>What&apos;s Next?</Heading>
             <Body>
               Review your answers above, or try the quiz again to improve your score.
             </Body>

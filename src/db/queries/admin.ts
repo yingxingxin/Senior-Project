@@ -5,8 +5,8 @@
  */
 
 import { db } from '@/src/db';
-import { users, lessons, quizzes } from '@/src/db/schema';
-import { count, gte, sql } from 'drizzle-orm';
+import { users, lessons, quizzes, quiz_attempts } from '@/src/db/schema';
+import { count, gte, sql, eq, desc } from 'drizzle-orm';
 
 /**
  * Get total user count
@@ -80,3 +80,34 @@ export const getNewUserCount = db
   .where(gte(users.created_at, sql.placeholder('startDate')))
   .limit(1)
   .prepare('get_new_user_count');
+
+/**
+ * Get user's quiz attempts for admin view
+ *
+ * Returns all quiz attempts for a user with quiz information joined.
+ * Used on admin user detail page.
+ *
+ * @param userId - The user's ID
+ * @param limit - Maximum number of attempts to return
+ * @returns Array of attempt records with quiz info
+ *
+ * @example
+ * const attempts = await getAdminUserQuizAttempts.execute({ userId: 123, limit: 5 });
+ */
+export const getAdminUserQuizAttempts = db
+  .select({
+    id: quiz_attempts.id,
+    quizId: quiz_attempts.quiz_id,
+    quizTopic: quizzes.topic_slug,
+    score: quiz_attempts.score,
+    totalQuestions: quiz_attempts.total_questions,
+    percentage: quiz_attempts.percentage,
+    completedAt: quiz_attempts.completed_at,
+    createdAt: quiz_attempts.created_at,
+  })
+  .from(quiz_attempts)
+  .innerJoin(quizzes, eq(quiz_attempts.quiz_id, quizzes.id))
+  .where(eq(quiz_attempts.user_id, sql.placeholder('userId')))
+  .orderBy(desc(quiz_attempts.completed_at))
+  .limit(sql.placeholder('limit'))
+  .prepare('get_user_quiz_attempts_admin');

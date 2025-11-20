@@ -18,12 +18,12 @@ import { Progress } from '@/components/ui/progress';
 type Question = {
   id: number;
   text: string;
-  options: { id: number; text: string }[];
+  options: { id: number; text: string }[]; // id is the index (0-3), text is the option text
 };
 
 const AnswerSchema = z.object({
   questionId: z.number(),
-  optionId: z.number().nullable(),
+  selectedIndex: z.number().nullable(),
 });
 
 const FormSchema = z
@@ -32,10 +32,10 @@ const FormSchema = z
   })
   .superRefine((d, ctx) => {
     d.answers.forEach((a, i) => {
-      if (a.optionId === null) {
+      if (a.selectedIndex === null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['answers', i, 'optionId'],
+          path: ['answers', i, 'selectedIndex'],
           message: 'Please answer this question',
         });
       }
@@ -51,7 +51,7 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      answers: questions.map(q => ({ questionId: q.id, optionId: null })),
+      answers: questions.map(q => ({ questionId: q.id, selectedIndex: null })),
     },
     mode: 'onSubmit',
     reValidateMode: 'onChange',
@@ -88,7 +88,7 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
 
     // Validate all questions are answered before submitting
     const unansweredIndices = data.answers
-      .map((a, i) => (a.optionId === null ? i : -1))
+      .map((a, i) => (a.selectedIndex === null ? i : -1))
       .filter(i => i !== -1);
 
     console.log('[SkillQuiz] Unanswered indices:', unansweredIndices);
@@ -104,7 +104,7 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
       // All questions are answered (validated above), safe to use non-null assertion
       const payload = data.answers.map(a => ({
         questionId: a.questionId,
-        optionId: a.optionId!, // Non-null assertion - validation ensures this
+        selectedIndex: a.selectedIndex!, // Non-null assertion - validation ensures this
       }));
       console.log('[SkillQuiz] Calling submitQuiz with payload:', payload);
       await submitQuiz(payload);
@@ -116,9 +116,9 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
     }
   };
 
-  const currentAnswer = form.watch(`answers.${currentQuestionIndex}.optionId`);
+  const currentAnswer = form.watch(`answers.${currentQuestionIndex}.selectedIndex`);
   const allAnswers = form.watch('answers');
-  const allAnswered = allAnswers.every(a => a.optionId !== null);
+  const allAnswered = allAnswers.every(a => a.selectedIndex !== null);
   const canProceed = currentAnswer !== null;
 
   // Debug logging
@@ -170,7 +170,7 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
                 aria-hidden={i !== currentQuestionIndex}
               >
                 <Controller
-                  name={`answers.${i}.optionId`}
+                  name={`answers.${i}.selectedIndex`}
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Stack gap="tight">
@@ -180,15 +180,15 @@ export function SkillQuizForm({ questions }: { questions: Question[] }) {
                         disabled={pending || form.formState.isSubmitting}
                       >
                         <Stack gap="tight">
-                          {questions[i].options.map(opt => {
-                            const id = `q${q.id}-o${opt.id}`;
+                          {questions[i].options.map((opt, optIndex) => {
+                            const id = `q${q.id}-o${optIndex}`;
                             return (
                               <label
-                                key={opt.id}
+                                key={optIndex}
                                 htmlFor={id}
                                 className="flex items-center gap-3 py-3 px-4 cursor-pointer rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-colors"
                               >
-                                <RadioGroupItem value={String(opt.id)} id={id} />
+                                <RadioGroupItem value={String(optIndex)} id={id} />
                                 <Body variant="small" as="span">{opt.text}</Body>
                               </label>
                             );

@@ -13,7 +13,7 @@ import { and, count, eq, inArray, sql } from "drizzle-orm";
 import {
   getAdminUserById,
   getUserLessonProgress,
-  getUserQuizAttempts,
+  getAdminUserQuizAttempts,
   getRecentActivityWithDetails,
 } from "@/src/db/queries";
 import type { LucideIcon } from "lucide-react";
@@ -97,7 +97,7 @@ async function getUserDetails(userId: number) {
     pointsAggregate,
   ] = await Promise.all([
     getUserLessonProgress.execute({ userId, limit: 5 }),
-    getUserQuizAttempts.execute({ userId, limit: 5 }),
+    getAdminUserQuizAttempts.execute({ userId, limit: 5 }),
     getRecentActivityWithDetails.execute({ userId, limit: 10 }),
     db
       .select({
@@ -111,7 +111,7 @@ async function getUserDetails(userId: number) {
     db
       .select({
         attempts: count(),
-        submitted: sql<number>`COALESCE(SUM(CASE WHEN ${quiz_attempts.submitted_at} IS NOT NULL THEN 1 ELSE 0 END), 0)`,
+        submitted: sql<number>`COALESCE(SUM(CASE WHEN ${quiz_attempts.completed_at} IS NOT NULL THEN 1 ELSE 0 END), 0)`,
       })
       .from(quiz_attempts)
       .where(eq(quiz_attempts.user_id, userId))
@@ -177,9 +177,20 @@ async function getUserDetails(userId: number) {
     };
   });
 
-  const quizAttempts = quizAttemptsRaw.map((record) => ({
-    ...record,
-  }));
+  const quizAttempts = quizAttemptsRaw.map((record, index) => {
+    const durationSec = record.createdAt && record.completedAt
+      ? Math.floor((record.completedAt.getTime() - record.createdAt.getTime()) / 1000)
+      : null;
+    
+    return {
+      ...record,
+      attemptNumber: index + 1,
+      startedAt: record.createdAt,
+      submittedAt: record.completedAt,
+      passingPct: null, // Not stored in DB, would need to be calculated from quiz settings
+      durationSec,
+    };
+  });
 
   const recentActivity = recentActivityRaw.map((record) => ({
     ...record,
@@ -610,7 +621,7 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                           {attempt.quizTopic || `Quiz ${attempt.quizId}`}
                         </Body>
                         <Muted variant="tiny">
-                          Attempt #{attempt.attemptNumber} • Started {attempt.startedAt ? attempt.startedAt.toLocaleString("en-US") : "Unknown"}
+                          Attempt #{attempt.attemptNumber} • Completed {attempt.completedAt ? attempt.completedAt.toLocaleString("en-US") : "Unknown"}
                         </Muted>
                       </div>
                       <div className="flex items-center gap-2">
@@ -619,9 +630,9 @@ export default async function UserDetailPage({ params }: { params: { userId: str
                             Passing {attempt.passingPct}%
                           </Badge>
                         ) : null}
-                        {attempt.submittedAt ? (
+                        {attempt.completedAt ? (
                           <Badge variant="outline" className="border-emerald-400/60 bg-emerald-500/10 text-emerald-600">
-                            Submitted
+                            Completed
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs">

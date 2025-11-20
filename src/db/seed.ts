@@ -1,4 +1,4 @@
-import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, quiz_options, music_tracks, type NewAssistant, type NewUser } from './index';
+import { db, assistants, achievements, lessons, lesson_sections, themes, levels, users, quizzes, quiz_questions, music_tracks, type NewAssistant, type NewUser } from './index';
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
 import { BUILT_IN_THEMES } from '@/app/(app)/settings/_components/theme-editor/built-in-themes';
 import { eq } from 'drizzle-orm';
@@ -620,19 +620,22 @@ export async function seed() {
     const existingSkillQuiz = await db
       .select()
       .from(quizzes)
-      .where(eq(quizzes.topic, 'Skill Assessment'))
+      .where(eq(quizzes.topic_slug, 'skill-assessment'))
       .limit(1);
 
     if (existingSkillQuiz.length === 0) {
       // Create the skill assessment quiz
       const [skillQuiz] = await db.insert(quizzes).values({
-        topic: 'Skill Assessment',
-        difficulty: 'standard',
-        time_limit_sec: 600,
-        passing_pct: 60,
+        slug: 'skill-assessment',
+        title: 'Skill Assessment',
+        description: 'Assess your programming skill level',
+        topic_slug: 'skill-assessment',
+        skill_level: 'intermediate',
+        default_length: 5,
       }).returning();
 
       // Add questions and options for skill assessment
+      // Note: All questions must have exactly 4 options (indices 0-3)
       const skillQuestions = [
         {
           text: 'What is the output of: print(len({"a": 1, "b": 2})) in Python?',
@@ -640,6 +643,7 @@ export async function seed() {
             { text: '2', is_correct: true },
             { text: '1', is_correct: false },
             { text: '0', is_correct: false },
+            { text: 'Error', is_correct: false },
           ]
         },
         {
@@ -648,6 +652,7 @@ export async function seed() {
             { text: 'Hash map / dict', is_correct: true },
             { text: 'Array list', is_correct: false },
             { text: 'Linked list', is_correct: false },
+            { text: 'Binary tree', is_correct: false },
           ]
         },
         {
@@ -656,6 +661,7 @@ export async function seed() {
             { text: 'Upper bound on algorithm growth', is_correct: true },
             { text: 'Exact runtime in seconds', is_correct: false },
             { text: 'Memory address', is_correct: false },
+            { text: 'Code line count', is_correct: false },
           ]
         },
         {
@@ -664,6 +670,7 @@ export async function seed() {
             { text: 'Merge sort', is_correct: true },
             { text: 'Bubble sort', is_correct: false },
             { text: 'Selection sort', is_correct: false },
+            { text: 'Insertion sort', is_correct: false },
           ]
         },
         {
@@ -672,28 +679,28 @@ export async function seed() {
             { text: 'One that preserves relative order of equal elements', is_correct: true },
             { text: 'One that is fastest in all cases', is_correct: false },
             { text: 'One that uses the least memory always', is_correct: false },
+            { text: 'One that never fails', is_correct: false },
           ]
         }
       ];
 
       for (let i = 0; i < skillQuestions.length; i++) {
         const q = skillQuestions[i];
-        const [question] = await db.insert(quiz_questions).values({
+        // Find the correct answer index
+        const correctIndex = q.options.findIndex(opt => opt.is_correct);
+        if (correctIndex === -1) {
+          throw new Error(`Question ${i + 1} has no correct answer`);
+        }
+        // Convert options to array of strings
+        const optionsArray = q.options.map(opt => opt.text);
+        
+        await db.insert(quiz_questions).values({
           quiz_id: skillQuiz.id,
           order_index: i + 1,
-          text: q.text,
-          points: 1,
-        }).returning();
-
-        for (let j = 0; j < q.options.length; j++) {
-          const opt = q.options[j];
-          await db.insert(quiz_options).values({
-            question_id: question.id,
-            order_index: j + 1,
-            text: opt.text,
-            is_correct: opt.is_correct,
-          });
-        }
+          prompt: q.text,
+          options: optionsArray,
+          correct_index: correctIndex,
+        });
       }
       console.log("  → Skill Assessment quiz created with 5 questions");
     } else {
