@@ -17,6 +17,7 @@ export * from './lessons';
 
 // Quizzes & Assessment
 export * from './quizzes';
+export * from './quiz-progress';
 
 // Progress & Gamification
 export * from './progress';

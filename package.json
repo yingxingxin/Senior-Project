@@ -11,7 +11,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "db:migrate-quizzes": "node scripts/migrate-quizzes.js",
+    "db:migrate-quiz-progress": "node scripts/migrate-quiz-progress.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.65",
