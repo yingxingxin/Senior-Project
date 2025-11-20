@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Heading, Body } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { SectionRenderer, type Section } from "../../_components/section-renderer";
 import { SectionNavigator } from "../../_components/section-navigator";
 import { completeSectionAction, checkSectionCompletion } from "../../_lib/actions";
@@ -131,76 +133,33 @@ export function LessonClient({
   }
 
   return (
-    <div
-      className="min-h-dvh"
-      style={{
-        color: "#e8e8e8",
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-        minHeight: "100vh",
-        position: "relative",
-        background: "linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e)",
-        backgroundSize: "400% 400%",
-      }}
-    >
-      <main className="mx-auto max-w-5xl px-4 pt-6 pb-16 relative z-10">
+    <div className="min-h-dvh bg-background text-foreground">
+      <main className="mx-auto max-w-5xl px-4 pt-6 pb-16">
         <Stack gap="loose">
           {/* Back button */}
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <Link
-              href={`/courses/${courseId}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "500",
-                background: "rgba(255, 255, 255, 0.1)",
-                color: "#e8e8e8",
-                borderRadius: "10px",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                textDecoration: "none",
-              }}
-            >
+          <Button variant="outline" asChild className="self-start">
+            <Link href={`/courses/${courseId}`}>
               <ArrowLeft className="h-4 w-4" />
               Back to Course
             </Link>
-          </div>
+          </Button>
 
           {/* Lesson header */}
-          <div
-            style={{
-              background: "rgba(255, 255, 255, 0.05)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "16px",
-              boxShadow:
-                "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-              padding: "24px",
-            }}
-          >
+          <Card className="bg-card/50 backdrop-blur border-border shadow-lg p-6">
             <Stack gap="default">
-              <Heading level={2} style={{ color: "#ffffff", fontWeight: 600 }}>
+              <Heading level={2} className="text-foreground">
                 {lessonMeta.title}
               </Heading>
               {lessonMeta.description && (
-                <Body style={{ color: "#94a3b8" }}>
+                <Body className="text-muted-foreground">
                   {lessonMeta.description}
                 </Body>
               )}
             </Stack>
-          </div>
+          </Card>
 
           {/* Current section */}
-          <div
-            style={{
-              background: "rgba(255, 255, 255, 0.05)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "16px",
-              padding: "24px",
-            }}
-          >
+          <Card className="bg-card/50 backdrop-blur border-border p-6">
             <Stack gap="default">
               <SectionRenderer
                 section={{
@@ -212,7 +171,7 @@ export function LessonClient({
                 onReadyStateChange={handleReadyStateChange}
               />
             </Stack>
-          </div>
+          </Card>
 
           {/* Section navigator */}
           <SectionNavigator

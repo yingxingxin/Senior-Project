@@ -39,7 +39,9 @@ Tips:
 - Dark themes: base_bg around 220 10% 5-15%, base_fg around 0 0% 95-100%
 - Light themes: base_bg around 0 0% 95-100%, base_fg around 220 10% 5-15%
 - Primary colors: Use distinctive hues that stand out
-- Maintain color harmony by using related hues or complementary colors`,
+- Maintain color harmony by using related hues or complementary colors
+
+Visible assistant text should stay minimal: give a short acknowledgment (under 25 words) and avoid listing the palette. Do not include long explanations or "Here's the theme I've designed"—let the applyTheme tool output speak for itself.`,
       messages: convertToModelMessages(messages),
       tools: {
         applyTheme: tool({

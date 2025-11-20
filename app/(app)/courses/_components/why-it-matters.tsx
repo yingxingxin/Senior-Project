@@ -29,59 +29,45 @@ export function WhyItMatters({ cards, isCompleted = false, onReadyStateChange }:
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
+    <div className="grid grid-cols-3 gap-4">
       {cards.map((card, i) => (
         <button
           key={i}
           type="button"
           onClick={() => toggle(i)}
           aria-pressed={flipped[i]}
-          style={{ perspective: '1000px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+          className="bg-transparent border-none p-0 cursor-pointer"
+          style={{ perspective: '1000px' }}
         >
           <div
+            className="relative transition-transform duration-300"
             style={{
-              position: 'relative',
               transformStyle: 'preserve-3d',
-              transition: 'transform 300ms ease',
               transform: flipped[i] ? 'rotateY(180deg)' : 'rotateY(0deg)'
             }}
           >
             <div
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: 12,
-                padding: 16,
-                backfaceVisibility: 'hidden',
-                minHeight: 120,
-              }}
+              className="bg-card/60 border border-border rounded-xl p-4 min-h-[120px]"
+              style={{ backfaceVisibility: 'hidden' }}
             >
-              <Body style={{ color: '#e8e8e8', fontWeight: 600 }}>{card.front}</Body>
+              <Body className="text-foreground font-semibold">{card.front}</Body>
               <Muted variant="small">Tap to flip</Muted>
             </div>
             <div
+              className="absolute inset-0 bg-card/60 border border-border rounded-xl p-4 min-h-[120px] flex items-center"
               style={{
-                position: 'absolute',
-                inset: 0,
                 transform: 'rotateY(180deg)',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: 12,
-                padding: 16,
-                backfaceVisibility: 'hidden',
-                minHeight: 120,
-                display: 'flex',
-                alignItems: 'center'
+                backfaceVisibility: 'hidden'
               }}
             >
-              <Body style={{ color: '#e8e8e8' }}>{card.back}</Body>
+              <Body className="text-foreground">{card.back}</Body>
             </div>
           </div>
         </button>
       ))}
 
       {(allReviewed || isCompleted) && (
-        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '16px 0' }}>
+        <div className="col-span-full text-center py-4">
           <Muted>
             {isCompleted
               ? '✓ Already Completed (+10 XP)'
