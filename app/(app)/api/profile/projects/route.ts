@@ -35,7 +35,7 @@ export async function PUT(req: Request): Promise<NextResponse> {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: "Invalid request data", details: result.error.errors },
+        { error: "Invalid request data", details: result.error.issues },
         { status: 400 }
       );
     }

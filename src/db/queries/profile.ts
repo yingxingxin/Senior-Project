@@ -307,8 +307,16 @@ export async function replaceUserExperiences(
           role: exp.role,
           organization: exp.organization,
           location: exp.location ?? null,
-          start_date: exp.startDate ?? null,
-          end_date: exp.endDate ?? null,
+          start_date: exp.startDate
+            ? (typeof exp.startDate === "string"
+                ? exp.startDate
+                : exp.startDate.toISOString().split("T")[0])
+            : null,
+          end_date: exp.endDate
+            ? (typeof exp.endDate === "string"
+                ? exp.endDate
+                : exp.endDate.toISOString().split("T")[0])
+            : null,
           is_current: exp.isCurrent ?? false,
           description: exp.description ?? null,
           order_index: exp.orderIndex ?? 0,

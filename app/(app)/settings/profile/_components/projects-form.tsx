@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Stack } from "@/components/ui/spacing";
-import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { Loader2, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { z } from "zod";
@@ -34,7 +33,7 @@ interface ProjectsFormProps {
   userId: string;
 }
 
-export function ProjectsForm({ initialProjects, userId }: ProjectsFormProps) {
+export function ProjectsForm({ initialProjects }: ProjectsFormProps) {
   const [projects, setProjects] = useState<Project[]>(
     initialProjects.map((p) => ({
       id: p.id.toString(),
@@ -106,7 +105,7 @@ export function ProjectsForm({ initialProjects, userId }: ProjectsFormProps) {
       const validatedProjects = projects.map((p) => {
         const result = projectSchema.safeParse(p);
         if (!result.success) {
-          throw new Error(`Invalid project: ${result.error.errors[0]?.message}`);
+          throw new Error(`Invalid project: ${result.error.issues[0]?.message}`);
         }
         return result.data;
       });

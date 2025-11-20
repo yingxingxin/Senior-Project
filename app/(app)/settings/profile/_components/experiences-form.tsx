@@ -31,8 +31,8 @@ interface ExperiencesFormProps {
     role: string;
     organization: string;
     location: string | null;
-    start_date: Date | null;
-    end_date: Date | null;
+    start_date: Date | string | null;
+    end_date: Date | string | null;
     is_current: boolean;
     description: string | null;
     order_index: number;
@@ -42,7 +42,6 @@ interface ExperiencesFormProps {
 
 export function ExperiencesForm({
   initialExperiences,
-  userId,
 }: ExperiencesFormProps) {
   const [experiences, setExperiences] = useState<Experience[]>(
     initialExperiences.map((e) => ({
@@ -51,10 +50,14 @@ export function ExperiencesForm({
       organization: e.organization,
       location: e.location || null,
       startDate: e.start_date
-        ? new Date(e.start_date).toISOString().split("T")[0]
+        ? (typeof e.start_date === "string"
+            ? e.start_date
+            : new Date(e.start_date).toISOString().split("T")[0])
         : null,
       endDate: e.end_date
-        ? new Date(e.end_date).toISOString().split("T")[0]
+        ? (typeof e.end_date === "string"
+            ? e.end_date
+            : new Date(e.end_date).toISOString().split("T")[0])
         : null,
       isCurrent: e.is_current,
       description: e.description || null,
@@ -134,7 +137,7 @@ export function ExperiencesForm({
         const result = experienceSchema.safeParse(e);
         if (!result.success) {
           throw new Error(
-            `Invalid experience: ${result.error.errors[0]?.message}`
+            `Invalid experience: ${result.error.issues[0]?.message}`
           );
         }
         return result.data;

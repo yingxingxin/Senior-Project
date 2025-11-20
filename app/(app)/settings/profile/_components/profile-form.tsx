@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -19,7 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Stack } from "@/components/ui/spacing";
-import { Body, Muted } from "@/components/ui/typography";
+import { Body } from "@/components/ui/typography";
 import { Loader2 } from "lucide-react";
 
 const profileSchema = z.object({
@@ -36,7 +35,7 @@ const profileSchema = z.object({
   githubUrl: z.string().url("Must be a valid URL").nullable().optional().or(z.literal("")),
   linkedinUrl: z.string().url("Must be a valid URL").nullable().optional().or(z.literal("")),
   xUrl: z.string().url("Must be a valid URL").nullable().optional().or(z.literal("")),
-  isPublic: z.boolean().default(true),
+  isPublic: z.boolean(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -57,7 +56,7 @@ interface ProfileFormProps {
   userId: string;
 }
 
-export function ProfileForm({ initialData, userId }: ProfileFormProps) {
+export function ProfileForm({ initialData }: ProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -76,6 +75,7 @@ export function ProfileForm({ initialData, userId }: ProfileFormProps) {
       xUrl: initialData?.x_url || null,
       isPublic: initialData?.is_public ?? true,
     },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: ProfileFormData) => {
