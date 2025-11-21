@@ -20,6 +20,7 @@ import {
 import { Stack } from "@/components/ui/spacing";
 import { Body } from "@/components/ui/typography";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "@/src/components/image-upload";
 
 const profileSchema = z.object({
   handle: z
@@ -236,18 +237,15 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             name="avatarUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Avatar URL</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    type="url"
-                    placeholder="https://example.com/avatar.jpg"
+                  <ImageUpload
+                    currentImageUrl={field.value}
+                    onImageUploaded={(url) => field.onChange(url)}
+                    folder="profile-images"
+                    label="Profile Picture"
+                    buttonText="Upload Profile Picture"
                   />
                 </FormControl>
-                <FormDescription>
-                  URL to your profile picture (image upload coming soon)
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
