@@ -2,7 +2,7 @@
  * Lesson Generation Job Processor
  *
  * Handles the actual lesson generation logic when a job is picked up by a worker.
- * Uses AI Agent approach with tool calling for iterative, high-quality lesson generation.
+ * Uses full AI Agent with iterative tools, document chunking, and diff-based editing.
  */
 
 import type { Job } from 'bullmq';
@@ -11,7 +11,7 @@ import type {
   GenerateLessonJobResult,
   LessonGenerationProgress,
 } from '../types';
-import { generateAILessonWithAgent } from '@/lib/ai/lesson-generator-v2';
+import { generateAILessonWithFullAgent } from '@/lib/ai/lesson-generator-v3';
 
 /**
  * Process a lesson generation job
@@ -44,8 +44,8 @@ export async function processLessonGeneration(
   });
 
   try {
-    // Call the AI Agent lesson generator with progress tracking
-    const result = await generateAILessonWithAgent({
+    // Call the full AI Agent (v3) with iterative tools
+    const result = await generateAILessonWithFullAgent({
       userId,
       topic,
       difficulty,

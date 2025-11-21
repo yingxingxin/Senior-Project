@@ -4,11 +4,16 @@
  * Central export point for all AI-powered lesson generation functionality.
  */
 
-// Main lesson generator (AI Agent-based, uses tool calling)
+// Main lesson generator (Full AI Agent with iterative tools - v3)
 export {
-  generateAILessonWithAgent,
+  generateAILessonWithFullAgent,
   type GenerateLessonParams,
   type GenerateLessonResult,
+} from './lesson-generator-v3';
+
+// Alternative: Simplified agent (v2 - single tool call)
+export {
+  generateAILessonWithAgent,
 } from './lesson-generator-v2';
 
 // Legacy generator (deprecated - single-call JSON generation)
