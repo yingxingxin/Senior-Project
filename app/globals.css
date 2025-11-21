@@ -677,10 +677,364 @@
   }
 }
 
-  
+
   .animate-gradient {
     background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e) !important;
     background-size: 400% 400% !important;
     animation: gradientShift 15s ease infinite !important;
+  }
+
+  /* ============================================
+   * Tiptap Editor Styles
+   * ============================================
+   * Custom styles for Tiptap content rendering
+   * Using design system colors for consistent theming
+   */
+
+  /* Callout Boxes */
+  .callout {
+    @apply rounded-lg border p-4 my-4;
+    position: relative;
+  }
+
+  .callout-content {
+    @apply space-y-2;
+  }
+
+  /* Callout Types - Using design system semantic colors */
+  .callout-tip {
+    @apply bg-primary/10 border-primary/20;
+  }
+
+  .callout-tip::before {
+    content: "💡";
+    @apply inline-block mr-2;
+  }
+
+  .callout-warning {
+    @apply bg-warning/10 border-warning/20;
+  }
+
+  .callout-warning::before {
+    content: "⚠️";
+    @apply inline-block mr-2;
+  }
+
+  .callout-note {
+    @apply bg-accent/10 border-accent/20;
+  }
+
+  .callout-note::before {
+    content: "📝";
+    @apply inline-block mr-2;
+  }
+
+  .callout-info {
+    @apply bg-muted border-border;
+  }
+
+  .callout-info::before {
+    content: "ℹ️";
+    @apply inline-block mr-2;
+  }
+
+  .callout-success {
+    @apply bg-success/10 border-success/20;
+  }
+
+  .callout-success::before {
+    content: "✅";
+    @apply inline-block mr-2;
+  }
+
+  .callout-error {
+    @apply bg-destructive/10 border-destructive/20;
+  }
+
+  .callout-error::before {
+    content: "❌";
+    @apply inline-block mr-2;
+  }
+
+  /* Enhanced Code Blocks */
+  .code-block-enhanced {
+    @apply relative rounded-lg my-4 bg-muted border border-border overflow-hidden;
+  }
+
+  .code-block-enhanced[data-filename]::before {
+    content: attr(data-filename);
+    @apply block px-4 py-2 text-sm font-mono text-muted-foreground border-b border-border bg-muted/50;
+  }
+
+  .code-block-enhanced[data-language]::after {
+    content: attr(data-language);
+    @apply absolute top-2 right-2 px-2 py-1 text-xs font-mono rounded bg-background/80 text-muted-foreground uppercase;
+  }
+
+  .code-block-enhanced[data-filename][data-language]::after {
+    @apply top-14;
+  }
+
+  .code-block-enhanced code {
+    @apply block p-4 text-sm font-mono overflow-x-auto;
+  }
+
+  .code-block-enhanced[data-line-numbers] code {
+    counter-reset: line;
+  }
+
+  .code-block-enhanced[data-line-numbers] code .line::before {
+    counter-increment: line;
+    content: counter(line);
+    @apply inline-block w-8 text-right mr-4 text-muted-foreground select-none;
+  }
+
+  /* Syntax Highlighting - Using lowlight classes */
+  /* Base syntax highlighting for common tokens */
+  .hljs-comment,
+  .hljs-quote {
+    @apply text-muted-foreground italic;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-type {
+    @apply text-primary font-semibold;
+  }
+
+  .hljs-string,
+  .hljs-attr,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-addition {
+    @apply text-success;
+  }
+
+  .hljs-number,
+  .hljs-literal,
+  .hljs-built_in {
+    @apply text-warning;
+  }
+
+  .hljs-function,
+  .hljs-title,
+  .hljs-class .hljs-title {
+    @apply text-accent-foreground font-semibold;
+  }
+
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-tag .hljs-attr {
+    @apply text-foreground;
+  }
+
+  .hljs-deletion {
+    @apply text-destructive;
+  }
+
+  .hljs-meta,
+  .hljs-meta-keyword {
+    @apply text-muted-foreground;
+  }
+
+  .hljs-emphasis {
+    @apply italic;
+  }
+
+  .hljs-strong {
+    @apply font-bold;
+  }
+
+  /* ============================================
+   * Flip Card Styles
+   * ============================================
+   * Interactive flip cards for key concepts
+   * SSR: Static layout, client: Add flip animation
+   */
+
+  .flip-card-group {
+    @apply grid gap-4 my-6;
+  }
+
+  .flip-card-group[data-columns="2"] {
+    @apply grid-cols-1 md:grid-cols-2;
+  }
+
+  .flip-card-group[data-columns="3"] {
+    @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .flip-card {
+    @apply relative h-48 cursor-pointer;
+    perspective: 1000px;
+  }
+
+  .flip-card-inner {
+    @apply relative w-full h-full transition-transform duration-500;
+    transform-style: preserve-3d;
+  }
+
+  /* Flipped state - added by client-side hydration */
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    @apply absolute w-full h-full rounded-lg border border-border p-4;
+    @apply flex items-center justify-center text-center;
+    @apply bg-card text-card-foreground;
+    backface-visibility: hidden;
+  }
+
+  .flip-card-front {
+    @apply font-semibold text-lg;
+  }
+
+  .flip-card-back {
+    transform: rotateY(180deg);
+    @apply text-sm;
+  }
+
+  /* Hover effect (desktop only) */
+  @media (hover: hover) {
+    .flip-card:hover {
+      @apply shadow-lg;
+    }
+  }
+
+  /* Active/Reviewed state */
+  .flip-card.reviewed .flip-card-front,
+  .flip-card.reviewed .flip-card-back {
+    @apply border-primary/40;
+  }
+
+  /* ============================================
+   * Quiz Question Styles
+   * ============================================
+   * Inline quiz questions with immediate feedback
+   * SSR: Static radio buttons, client: Add interactivity
+   */
+
+  .quiz-question {
+    @apply my-6 p-6 rounded-lg border border-border bg-muted/30;
+  }
+
+  .quiz-question > p:first-child {
+    @apply font-semibold text-lg mb-4;
+  }
+
+  .quiz-option {
+    @apply flex items-start gap-3 p-4 mb-2 rounded-lg border border-border;
+    @apply bg-card cursor-pointer transition-colors;
+  }
+
+  .quiz-option:hover {
+    @apply bg-muted/50;
+  }
+
+  .quiz-option-input {
+    @apply mt-1 cursor-pointer;
+  }
+
+  .quiz-option-content {
+    @apply flex-1;
+  }
+
+  .quiz-option-content > p {
+    @apply m-0;
+  }
+
+  /* Selected state */
+  .quiz-option.selected {
+    @apply border-primary/40 bg-primary/5;
+  }
+
+  /* Correct answer feedback */
+  .quiz-option.correct {
+    @apply border-success bg-success/10;
+  }
+
+  .quiz-option.incorrect {
+    @apply border-destructive bg-destructive/10;
+  }
+
+  /* Explanation */
+  .quiz-explanation {
+    @apply mt-4 p-4 rounded-lg bg-muted border border-border;
+    @apply text-sm text-muted-foreground;
+  }
+
+  .quiz-explanation::before {
+    content: "💡 ";
+    @apply mr-2;
+  }
+
+  /* ============================================
+   * Drag Order Exercise Styles
+   * ============================================
+   * Interactive drag-and-drop ordering exercises
+   * SSR: Static list, client: Add drag-drop functionality
+   */
+
+  .drag-order-exercise {
+    @apply my-6 p-6 rounded-lg border border-border bg-muted/30;
+  }
+
+  .drag-order-instructions {
+    @apply font-semibold text-lg mb-4;
+  }
+
+  .drag-order-items {
+    @apply space-y-2;
+  }
+
+  .drag-order-item {
+    @apply flex items-start gap-3 p-4 rounded-lg border border-border;
+    @apply bg-card transition-all;
+  }
+
+  .drag-order-item-handle {
+    @apply text-muted-foreground cursor-grab select-none;
+    @apply flex items-center justify-center w-6;
+  }
+
+  .drag-order-item.dragging {
+    @apply opacity-50 cursor-grabbing;
+  }
+
+  .drag-order-item.drag-over {
+    @apply border-primary bg-primary/5;
+  }
+
+  .drag-order-item-content {
+    @apply flex-1;
+  }
+
+  .drag-order-item-content > p {
+    @apply m-0;
+  }
+
+  /* Correct/Incorrect state */
+  .drag-order-item.correct {
+    @apply border-success bg-success/10;
+  }
+
+  .drag-order-item.incorrect {
+    @apply border-destructive bg-destructive/10;
+  }
+
+  /* Check button */
+  .drag-order-check-button {
+    @apply mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground;
+    @apply font-semibold cursor-pointer transition-colors;
+  }
+
+  .drag-order-check-button:hover {
+    @apply bg-primary/90;
+  }
+
+  .drag-order-check-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
   }
 }

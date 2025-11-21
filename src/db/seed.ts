@@ -2,6 +2,225 @@ import { db, assistants, achievements, lessons, lesson_sections, themes, levels,
 import { ASSISTANT_FIXTURES } from '@/src/lib/constants';
 import { BUILT_IN_THEMES } from '@/app/(app)/settings/_components/theme-editor/built-in-themes';
 import { eq } from 'drizzle-orm';
+import type { CalloutType } from '@/components/editor/extensions/callout';
+
+/**
+ * Generate Tiptap JSON for flip card content
+ * Creates JSON directly to avoid DOM dependency in Node environment
+ */
+function generateFlipCardJson() {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'flipCardGroup',
+        attrs: { columns: 3 },
+        content: [
+          {
+            type: 'flipCard',
+            content: [
+              {
+                type: 'flipCardFront',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Computational Thinking' }] }],
+              },
+              {
+                type: 'flipCardBack',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Break problems into steps and patterns—transferable to any field.' }] }],
+              },
+            ],
+          },
+          {
+            type: 'flipCard',
+            content: [
+              {
+                type: 'flipCardFront',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Career Opportunities' }] }],
+              },
+              {
+                type: 'flipCardBack',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Programming skills open doors in every industry.' }] }],
+              },
+            ],
+          },
+          {
+            type: 'flipCard',
+            content: [
+              {
+                type: 'flipCardFront',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Automation' }] }],
+              },
+              {
+                type: 'flipCardBack',
+                content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Automate repetitive tasks and build tools that save time.' }] }],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Generate Tiptap JSON for reading content
+ * Creates JSON directly to avoid DOM dependency in Node environment
+ */
+function generateReadingContentJson(title: string, body: string) {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'heading',
+        attrs: { level: 1 },
+        content: [{ type: 'text', text: title }],
+      },
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: body }],
+      },
+    ],
+  };
+}
+
+/**
+ * Generate Tiptap JSON for quiz question with multiple choice options
+ * Creates JSON directly to avoid DOM dependency in Node environment
+ */
+function generateQuizQuestionJson() {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'quizQuestion',
+        attrs: {
+          correctOptionId: 'b',
+          explanation: 'Variables declared with let have block scope and can be reassigned.',
+        },
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Which keyword declares a block-scoped variable in JavaScript?' }],
+          },
+          {
+            type: 'quizOption',
+            attrs: { id: 'a' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'var' }] }],
+          },
+          {
+            type: 'quizOption',
+            attrs: { id: 'b' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'let' }] }],
+          },
+          {
+            type: 'quizOption',
+            attrs: { id: 'c' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'const' }] }],
+          },
+          {
+            type: 'quizOption',
+            attrs: { id: 'd' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'function' }] }],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Generate Tiptap JSON for drag-and-drop ordering exercise
+ * Creates JSON directly to avoid DOM dependency in Node environment
+ */
+function generateDragOrderExerciseJson() {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'dragOrderExercise',
+        attrs: {
+          instructions: 'Arrange these programming steps in the correct order:',
+        },
+        content: [
+          {
+            type: 'dragOrderItem',
+            attrs: { correctPosition: 0 },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: '1. Write the code' }] }],
+          },
+          {
+            type: 'dragOrderItem',
+            attrs: { correctPosition: 1 },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: '2. Test the code' }] }],
+          },
+          {
+            type: 'dragOrderItem',
+            attrs: { correctPosition: 2 },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: '3. Debug any errors' }] }],
+          },
+          {
+            type: 'dragOrderItem',
+            attrs: { correctPosition: 3 },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: '4. Deploy to production' }] }],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Generate Tiptap JSON for callout block
+ * @param type - The callout type (tip, warning, note, info, success, error)
+ * @param content - The content text for the callout
+ *
+ * Creates JSON directly to avoid DOM dependency in Node environment
+ */
+function generateCalloutJson(type: CalloutType, content: string) {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'callout',
+        attrs: { type },
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: content }],
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * Generate Tiptap JSON for enhanced code block
+ * @param language - Programming language for syntax highlighting
+ * @param code - The code content
+ * @param filename - Optional filename to display
+ *
+ * Note: Creates JSON directly instead of using Editor to avoid module resolution issues in Node
+ */
+function generateCodeBlockJson(language: string, code: string, filename?: string) {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'codeBlock',
+        attrs: {
+          language,
+          filename: filename || null,
+          showLineNumbers: true,
+        },
+        content: [
+          {
+            type: 'text',
+            text: code,
+          },
+        ],
+      },
+    ],
+  };
+}
 
 export async function seed() {
   console.log("🌱 Starting database seed...");
@@ -149,12 +368,12 @@ export async function seed() {
 
     // Seed top-level courses
     console.log("Creating courses...");
-    const courses = await db.insert(lessons).values([
+    const courseValues = [
       {
         slug: "programming-foundations",
         title: "Programming Foundations",
         description: "Learn the fundamentals of programming from scratch. Perfect for beginners!",
-        difficulty: "easy",
+        difficulty: "easy" as const,
         estimated_duration_sec: 14400, // 4 hours total
         icon: "💻",
         order_index: 1,
@@ -165,7 +384,7 @@ export async function seed() {
         slug: "data-structures-algorithms",
         title: "Data Structures & Algorithms",
         description: "Master the core data structures and algorithmic thinking.",
-        difficulty: "standard",
+        difficulty: "standard" as const,
         estimated_duration_sec: 28800, // 8 hours total
         icon: "🔗",
         order_index: 2,
@@ -176,28 +395,60 @@ export async function seed() {
         slug: "oop-principles",
         title: "Object-Oriented Programming",
         description: "Learn OOP principles and best practices.",
-        difficulty: "standard",
+        difficulty: "standard" as const,
         estimated_duration_sec: 21600, // 6 hours total
         icon: "🏗️",
         order_index: 3,
         is_published: true,
         parent_lesson_id: null,
       },
-    ]).onConflictDoNothing().returning();
+    ];
+
+    const courses = [];
+    for (const courseData of courseValues) {
+      const [course] = await db.insert(lessons)
+        .values(courseData)
+        .onConflictDoUpdate({
+          target: lessons.slug,
+          set: {
+            title: courseData.title,
+            description: courseData.description,
+            difficulty: courseData.difficulty,
+            estimated_duration_sec: courseData.estimated_duration_sec,
+            icon: courseData.icon,
+            order_index: courseData.order_index,
+            is_published: courseData.is_published,
+            updated_at: new Date(),
+          },
+        })
+        .returning();
+      courses.push(course);
+    }
 
     // Seed Programming Foundations topics (lessons within course)
     console.log("Creating Programming Foundations topics...");
     const programmingFoundationsTopics = courses.filter(c => c.slug === "programming-foundations");
     const programmingFoundationsCourseId = programmingFoundationsTopics[0]?.id;
 
-    let programmingFoundationsLessons: typeof lessons.$inferSelect[] = [];
+    const programmingFoundationsLessons: typeof lessons.$inferSelect[] = [];
     if (programmingFoundationsCourseId) {
-      programmingFoundationsLessons = await db.insert(lessons).values([
+      const lessonValues = [
+        {
+          slug: "programming-foundations-0-showcase",
+          title: "Interactive Features Demo",
+          description: "Explore all the interactive learning features available in this course",
+          difficulty: "easy" as const,
+          estimated_duration_sec: 900, // 15 minutes
+          parent_lesson_id: programmingFoundationsCourseId,
+          order_index: 0,
+          icon: "🎨",
+          is_published: true,
+        },
         {
           slug: "programming-foundations-1-introduction",
           title: "Introduction to Programming",
           description: "Learn what programming is and why it matters in today's world",
-          difficulty: "easy",
+          difficulty: "easy" as const,
           estimated_duration_sec: 1800, // 30 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 1,
@@ -208,7 +459,7 @@ export async function seed() {
           slug: "programming-foundations-2-variables",
           title: "Variables and Data Types",
           description: "Understand how to store and work with different types of data",
-          difficulty: "easy",
+          difficulty: "easy" as const,
           estimated_duration_sec: 2400, // 40 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 2,
@@ -219,7 +470,7 @@ export async function seed() {
           slug: "programming-foundations-3-control-structures",
           title: "Control Structures",
           description: "Learn to make decisions and repeat actions in your code",
-          difficulty: "standard",
+          difficulty: "standard" as const,
           estimated_duration_sec: 3000, // 50 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 3,
@@ -230,7 +481,7 @@ export async function seed() {
           slug: "programming-foundations-4-functions",
           title: "Functions and Methods",
           description: "Organize your code into reusable blocks with functions",
-          difficulty: "standard",
+          difficulty: "standard" as const,
           estimated_duration_sec: 3600, // 60 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 4,
@@ -241,14 +492,35 @@ export async function seed() {
           slug: "programming-foundations-5-arrays",
           title: "Arrays and Lists",
           description: "Work with collections of data using arrays and lists",
-          difficulty: "standard",
+          difficulty: "standard" as const,
           estimated_duration_sec: 2700, // 45 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 5,
           icon: "📊",
           is_published: true,
         },
-      ]).onConflictDoNothing().returning();
+      ];
+
+      for (const lessonData of lessonValues) {
+        const [lesson] = await db.insert(lessons)
+          .values(lessonData)
+          .onConflictDoUpdate({
+            target: lessons.slug,
+            set: {
+              title: lessonData.title,
+              description: lessonData.description,
+              difficulty: lessonData.difficulty,
+              estimated_duration_sec: lessonData.estimated_duration_sec,
+              parent_lesson_id: lessonData.parent_lesson_id,
+              order_index: lessonData.order_index,
+              icon: lessonData.icon,
+              is_published: lessonData.is_published,
+              updated_at: new Date(),
+            },
+          })
+          .returning();
+        programmingFoundationsLessons.push(lesson);
+      }
     }
 
     // Add lesson sections for Programming Foundations lessons
@@ -259,138 +531,327 @@ export async function seed() {
         order_index: -1,
         slug: "why-it-matters",
         title: "Why it matters",
-        body_md: "# Why it matters\n\nProgramming builds computational thinking, opens career opportunities, and lets you automate everyday problems.",
+        body_md: "", // Legacy field - content is in body_json
+        body_json: generateFlipCardJson(),
       });
-      
-      // Lesson 1: Introduction to Programming
-      await db.insert(lesson_sections).values([
-        createWhyItMattersSection(programmingFoundationsLessons[0].id),
+
+      // Lesson 0: Interactive Features Demo (Showcase)
+      const lesson0Sections = [
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 0,
-          slug: "what-is-programming",
-          title: "What is Programming?",
-          body_md: "# What is Programming?\n\nProgramming is the process of creating instructions for computers to follow. It's like writing a recipe, but for machines.",
+          slug: "callouts-showcase",
+          title: "Callouts - Highlight Important Information",
+          body_md: "",
+          body_json: {
+            type: 'doc',
+            content: [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Different Callout Types' }] },
+              { type: 'paragraph', content: [{ type: 'text', text: 'Callouts help draw attention to important information. Here are all the available types:' }] },
+              generateCalloutJson('tip', '💡 Tips provide helpful suggestions and best practices.').content[0],
+              generateCalloutJson('info', 'ℹ️ Info callouts provide additional context and background information.').content[0],
+              generateCalloutJson('success', '✅ Success callouts highlight positive outcomes and achievements.').content[0],
+              generateCalloutJson('warning', '⚠️ Warnings alert you to potential pitfalls and important caveats.').content[0],
+              generateCalloutJson('error', '❌ Error callouts point out common mistakes to avoid.').content[0],
+              generateCalloutJson('note', '📝 Notes provide supplementary information worth remembering.').content[0],
+            ],
+          },
         },
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 1,
-          slug: "programming-languages",
-          title: "Programming Languages",
-          body_md: "# Programming Languages\n\nJust like human languages, programming languages have their own syntax and rules. We'll explore the most popular ones.",
+          slug: "code-blocks-showcase",
+          title: "Code Blocks - Syntax Highlighted Examples",
+          body_md: "",
+          body_json: {
+            type: 'doc',
+            content: [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Enhanced Code Blocks' }] },
+              { type: 'paragraph', content: [{ type: 'text', text: 'Code blocks support syntax highlighting for multiple languages:' }] },
+              { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'JavaScript Example' }] },
+              generateCodeBlockJson('javascript', 'function greet(name) {\n  console.log(`Hello, ${name}!`);\n  return true;\n}\n\ngreet("World");', 'example.js').content[0],
+              { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Python Example' }] },
+              generateCodeBlockJson('python', 'def calculate_fibonacci(n):\n    if n <= 1:\n        return n\n    return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)\n\nprint(calculate_fibonacci(10))', 'fibonacci.py').content[0],
+              { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'SQL Example' }] },
+              generateCodeBlockJson('sql', 'SELECT users.name, COUNT(orders.id) as order_count\nFROM users\nLEFT JOIN orders ON users.id = orders.user_id\nGROUP BY users.id\nHAVING order_count > 5\nORDER BY order_count DESC;', 'query.sql').content[0],
+            ],
+          },
         },
         {
           lesson_id: programmingFoundationsLessons[0].id,
           order_index: 2,
-          slug: "your-first-program",
-          title: "Your First Program",
-          body_md: "# Your First Program\n\nLet's write your first line of code and see the magic happen!",
+          slug: "quiz-showcase",
+          title: "Quiz Questions - Test Your Knowledge",
+          body_md: "",
+          body_json: {
+            type: 'doc',
+            content: [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Interactive Quiz' }] },
+              { type: 'paragraph', content: [{ type: 'text', text: 'Test your understanding with interactive multiple-choice questions:' }] },
+              generateQuizQuestionJson().content[0],
+            ],
+          },
         },
-      ]).onConflictDoNothing();
+        {
+          lesson_id: programmingFoundationsLessons[0].id,
+          order_index: 3,
+          slug: "drag-order-showcase",
+          title: "Drag & Drop - Order Steps Correctly",
+          body_md: "",
+          body_json: {
+            type: 'doc',
+            content: [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Interactive Ordering Exercise' }] },
+              { type: 'paragraph', content: [{ type: 'text', text: 'Practice by arranging items in the correct order:' }] },
+              generateDragOrderExerciseJson().content[0],
+            ],
+          },
+        },
+        {
+          lesson_id: programmingFoundationsLessons[0].id,
+          order_index: 4,
+          slug: "flip-cards-showcase",
+          title: "Flip Cards - Review Key Concepts",
+          body_md: "",
+          body_json: {
+            type: 'doc',
+            content: [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Interactive Flash Cards' }] },
+              { type: 'paragraph', content: [{ type: 'text', text: 'Click on cards to reveal the answer:' }] },
+              generateFlipCardJson().content[0],
+            ],
+          },
+        },
+      ];
 
-      // Lesson 2: Variables and Data Types
-      await db.insert(lesson_sections).values([
+      for (const sectionData of lesson0Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
+
+      // Lesson 1: Introduction to Programming
+      const lesson1Sections = [
         createWhyItMattersSection(programmingFoundationsLessons[1].id),
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 0,
-          slug: "understanding-variables",
-          title: "Understanding Variables",
-          body_md: "# Understanding Variables\n\nVariables are containers that store data values. Think of them as labeled boxes.",
+          slug: "what-is-programming",
+          title: "What is Programming?",
+          body_md: "",
+          body_json: generateReadingContentJson("What is Programming?", "Programming is the process of creating instructions for computers to follow."),
         },
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 1,
-          slug: "data-types",
-          title: "Data Types",
-          body_md: "# Data Types\n\nDifferent types of data: numbers, text, true/false values, and more.",
+          slug: "programming-languages",
+          title: "Programming Languages",
+          body_md: "",
+          body_json: generateReadingContentJson("Programming Languages", "Just like human languages, programming languages have their own syntax and rules."),
         },
         {
           lesson_id: programmingFoundationsLessons[1].id,
           order_index: 2,
-          slug: "working-with-variables",
-          title: "Working with Variables",
-          body_md: "# Working with Variables\n\nLearn how to create, assign, and use variables in your programs.",
+          slug: "your-first-program",
+          title: "Your First Program",
+          body_md: "",
+          body_json: generateReadingContentJson("Your First Program", "Let's write your first line of code and see the magic happen!"),
         },
-      ]).onConflictDoNothing();
+      ];
 
-      // Lesson 3: Control Structures
-      await db.insert(lesson_sections).values([
+      for (const sectionData of lesson1Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
+
+      // Lesson 2: Variables and Data Types
+      const lesson2Sections = [
         createWhyItMattersSection(programmingFoundationsLessons[2].id),
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 0,
-          slug: "conditional-statements",
-          title: "Conditional Statements",
-          body_md: "# Conditional Statements\n\nMake decisions in your code with if, else, and switch statements.",
+          slug: "understanding-variables",
+          title: "Understanding Variables",
+          body_md: "",
+          body_json: generateReadingContentJson("Understanding Variables", "Variables are containers that store data values."),
         },
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 1,
-          slug: "loops",
-          title: "Loops",
-          body_md: "# Loops\n\nRepeat actions efficiently with for and while loops.",
+          slug: "data-types",
+          title: "Data Types",
+          body_md: "",
+          body_json: generateReadingContentJson("Data Types", "Different types of data: numbers, text, true/false values, and more."),
         },
         {
           lesson_id: programmingFoundationsLessons[2].id,
           order_index: 2,
-          slug: "practical-examples",
-          title: "Practical Examples",
-          body_md: "# Practical Examples\n\nSee control structures in action with real-world examples.",
+          slug: "working-with-variables",
+          title: "Working with Variables",
+          body_md: "",
+          body_json: generateReadingContentJson("Working with Variables", "Learn how to create, assign, and use variables in your programs."),
         },
-      ]).onConflictDoNothing();
+      ];
 
-      // Lesson 4: Functions and Methods
-      await db.insert(lesson_sections).values([
+      for (const sectionData of lesson2Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
+
+      // Lesson 3: Control Structures
+      const lesson3Sections = [
         createWhyItMattersSection(programmingFoundationsLessons[3].id),
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 0,
-          slug: "what-are-functions",
-          title: "What are Functions?",
-          body_md: "# What are Functions?\n\nFunctions are reusable blocks of code that perform specific tasks.",
+          slug: "conditional-statements",
+          title: "Conditional Statements",
+          body_md: "",
+          body_json: generateReadingContentJson("Conditional Statements", "Make decisions in your code with if, else, and switch statements."),
         },
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 1,
-          slug: "creating-functions",
-          title: "Creating Functions",
-          body_md: "# Creating Functions\n\nLearn how to define and call your own functions.",
+          slug: "loops",
+          title: "Loops",
+          body_md: "",
+          body_json: generateReadingContentJson("Loops", "Repeat actions efficiently with for and while loops."),
         },
         {
           lesson_id: programmingFoundationsLessons[3].id,
           order_index: 2,
-          slug: "function-parameters",
-          title: "Function Parameters",
-          body_md: "# Function Parameters\n\nPass data into functions and get results back.",
+          slug: "practical-examples",
+          title: "Practical Examples",
+          body_md: "",
+          body_json: generateReadingContentJson("Practical Examples", "See control structures in action with real-world examples."),
         },
-      ]).onConflictDoNothing();
+      ];
 
-      // Lesson 5: Arrays and Lists
-      await db.insert(lesson_sections).values([
+      for (const sectionData of lesson3Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
+
+      // Lesson 4: Functions and Methods
+      const lesson4Sections = [
         createWhyItMattersSection(programmingFoundationsLessons[4].id),
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 0,
-          slug: "introduction-to-arrays",
-          title: "Introduction to Arrays",
-          body_md: "# Introduction to Arrays\n\nArrays let you store multiple values in a single variable.",
+          slug: "what-are-functions",
+          title: "What are Functions?",
+          body_md: "",
+          body_json: generateReadingContentJson("What are Functions?", "Functions are reusable blocks of code that perform specific tasks."),
         },
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 1,
-          slug: "working-with-arrays",
-          title: "Working with Arrays",
-          body_md: "# Working with Arrays\n\nAdd, remove, and access elements in arrays.",
+          slug: "creating-functions",
+          title: "Creating Functions",
+          body_md: "",
+          body_json: generateReadingContentJson("Creating Functions", "Learn how to define and call your own functions."),
         },
         {
           lesson_id: programmingFoundationsLessons[4].id,
           order_index: 2,
+          slug: "function-parameters",
+          title: "Function Parameters",
+          body_md: "",
+          body_json: generateReadingContentJson("Function Parameters", "Pass data into functions and get results back."),
+        },
+      ];
+
+      for (const sectionData of lesson4Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
+
+      // Lesson 5: Arrays and Lists
+      const lesson5Sections = [
+        createWhyItMattersSection(programmingFoundationsLessons[5].id),
+        {
+          lesson_id: programmingFoundationsLessons[5].id,
+          order_index: 0,
+          slug: "introduction-to-arrays",
+          title: "Introduction to Arrays",
+          body_md: "",
+          body_json: generateReadingContentJson("Introduction to Arrays", "Arrays let you store multiple values in a single variable."),
+        },
+        {
+          lesson_id: programmingFoundationsLessons[5].id,
+          order_index: 1,
+          slug: "working-with-arrays",
+          title: "Working with Arrays",
+          body_md: "",
+          body_json: generateReadingContentJson("Working with Arrays", "Add, remove, and access elements in arrays."),
+        },
+        {
+          lesson_id: programmingFoundationsLessons[5].id,
+          order_index: 2,
           slug: "array-methods",
           title: "Array Methods",
-          body_md: "# Array Methods\n\nUse built-in methods to manipulate arrays efficiently.",
+          body_md: "",
+          body_json: generateReadingContentJson("Array Methods", "Use built-in methods to manipulate arrays efficiently."),
         },
-      ]).onConflictDoNothing();
+      ];
+
+      for (const sectionData of lesson5Sections) {
+        await db.insert(lesson_sections)
+          .values(sectionData)
+          .onConflictDoUpdate({
+            target: [lesson_sections.lesson_id, lesson_sections.slug],
+            set: {
+              title: sectionData.title,
+              order_index: sectionData.order_index,
+              body_md: sectionData.body_md,
+              body_json: sectionData.body_json,
+            },
+          });
+      }
     }
 
     // Seed built-in themes with unified format

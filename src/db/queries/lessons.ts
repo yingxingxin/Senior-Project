@@ -160,7 +160,8 @@ export const getLessonWithSections = db
     sectionSlug: lesson_sections.slug,
     sectionTitle: lesson_sections.title,
     sectionOrder: lesson_sections.order_index,
-    sectionBody: lesson_sections.body_md,
+    sectionBodyJson: lesson_sections.body_json,
+    sectionBodyMd: lesson_sections.body_md, // Keep for fallback compatibility
   })
   .from(lessons)
   .leftJoin(lesson_sections, eq(lessons.id, lesson_sections.lesson_id))
