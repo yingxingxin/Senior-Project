@@ -15,7 +15,8 @@
     "db:migrate-quizzes": "node scripts/migrate-quizzes.js",
     "db:migrate-quiz-progress": "node scripts/migrate-quiz-progress.js",
     "worker": "tsx scripts/worker.ts",
-    "worker:dev": "tsx watch scripts/worker.ts"
+    "worker:dev": "tsx watch scripts/worker.ts",
+    "test:agent": "npx tsx src/lib/ai/agent/__tests__/chunker.test.ts && npx tsx src/lib/ai/agent/__tests__/diff-applier.test.ts && npx tsx src/lib/ai/agent/__tests__/document-state.test.ts && npx tsx src/lib/ai/agent/__tests__/agent-mock.test.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.65",
