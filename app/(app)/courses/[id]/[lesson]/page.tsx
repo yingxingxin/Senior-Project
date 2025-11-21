@@ -3,6 +3,7 @@ import { Heading, Body } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
 import { getLessonWithSections } from "@/src/db/queries/lessons";
 import { LessonClient } from "./lesson-client";
+import type { JSONContent } from '@tiptap/core';
 
 interface LessonPageProps {
   params: Promise<{ id: string; lesson: string }>;
@@ -36,12 +37,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
       id: r.sectionId as number,
       slug: r.sectionSlug as string,
       title: r.sectionTitle as string,
-      // Use body_json (Tiptap format) if available, fallback to body_md for legacy content
-      bodyJson: r.sectionBodyJson,
-      body: r.sectionBodyMd as string, // Keep for legacy sections (quiz, exercise, flip-cards)
+      bodyJson: r.sectionBodyJson as JSONContent | undefined,
+      body: r.sectionBodyMd as string, // Legacy fallback for sections without body_json
       order: r.sectionOrder as number,
-      type: detectSectionType(r.sectionSlug as string),
-      metadata: parseMetadata(r.sectionSlug as string, r.sectionBodyMd as string),
     }))
     .sort((a, b) => a.order - b.order);
 
@@ -67,96 +65,4 @@ export default async function LessonPage({ params }: LessonPageProps) {
       sections={sections}
     />
   );
-}
-
-/**
- * Detect section type from slug
- */
-function detectSectionType(
-  slug: string
-): "reading" | "flip-cards" | "quiz" | "exercise" {
-  if (slug.includes("why-it-matters") || slug.includes("flip")) {
-    return "flip-cards";
-  }
-  if (slug.includes("quiz") || slug.includes("question")) {
-    return "quiz";
-  }
-  if (slug.includes("exercise") || slug.includes("activity")) {
-    return "exercise";
-  }
-  return "reading";
-}
-
-/**
- * Metadata structure for different section types
- */
-type SectionMetadata = {
-  description?: string;
-  instructions?: string;
-  cards?: Array<{ front: string; back: string }>;
-  questions?: Array<{
-    id: string;
-    question: string;
-    options: Array<{ id: string; label: string }>;
-    correctOptionId: string;
-    explanation: string;
-  }>;
-  exerciseType?: string;
-  items?: Array<{ id: string; label: string; correctPosition: number }>;
-};
-
-/**
- * Parse metadata from section content
- * @param _body - Section body content (currently unused, hardcoded metadata for demo)
- */
-function parseMetadata(slug: string, _body: string): SectionMetadata {
-  const metadata: SectionMetadata = {};
-
-  // Pre-configured metadata for known sections
-  if (slug === "why-it-matters") {
-    metadata.cards = [
-      {
-        front: "Computational Thinking",
-        back: "Break problems into steps and patterns—transferable to any field.",
-      },
-      {
-        front: "Career Opportunities",
-        back: "Programming skills open doors in every industry.",
-      },
-      {
-        front: "Automation",
-        back: "Automate repetitive tasks and build tools that save time.",
-      },
-    ];
-  }
-
-  if (slug.includes("quiz")) {
-    metadata.questions = [
-      {
-        id: "q1",
-        question: "What is an algorithm?",
-        options: [
-          { id: "a", label: "A step-by-step procedure to solve a problem" },
-          { id: "b", label: "A type of computer hardware" },
-          { id: "c", label: "A programming language" },
-          { id: "d", label: "A method of storing data" },
-        ],
-        correctOptionId: "a",
-        explanation:
-          "Correct! An algorithm is a sequence of steps designed to solve a specific problem.",
-      },
-    ];
-  }
-
-  if (slug.includes("drag") || slug.includes("order")) {
-    metadata.exerciseType = "drag-order";
-    metadata.items = [
-      { id: "1", label: "Boil water", correctPosition: 0 },
-      { id: "2", label: "Add tea bag", correctPosition: 1 },
-      { id: "3", label: "Steep for 3-5 minutes", correctPosition: 2 },
-      { id: "4", label: "Add milk and sugar", correctPosition: 3 },
-    ];
-  }
-
-  return metadata;
 }

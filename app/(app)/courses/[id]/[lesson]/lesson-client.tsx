@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SectionRenderer, type Section } from "../../_components/section-renderer";
 import { SectionNavigator } from "../../_components/section-navigator";
+import { LessonSkeleton } from "../../_components/lesson-skeleton";
 import { completeSectionAction, checkSectionCompletion } from "../../_lib/actions";
 
 interface LessonClientProps {
@@ -125,11 +126,7 @@ export function LessonClient({
 
   // Show loading state while completing section status load
   if (!isInitialized) {
-    return (
-      <div className="min-h-dvh flex items-center justify-center">
-        <Heading level={2}>Loading...</Heading>
-      </div>
-    );
+    return <LessonSkeleton />;
   }
 
   return (

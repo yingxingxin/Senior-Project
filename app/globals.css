@@ -844,4 +844,197 @@
   .hljs-strong {
     @apply font-bold;
   }
+
+  /* ============================================
+   * Flip Card Styles
+   * ============================================
+   * Interactive flip cards for key concepts
+   * SSR: Static layout, client: Add flip animation
+   */
+
+  .flip-card-group {
+    @apply grid gap-4 my-6;
+  }
+
+  .flip-card-group[data-columns="2"] {
+    @apply grid-cols-1 md:grid-cols-2;
+  }
+
+  .flip-card-group[data-columns="3"] {
+    @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .flip-card {
+    @apply relative h-48 cursor-pointer;
+    perspective: 1000px;
+  }
+
+  .flip-card-inner {
+    @apply relative w-full h-full transition-transform duration-500;
+    transform-style: preserve-3d;
+  }
+
+  /* Flipped state - added by client-side hydration */
+  .flip-card.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    @apply absolute w-full h-full rounded-lg border border-border p-4;
+    @apply flex items-center justify-center text-center;
+    @apply bg-card text-card-foreground;
+    backface-visibility: hidden;
+  }
+
+  .flip-card-front {
+    @apply font-semibold text-lg;
+  }
+
+  .flip-card-back {
+    transform: rotateY(180deg);
+    @apply text-sm;
+  }
+
+  /* Hover effect (desktop only) */
+  @media (hover: hover) {
+    .flip-card:hover {
+      @apply shadow-lg;
+    }
+  }
+
+  /* Active/Reviewed state */
+  .flip-card.reviewed .flip-card-front,
+  .flip-card.reviewed .flip-card-back {
+    @apply border-primary/40;
+  }
+
+  /* ============================================
+   * Quiz Question Styles
+   * ============================================
+   * Inline quiz questions with immediate feedback
+   * SSR: Static radio buttons, client: Add interactivity
+   */
+
+  .quiz-question {
+    @apply my-6 p-6 rounded-lg border border-border bg-muted/30;
+  }
+
+  .quiz-question > p:first-child {
+    @apply font-semibold text-lg mb-4;
+  }
+
+  .quiz-option {
+    @apply flex items-start gap-3 p-4 mb-2 rounded-lg border border-border;
+    @apply bg-card cursor-pointer transition-colors;
+  }
+
+  .quiz-option:hover {
+    @apply bg-muted/50;
+  }
+
+  .quiz-option-input {
+    @apply mt-1 cursor-pointer;
+  }
+
+  .quiz-option-content {
+    @apply flex-1;
+  }
+
+  .quiz-option-content > p {
+    @apply m-0;
+  }
+
+  /* Selected state */
+  .quiz-option.selected {
+    @apply border-primary/40 bg-primary/5;
+  }
+
+  /* Correct answer feedback */
+  .quiz-option.correct {
+    @apply border-success bg-success/10;
+  }
+
+  .quiz-option.incorrect {
+    @apply border-destructive bg-destructive/10;
+  }
+
+  /* Explanation */
+  .quiz-explanation {
+    @apply mt-4 p-4 rounded-lg bg-muted border border-border;
+    @apply text-sm text-muted-foreground;
+  }
+
+  .quiz-explanation::before {
+    content: "💡 ";
+    @apply mr-2;
+  }
+
+  /* ============================================
+   * Drag Order Exercise Styles
+   * ============================================
+   * Interactive drag-and-drop ordering exercises
+   * SSR: Static list, client: Add drag-drop functionality
+   */
+
+  .drag-order-exercise {
+    @apply my-6 p-6 rounded-lg border border-border bg-muted/30;
+  }
+
+  .drag-order-instructions {
+    @apply font-semibold text-lg mb-4;
+  }
+
+  .drag-order-items {
+    @apply space-y-2;
+  }
+
+  .drag-order-item {
+    @apply flex items-start gap-3 p-4 rounded-lg border border-border;
+    @apply bg-card transition-all;
+  }
+
+  .drag-order-item-handle {
+    @apply text-muted-foreground cursor-grab select-none;
+    @apply flex items-center justify-center w-6;
+  }
+
+  .drag-order-item.dragging {
+    @apply opacity-50 cursor-grabbing;
+  }
+
+  .drag-order-item.drag-over {
+    @apply border-primary bg-primary/5;
+  }
+
+  .drag-order-item-content {
+    @apply flex-1;
+  }
+
+  .drag-order-item-content > p {
+    @apply m-0;
+  }
+
+  /* Correct/Incorrect state */
+  .drag-order-item.correct {
+    @apply border-success bg-success/10;
+  }
+
+  .drag-order-item.incorrect {
+    @apply border-destructive bg-destructive/10;
+  }
+
+  /* Check button */
+  .drag-order-check-button {
+    @apply mt-4 px-4 py-2 rounded-lg bg-primary text-primary-foreground;
+    @apply font-semibold cursor-pointer transition-colors;
+  }
+
+  .drag-order-check-button:hover {
+    @apply bg-primary/90;
+  }
+
+  .drag-order-check-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
 }
