@@ -1,72 +1,78 @@
 /**
  * Tool Registry
  *
- * Registers all available tools and converts them for use with Vercel AI SDK.
+ * Registers all available tools for use with Vercel AI SDK.
  */
 
-import { tool } from 'ai';
-import type { AgentTool, ToolExecutionContext } from './types';
-import { readTools } from './tools/read-tools';
-import { editTools } from './tools/edit-tools';
-import { metaTools } from './tools/meta-tools';
+import type { ToolExecutionContext } from './types';
+import { createReadTools } from './tools/read-tools';
+import { createEditTools } from './tools/edit-tools';
+import { createMetaTools } from './tools/meta-tools';
 import { getUserPersonalizationTool } from '../tools/personalization-tool';
 
 /**
- * Convert our AgentTool format to Vercel AI SDK tool format
+ * Wrap a tool to log its execution results
  */
-function convertToAITool(agentTool: AgentTool, context: ToolExecutionContext) {
-  return tool({
-    description: agentTool.description,
-    parameters: agentTool.parameters,
-    execute: async (args: any) => {
-      const result = await agentTool.execute(args, context);
-      return result.result; // Return the string result for AI
-    },
-  });
+function wrapToolWithLogging(toolName: string, tool: any, stepRef: { current: number }) {
+  const originalExecute = tool.execute;
+
+  tool.execute = async (...args: any[]) => {
+    const startTime = Date.now();
+    try {
+      const result = await originalExecute(...args);
+      const duration = Date.now() - startTime;
+
+      const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
+      console.log(`[Agent Step ${stepRef.current}] Tool result for ${toolName}:`, {
+        success: true,
+        duration: `${duration}ms`,
+        result: resultStr.substring(0, 300) + (resultStr.length > 300 ? '...' : ''),
+      });
+
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`[Agent Step ${stepRef.current}] Tool error for ${toolName}:`, {
+        success: false,
+        duration: `${duration}ms`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
+    }
+  };
+
+  return tool;
 }
 
 /**
  * Get all tools configured for AI SDK
  */
-export function getAllTools(context: ToolExecutionContext, userId: number) {
-  const allAgentTools: Record<string, AgentTool> = {
-    ...readTools,
-    ...editTools,
-    ...metaTools,
+export function getAllTools(context: ToolExecutionContext, userId: number, stepRef: { current: number }) {
+  const tools = {
+    // Read tools
+    ...createReadTools(context),
+    // Edit tools
+    ...createEditTools(context),
+    // Meta tools
+    ...createMetaTools(context),
+    // Personalization tool
+    get_user_personalization: getUserPersonalizationTool(userId),
   };
 
-  // Convert to AI SDK format
-  const aiTools: Record<string, any> = {};
-
-  for (const [name, agentTool] of Object.entries(allAgentTools)) {
-    aiTools[name] = convertToAITool(agentTool, context);
+  // Wrap all tools with logging
+  const wrappedTools: any = {};
+  for (const [name, tool] of Object.entries(tools)) {
+    wrappedTools[name] = wrapToolWithLogging(name, tool, stepRef);
   }
 
-  // Add personalization tool
-  aiTools.get_user_personalization = getUserPersonalizationTool(userId);
-
-  return aiTools;
-}
-
-/**
- * Get tool by name
- */
-export function getTool(toolName: string, context: ToolExecutionContext): AgentTool | null {
-  const allTools: Record<string, AgentTool> = {
-    ...readTools,
-    ...editTools,
-    ...metaTools,
-  };
-
-  return allTools[toolName] || null;
+  return wrappedTools;
 }
 
 /**
  * Check if a tool is a final tool (ends execution)
  */
-export function isFinalTool(toolName: string, context: ToolExecutionContext): boolean {
-  const toolDef = getTool(toolName, context);
-  return toolDef?.isFinal === true;
+export function isFinalTool(toolName: string): boolean {
+  return toolName === 'finish_with_summary';
 }
 
 /**

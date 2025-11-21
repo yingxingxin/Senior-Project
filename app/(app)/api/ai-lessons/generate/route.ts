@@ -9,7 +9,7 @@ import { z } from 'zod';
  */
 const generateLessonSchema = z.object({
   topic: z.string().min(1, 'Topic is required').max(200, 'Topic too long'),
-  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional().default('intermediate'),
+  difficulty: z.enum(['easy', 'standard', 'hard']).optional().default('standard'),
   context: z.string().max(2000, 'Context too long').optional(),
   estimatedDurationMinutes: z.number().int().min(5).max(120).optional().default(30),
   languagePreference: z.string().max(50).optional(),
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const data = validationResult.data;
 
     // Enqueue the lesson generation job
-    const job = await enqueueLessonGeneration({
+    const jobId = await enqueueLessonGeneration({
       userId,
       topic: data.topic,
       difficulty: data.difficulty,
@@ -64,15 +64,15 @@ export async function POST(req: NextRequest) {
       triggerSource: data.triggerSource,
     });
 
-    console.log(`[AI Lessons API] Job ${job.id} enqueued for user ${userId}: ${data.topic}`);
+    console.log(`[AI Lessons API] Job ${jobId} enqueued for user ${userId}: ${data.topic}`);
 
     // Return job information
     return NextResponse.json({
-      jobId: job.id,
+      jobId: jobId,
       topic: data.topic,
       difficulty: data.difficulty,
       estimatedWaitSeconds: 60, // Estimate based on queue size
-      statusUrl: `/api/ai-lessons/jobs/${job.id}/status`,
+      statusUrl: `/api/ai-lessons/jobs/${jobId}/status`,
     }, { status: 202 }); // 202 Accepted
   } catch (error) {
     console.error('[AI Lessons API] Error generating lesson:', error);

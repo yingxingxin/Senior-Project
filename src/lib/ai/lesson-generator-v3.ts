@@ -17,7 +17,7 @@ import { countWordsInTiptap } from './tiptap-schema';
 export interface GenerateLessonParams {
   userId: number;
   topic: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'easy' | 'standard' | 'hard';
   context?: string;
   estimatedDurationMinutes?: number;
   languagePreference?: string;
@@ -122,7 +122,7 @@ export async function generateAILessonWithFullAgent(
       slug,
       title: lessonTitle,
       description: agentResult.summary.substring(0, 500),
-      difficulty: difficulty as Difficulty,
+      difficulty,
       estimated_duration_sec: estimatedDurationMinutes * 60,
       scope: 'user',
       owner_user_id: userId,
@@ -134,7 +134,6 @@ export async function generateAILessonWithFullAgent(
         model_used: process.env.OPENROUTER_MODEL || 'openai/gpt-4o',
         persona_snapshot: userContext.assistantPersona,
         generation_timestamp: new Date().toISOString(),
-        token_usage: null, // Agent doesn't track individual tokens yet
         estimated_duration_minutes: estimatedDurationMinutes,
         word_count: wordCount,
         agent_version: 'v3_full_agent',

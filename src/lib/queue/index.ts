@@ -22,6 +22,7 @@ export {
   initializeAllWorkers,
   initializeLessonGenerationWorker,
   shutdownAllWorkers,
+  registerSignalHandlers,
   isWorkersEnabled,
   lessonGenerationWorker,
 } from './workers';

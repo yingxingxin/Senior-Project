@@ -28,6 +28,8 @@ interface JobStatus {
     percentage: number;
     step: string;
     message: string;
+    stepNumber?: number;
+    totalSteps?: number;
   };
   result?: {
     lessonId: number;
@@ -89,10 +91,8 @@ export function GenerationProgressDialog({
       }
     }
 
-    // Initial poll
-    pollStatus();
-
-    // Poll every 2 seconds
+    // Poll every 2 seconds (with initial poll)
+    pollStatus(); // Initial poll
     intervalId = setInterval(pollStatus, 2000);
 
     return () => {
@@ -177,12 +177,17 @@ export function GenerationProgressDialog({
 
               <Progress value={progressPercentage} className="w-full" />
 
-              <Body className="text-xs text-muted-foreground text-center">
-                {progressPercentage}% complete
-              </Body>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{progressPercentage}% complete</span>
+                {status?.progress?.stepNumber && status?.progress?.totalSteps && (
+                  <span>
+                    Step {status.progress.stepNumber} of {status.progress.totalSteps}
+                  </span>
+                )}
+              </div>
 
               <Body className="text-xs text-muted-foreground text-center">
-                This usually takes 30-60 seconds. Please don't close this window.
+                This usually takes 30-60 seconds. Please do not close this window.
               </Body>
             </>
           )}

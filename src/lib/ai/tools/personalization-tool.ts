@@ -14,25 +14,31 @@ import { loadUserPersonalizationContext } from '../personalization';
  */
 export const getUserPersonalizationTool = (userId: number) => tool({
   description: 'Get the user\'s learning preferences, skill level, and history to personalize the lesson content.',
-  parameters: z.object({}),
+  inputSchema: z.object({}),
   execute: async () => {
     const context = await loadUserPersonalizationContext(userId);
 
-    return {
-      success: true,
-      preferences: {
-        skillLevel: context.skillLevel,
-        assistantPersona: context.assistantPersona,
-        preferredLanguage: context.languagePreference || 'Not specified',
-        preferredParadigm: context.paradigmPreference || 'Not specified',
-      },
-      learningStats: {
-        lessonsCompleted: context.completedLessonsCount,
-        currentStreak: context.currentStreak,
-        totalPoints: context.totalPoints,
-      },
-      recentTopics: context.recentTopics,
-      message: `User is ${context.skillLevel} level, prefers ${context.assistantPersona} teaching style`,
-    };
+    // Format as clear, readable text for the AI
+    const lines = [
+      '# User Personalization Context',
+      '',
+      '## Learning Preferences',
+      `- Skill Level: ${context.skillLevel}`,
+      `- Teaching Style: ${context.assistantPersona}`,
+      `- Preferred Language: ${context.languagePreference || 'Not specified'}`,
+      `- Preferred Paradigm: ${context.paradigmPreference || 'Not specified'}`,
+      '',
+      '## Learning History',
+      `- Lessons Completed: ${context.completedLessonsCount}`,
+      `- Current Streak: ${context.currentStreak} days`,
+      `- Total Points: ${context.totalPoints}`,
+      '',
+      '## Recent Topics',
+      ...context.recentTopics.map(topic => `- ${topic}`),
+      '',
+      '**Recommendation:** Tailor the lesson to match the user\'s skill level and teaching style preferences.',
+    ];
+
+    return lines.join('\n');
   },
 });

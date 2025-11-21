@@ -23,7 +23,7 @@ export const redisConnection: ConnectionOptions = {
 
   // Connection timeout and retry settings
   connectTimeout: 10000, // 10 seconds
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null, // BullMQ requires this to be null
 
   // Keep-alive settings
   keepAlive: 30000, // 30 seconds
@@ -56,9 +56,15 @@ export function getRedisConnectionFromUrl(): ConnectionOptions | null {
       port: parseInt(url.port || '6379', 10),
       password: url.password || undefined,
       username: url.username || undefined,
-      tls: url.protocol === 'rediss:' ? {} : undefined,
+      tls: url.protocol === 'rediss:' || url.hostname.includes('upstash.io') ? {} : undefined,
+
+      // Upstash-specific settings (required for BullMQ compatibility)
+      family: 6, // Use IPv6 for Upstash
+      enableReadyCheck: false, // Disable ready check for Upstash
+      enableOfflineQueue: false, // Disable offline queue for clearer errors
+
       connectTimeout: 10000,
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: null, // BullMQ requires this to be null
       keepAlive: 30000,
       retryStrategy: (times: number) => Math.min(Math.pow(2, times) * 1000, 10000),
     };

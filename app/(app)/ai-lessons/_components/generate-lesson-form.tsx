@@ -12,7 +12,7 @@ import { Body } from '@/components/ui/typography';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { GenerationProgressDialog } from './generation-progress-dialog';
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+type Difficulty = 'easy' | 'standard' | 'hard';
 
 interface FormData {
   topic: string;
@@ -25,7 +25,7 @@ export function GenerateLessonForm() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     topic: '',
-    difficulty: 'intermediate',
+    difficulty: 'standard',
     context: '',
     estimatedDurationMinutes: 30,
   });
@@ -111,9 +111,9 @@ export function GenerateLessonForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="beginner">Beginner - Thorough explanations</SelectItem>
-                <SelectItem value="intermediate">Intermediate - Moderate detail</SelectItem>
-                <SelectItem value="advanced">Advanced - Concise and technical</SelectItem>
+                <SelectItem value="easy">Easy - Thorough explanations</SelectItem>
+                <SelectItem value="standard">Standard - Moderate detail</SelectItem>
+                <SelectItem value="hard">Hard - Concise and technical</SelectItem>
               </SelectContent>
             </Select>
           </div>

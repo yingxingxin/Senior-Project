@@ -4,7 +4,7 @@
  * TypeScript type definitions for all job data payloads and results.
  */
 
-import type { SkillLevel, Difficulty } from '@/db/schema';
+import type { SkillLevel, Difficulty } from '@/src/db/schema';
 
 /**
  * Job data for generating a new AI lesson

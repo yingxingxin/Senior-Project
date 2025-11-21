@@ -30,7 +30,7 @@ interface AILesson {
   slug: string;
   title: string;
   description: string | null;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'easy' | 'standard' | 'hard';
   estimatedDurationSec: number;
   scope: 'global' | 'user' | 'shared';
   createdAt: Date;
@@ -55,9 +55,9 @@ interface AILessonsResponse {
 }
 
 const difficultyColors = {
-  beginner: 'bg-green-500/10 text-green-700 dark:text-green-400',
-  intermediate: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
-  advanced: 'bg-red-500/10 text-red-700 dark:text-red-400',
+  easy: 'bg-green-500/10 text-green-700 dark:text-green-400',
+  standard: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
+  hard: 'bg-red-500/10 text-red-700 dark:text-red-400',
 };
 
 export function AILessonsList() {

@@ -6,7 +6,7 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { AgentTool, ToolExecutionContext, ToolResult } from '../types';
+import type { ToolExecutionContext } from '../types';
 
 /**
  * Serialize Tiptap document chunk to text for AI
@@ -30,102 +30,68 @@ function serializeChunkForAI(chunk: any): string {
 /**
  * Read first chunk tool
  */
-export function createReadFirstChunkTool(): AgentTool {
-  return {
-    name: 'read_first_chunk',
+export function createReadFirstChunkTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Start reading the document from the beginning. Returns the first chunk of content.',
-    parameters: z.object({}),
-    execute: async (args: {}, context: ToolExecutionContext): Promise<ToolResult> => {
+    inputSchema: z.object({}),
+    execute: async () => {
       const chunk = context.documentState.readFirstChunk();
 
       if (!chunk) {
-        return {
-          success: false,
-          result: 'Document is empty',
-        };
+        return 'Document is empty';
       }
 
-      return {
-        success: true,
-        result: serializeChunkForAI(chunk),
-        metadata: {
-          chunkIndex: chunk.index,
-          totalChunks: chunk.totalChunks,
-          characterCount: chunk.characterCount,
-        },
-      };
+      return serializeChunkForAI(chunk);
     },
-  };
+  });
 }
 
 /**
  * Read next chunk tool
  */
-export function createReadNextChunkTool(): AgentTool {
-  return {
-    name: 'read_next_chunk',
+export function createReadNextChunkTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Navigate to and read the next chunk of the document. Use this after reading the first chunk to continue reading.',
-    parameters: z.object({}),
-    execute: async (args: {}, context: ToolExecutionContext): Promise<ToolResult> => {
+    inputSchema: z.object({}),
+    execute: async () => {
       const chunk = context.documentState.readNextChunk();
 
       if (!chunk) {
         const currentChunk = context.documentState.getCurrentChunk();
-        return {
-          success: false,
-          result: `Already at the last chunk (${currentChunk?.index + 1} of ${currentChunk?.totalChunks})`,
-        };
+        return `Already at the last chunk (${currentChunk?.index + 1} of ${currentChunk?.totalChunks})`;
       }
 
-      return {
-        success: true,
-        result: serializeChunkForAI(chunk),
-        metadata: {
-          chunkIndex: chunk.index,
-          totalChunks: chunk.totalChunks,
-          characterCount: chunk.characterCount,
-        },
-      };
+      return serializeChunkForAI(chunk);
     },
-  };
+  });
 }
 
 /**
  * Read previous chunk tool
  */
-export function createReadPreviousChunkTool(): AgentTool {
-  return {
-    name: 'read_previous_chunk',
+export function createReadPreviousChunkTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Navigate to and read the previous chunk of the document. Use this to go back and review earlier content.',
-    parameters: z.object({}),
-    execute: async (args: {}, context: ToolExecutionContext): Promise<ToolResult> => {
+    inputSchema: z.object({}),
+    execute: async () => {
       const chunk = context.documentState.readPreviousChunk();
 
       if (!chunk) {
-        return {
-          success: false,
-          result: 'Already at the first chunk',
-        };
+        return 'Already at the first chunk';
       }
 
-      return {
-        success: true,
-        result: serializeChunkForAI(chunk),
-        metadata: {
-          chunkIndex: chunk.index,
-          totalChunks: chunk.totalChunks,
-          characterCount: chunk.characterCount,
-        },
-      };
+      return serializeChunkForAI(chunk);
     },
-  };
+  });
 }
 
 /**
- * All read tools
+ * Create all read tools with context
  */
-export const readTools = {
-  read_first_chunk: createReadFirstChunkTool(),
-  read_next_chunk: createReadNextChunkTool(),
-  read_previous_chunk: createReadPreviousChunkTool(),
-};
+export function createReadTools(context: ToolExecutionContext) {
+  return {
+    read_first_chunk: createReadFirstChunkTool(context),
+    read_next_chunk: createReadNextChunkTool(context),
+    read_previous_chunk: createReadPreviousChunkTool(context),
+  };
+}

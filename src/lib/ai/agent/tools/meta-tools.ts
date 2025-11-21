@@ -6,16 +6,15 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { AgentTool, ToolExecutionContext, ToolResult } from '../types';
+import type { ToolExecutionContext } from '../types';
 
 /**
  * Plan tool - create a structured plan for the lesson
  */
-export function createPlanTool(): AgentTool {
-  return {
-    name: 'plan',
+export function createPlanTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Create a structured plan for building the lesson. Outline the sections and content you will create. Always use this as the first step.',
-    parameters: z.object({
+    inputSchema: z.object({
       sections: z.array(z.object({
         title: z.string().describe('Section title'),
         topics: z.array(z.string()).describe('Key topics to cover'),
@@ -24,28 +23,17 @@ export function createPlanTool(): AgentTool {
       })).describe('Ordered list of lesson sections to create'),
       estimatedDuration: z.number().describe('Estimated total duration in minutes'),
     }),
-    execute: async (
-      args: {
-        sections: Array<{
-          title: string;
-          topics: string[];
-          interactiveElements: string[];
-          estimatedLength: string;
-        }>;
-        estimatedDuration: number;
-      },
-      context: ToolExecutionContext
-    ): Promise<ToolResult> => {
+    execute: async ({ sections, estimatedDuration }) => {
       // Format the plan as markdown
       const planLines = [
         '# Lesson Plan',
         '',
-        `**Estimated Duration:** ${args.estimatedDuration} minutes`,
-        `**Total Sections:** ${args.sections.length}`,
+        `**Estimated Duration:** ${estimatedDuration} minutes`,
+        `**Total Sections:** ${sections.length}`,
         '',
       ];
 
-      args.sections.forEach((section, index) => {
+      sections.forEach((section, index) => {
         planLines.push(`## ${index + 1}. ${section.title}`);
         planLines.push(`**Topics:** ${section.topics.join(', ')}`);
         planLines.push(`**Interactive:** ${section.interactiveElements.join(', ')}`);
@@ -57,31 +45,23 @@ export function createPlanTool(): AgentTool {
 
       // Store plan in conversation metadata
       context.conversationState.metadata.plan = {
-        sections: args.sections,
-        estimatedDuration: args.estimatedDuration,
+        sections,
+        estimatedDuration,
         markdown: planMarkdown,
       };
 
-      return {
-        success: true,
-        result: `Plan created with ${args.sections.length} sections:\n\n${planMarkdown}`,
-        metadata: {
-          sectionCount: args.sections.length,
-          estimatedDuration: args.estimatedDuration,
-        },
-      };
+      return `Plan created with ${sections.length} sections:\n\n${planMarkdown}`;
     },
-  };
+  });
 }
 
 /**
  * Finish with summary tool - marks task as completed
  */
-export function createFinishWithSummaryTool(): AgentTool {
-  return {
-    name: 'finish_with_summary',
+export function createFinishWithSummaryTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Mark the lesson creation as complete and provide a summary of what was created. Use this as the final step after building all content.',
-    parameters: z.object({
+    inputSchema: z.object({
       summary: z.string().describe('Summary of the lesson content created'),
       wordCount: z.number().describe('Approximate total word count'),
       sectionsCompleted: z.number().describe('Number of sections completed'),
@@ -92,105 +72,71 @@ export function createFinishWithSummaryTool(): AgentTool {
         flipCards: z.number().optional(),
       }).describe('Count of interactive elements added'),
     }),
-    isFinal: true, // This marks the agent run as complete
-    execute: async (
-      args: {
-        summary: string;
-        wordCount: number;
-        sectionsCompleted: number;
-        interactiveElementsAdded: {
-          callouts?: number;
-          codeBlocks?: number;
-          quizzes?: number;
-          flipCards?: number;
-        };
-      },
-      context: ToolExecutionContext
-    ): Promise<ToolResult> => {
+    execute: async ({ summary, wordCount, sectionsCompleted, interactiveElementsAdded }) => {
       const summaryLines = [
         '# Lesson Creation Complete',
         '',
-        args.summary,
+        summary,
         '',
         '**Statistics:**',
-        `- Word Count: ~${args.wordCount}`,
-        `- Sections: ${args.sectionsCompleted}`,
+        `- Word Count: ~${wordCount}`,
+        `- Sections: ${sectionsCompleted}`,
       ];
 
-      if (args.interactiveElementsAdded.callouts) {
-        summaryLines.push(`- Callouts: ${args.interactiveElementsAdded.callouts}`);
+      if (interactiveElementsAdded.callouts) {
+        summaryLines.push(`- Callouts: ${interactiveElementsAdded.callouts}`);
       }
-      if (args.interactiveElementsAdded.codeBlocks) {
-        summaryLines.push(`- Code Blocks: ${args.interactiveElementsAdded.codeBlocks}`);
+      if (interactiveElementsAdded.codeBlocks) {
+        summaryLines.push(`- Code Blocks: ${interactiveElementsAdded.codeBlocks}`);
       }
-      if (args.interactiveElementsAdded.quizzes) {
-        summaryLines.push(`- Quizzes: ${args.interactiveElementsAdded.quizzes}`);
+      if (interactiveElementsAdded.quizzes) {
+        summaryLines.push(`- Quizzes: ${interactiveElementsAdded.quizzes}`);
       }
-      if (args.interactiveElementsAdded.flipCards) {
-        summaryLines.push(`- Flip Cards: ${args.interactiveElementsAdded.flipCards}`);
+      if (interactiveElementsAdded.flipCards) {
+        summaryLines.push(`- Flip Cards: ${interactiveElementsAdded.flipCards}`);
       }
 
       const formattedSummary = summaryLines.join('\n');
 
       // Store summary in conversation metadata
       context.conversationState.metadata.finalSummary = {
-        summary: args.summary,
-        wordCount: args.wordCount,
-        sectionsCompleted: args.sectionsCompleted,
-        interactiveElements: args.interactiveElementsAdded,
+        summary,
+        wordCount,
+        sectionsCompleted,
+        interactiveElements: interactiveElementsAdded,
       };
 
-      return {
-        success: true,
-        result: formattedSummary,
-        metadata: {
-          wordCount: args.wordCount,
-          sectionsCompleted: args.sectionsCompleted,
-          completed: true,
-        },
-      };
+      return formattedSummary;
     },
-  };
+  });
 }
 
 /**
  * Ask user tool - ask clarifying questions (future feature)
  */
-export function createAskUserTool(): AgentTool {
-  return {
-    name: 'ask_user',
+export function createAskUserTool(context: ToolExecutionContext) {
+  return tool({
     description: 'Ask the user a clarifying question if the requirements are unclear. Note: In current implementation, this will use reasonable defaults.',
-    parameters: z.object({
+    inputSchema: z.object({
       question: z.string().describe('The question to ask the user'),
       suggestedDefault: z.string().describe('Suggested default answer if user does not respond'),
     }),
-    execute: async (
-      args: {
-        question: string;
-        suggestedDefault: string;
-      },
-      context: ToolExecutionContext
-    ): Promise<ToolResult> => {
+    execute: async ({ question, suggestedDefault }) => {
       // In current implementation, we just use the default
       // In future, this could pause execution and wait for user input
 
-      return {
-        success: true,
-        result: `Question noted: "${args.question}". Using default: "${args.suggestedDefault}"`,
-        metadata: {
-          question: args.question,
-          answer: args.suggestedDefault,
-        },
-      };
+      return `Question noted: "${question}". Using default: "${suggestedDefault}"`;
     },
-  };
+  });
 }
 
 /**
- * All meta tools
+ * Create all meta tools with context
  */
-export const metaTools = {
-  plan: createPlanTool(),
-  finish_with_summary: createFinishWithSummaryTool(),
-  ask_user: createAskUserTool(),
-};
+export function createMetaTools(context: ToolExecutionContext) {
+  return {
+    plan: createPlanTool(context),
+    finish_with_summary: createFinishWithSummaryTool(context),
+    ask_user: createAskUserTool(context),
+  };
+}

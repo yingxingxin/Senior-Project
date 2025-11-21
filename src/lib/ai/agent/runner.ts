@@ -4,7 +4,7 @@
  * Main orchestration loop for iterative lesson generation using tools.
  */
 
-import { generateText } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 import { openrouter } from '@/lib/openrouter';
 import type { AgentRunResult, ProgressCallback, ToolExecutionContext } from './types';
 import { DocumentState } from './document-state';
@@ -20,7 +20,7 @@ const CHECKPOINT_INTERVAL = 5; // Save checkpoint every 5 steps
 export interface RunAgentParams {
   userId: number;
   topic: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'easy' | 'standard' | 'hard';
   context?: string;
   estimatedDurationMinutes: number;
   userContext: UserPersonalizationContext;
@@ -40,9 +40,9 @@ function buildSystemPrompt(params: RunAgentParams): string {
   );
 
   const difficultyGuidance = {
-    beginner: 'Provide thorough, step-by-step explanations. Assume no prior knowledge. Use simple language and many examples.',
-    intermediate: 'Balance explanation with practice. Assume basic understanding. Include some advanced concepts.',
-    advanced: 'Be concise and technical. Assume strong foundation. Focus on advanced patterns and edge cases.',
+    easy: 'Provide thorough, step-by-step explanations. Assume no prior knowledge. Use simple language and many examples.',
+    standard: 'Balance explanation with practice. Assume basic understanding. Include some advanced concepts.',
+    hard: 'Be concise and technical. Assume strong foundation. Focus on advanced patterns and edge cases.',
   }[difficulty];
 
   return `You are an expert programming instructor creating a personalized lesson using an iterative, tool-based approach.
@@ -86,7 +86,22 @@ EXAMPLE TIPTAP NODES:
 { "type": "quizQuestion", "attrs": { "question": "What is X?", "options": ["A", "B", "C", "D"], "correctAnswer": 0, "explanation": "Because..." } }
 \`\`\`
 
-BEGIN by calling "get_user_personalization" and "plan", then build content iteratively with "apply_diff".
+CRITICAL WORKFLOW - You MUST complete ALL these steps:
+
+STEP 1: Call "get_user_personalization" to load user preferences
+STEP 2: Call "plan" to create lesson structure
+STEP 3: **START BUILDING** - Call "apply_diff" to add the lesson title (h1 heading)
+STEP 4: **KEEP BUILDING** - Call "apply_diff" repeatedly to add each section:
+   - Add section heading (h2)
+   - Add paragraphs explaining concepts
+   - Add code blocks with examples
+   - Add callouts for tips/warnings
+   - Add quiz questions to test understanding
+   - Add flip cards for definitions
+STEP 5: When ALL sections are complete, call "finish_with_summary"
+
+⚠️ CRITICAL: After steps 1-2, you MUST immediately proceed to step 3 and build the FULL lesson content.
+⚠️ DO NOT just plan and stop - you must create the actual Tiptap JSON content using apply_diff.
 `;
 }
 
@@ -117,103 +132,100 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
     conversationState,
   };
 
+  // Step counter ref for tool logging
+  const stepRef = { current: 0 };
+
   // Get all tools
-  const tools = getAllTools(toolContext, userId);
+  const tools = getAllTools(toolContext, userId, stepRef);
 
   // Build system prompt
   const systemPrompt = buildSystemPrompt(params);
 
-  // Agent loop
-  let stepCount = 0;
-  let isFinished = false;
-  let finalSummary = '';
-
   conversationState.setStatus('loading');
 
   try {
-    while (!isFinished && stepCount < MAX_STEPS) {
-      stepCount++;
+    console.log('[Agent] Starting generation with automatic tool roundtrips');
 
-      // Update progress
-      if (onProgress) {
-        await onProgress({
-          step: 'agent_running',
-          percentage: Math.min(10 + (stepCount / MAX_STEPS) * 80, 90),
-          message: `Agent step ${stepCount}/${MAX_STEPS}`,
-          stepNumber: stepCount,
-          totalSteps: MAX_STEPS,
-        });
-      }
-
-      // Save checkpoint periodically
-      if (stepCount % CHECKPOINT_INTERVAL === 0) {
-        const checkpoint = createCheckpoint(conversationState, documentState, {
-          step: stepCount,
-        });
-        checkpointManager.save(checkpoint);
-      }
-
-      // Get conversation history
-      const messages = [
-        {
-          role: 'system' as const,
-          content: systemPrompt,
-        },
-        ...conversationState.getMessagesForAI(),
-      ];
-
-      // Call AI with tools
-      const response = await generateText({
-        model: openrouter(process.env.OPENROUTER_MODEL || 'openai/gpt-4o'),
-        messages,
-        tools,
-        temperature: 0.7,
-        maxTokens: 4000,
+    // Update progress callback
+    if (onProgress) {
+      await onProgress({
+        step: 'agent_running',
+        percentage: 10,
+        message: 'AI agent processing...',
+        stepNumber: 1,
+        totalSteps: 1,
       });
+    }
 
-      // Add AI response text if present
-      if (response.text) {
-        conversationState.addAiMessage(response.text);
-      }
+    // Get conversation history
+    const messages = [
+      {
+        role: 'system' as const,
+        content: systemPrompt,
+      },
+      ...conversationState.getMessagesForAI(),
+    ];
 
-      // Process tool calls
-      if (response.toolCalls && response.toolCalls.length > 0) {
-        for (const toolCall of response.toolCalls) {
-          const { toolName, toolCallId, args } = toolCall;
+    // Single call to generateText - SDK handles ALL tool roundtrips automatically with stopWhen
+    const response = await generateText({
+      model: openrouter(process.env.OPENROUTER_MODEL || 'openai/gpt-4o'),
+      messages,
+      tools,
+      temperature: 0.7,
+      maxSteps: 30, // SDK will loop internally up to 30 times to allow full lesson generation
+      stopWhen: stepCountIs(30), // Enable multi-step tool calling - continue until 30 steps or AI stops naturally
+    });
 
-          // Record tool call in conversation
-          conversationState.addToolCall(toolName, toolCallId, args);
+    // Log what happened
+    console.log('[Agent] Generation complete:', {
+      hasText: !!response.text,
+      textLength: response.text?.length || 0,
+      textPreview: response.text?.substring(0, 200),
+      toolCallsInResponse: response.toolCalls?.length || 0,
+      responseType: response.finishReason,
+    });
 
-          // Execute tool
-          try {
-            // Tool execution is handled by AI SDK automatically
-            // We just need to track if it's a final tool
-            if (isFinalTool(toolName, toolContext)) {
-              isFinished = true;
-              finalSummary = conversationState.metadata.finalSummary?.summary || 'Lesson completed';
-            }
+    // Detailed diagnostic logging
+    console.log('[Agent] Finish reason:', response.finishReason);
+    console.log('[Agent] Total steps executed:', response.steps?.length || 0);
 
-            // Tool result will be added automatically by AI SDK in next iteration
-          } catch (error) {
-            console.error(`[Agent] Tool execution error for ${toolName}:`, error);
-            conversationState.addToolCallResult(
-              toolName,
-              toolCallId,
-              `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              true
-            );
-          }
-        }
-      } else {
-        // No tool calls - AI is done
-        isFinished = true;
-      }
+    // Log each step detail
+    response.steps?.forEach((step, index) => {
+      console.log(`[Agent Step ${index} Detail]:`, {
+        hasText: !!step.text,
+        textLength: step.text?.length || 0,
+        toolCallsCount: step.toolCalls?.length || 0,
+        toolNames: step.toolCalls?.map(tc => tc.toolName),
+        finishReason: step.finishReason,
+        // Log the full step object to see all available properties
+        fullStep: JSON.stringify(step, null, 2).substring(0, 500),
+      });
+    });
 
-      // Safety check - if no progress, break
-      if (stepCount > 5 && documentState.isEmpty()) {
-        console.warn('[Agent] No document content generated after 5 steps');
-        isFinished = true;
-      }
+    // Log token usage (log the entire object to see available properties)
+    if (response.usage) {
+      console.log('[Agent] Token usage:', response.usage);
+    }
+
+    // Log warnings if any
+    if (response.warnings && response.warnings.length > 0) {
+      console.warn('[Agent] Warnings:', response.warnings);
+    }
+
+    // Add final response to conversation
+    if (response.text) {
+      conversationState.addAiMessage(response.text);
+    }
+
+    // Update progress one more time
+    if (onProgress) {
+      await onProgress({
+        step: 'agent_running',
+        percentage: 90,
+        message: 'Finalizing lesson...',
+        stepNumber: 1,
+        totalSteps: 1,
+      });
     }
 
     // Mark as idle
@@ -221,12 +233,24 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
 
     // Get final document
     const finalDocument = documentState.getDocument();
+    const finalDocInfo = documentState.getChunkInfo();
+
+    // Log final summary
+    console.log(`[Agent] Execution complete:`, {
+      success: true,
+      documentNodes: documentState.document.content.length,
+      documentChars: finalDocInfo.totalCharCount,
+      isEmpty: documentState.isEmpty(),
+      totalMessages: conversationState.messages.length,
+      toolCalls: conversationState.messages.filter((m) => m.type === 'toolCall').length,
+      aiMessages: conversationState.messages.filter((m) => m.type === 'ai').length,
+    });
 
     return {
       success: true,
       document: finalDocument,
-      summary: finalSummary || `Lesson created in ${stepCount} steps`,
-      stepsExecuted: stepCount,
+      summary: response.text || 'Lesson completed',
+      stepsExecuted: 1,
       conversationMessages: conversationState.getMessages(),
     };
   } catch (error) {
@@ -238,7 +262,7 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
       success: false,
       document: documentState.getDocument(),
       summary: 'Error occurred during generation',
-      stepsExecuted: stepCount,
+      stepsExecuted: 0,
       conversationMessages: conversationState.getMessages(),
       error: error instanceof Error ? error.message : 'Unknown error',
     };

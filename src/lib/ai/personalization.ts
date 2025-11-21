@@ -5,10 +5,10 @@
  * Infers language/paradigm from learning history when not explicitly set.
  */
 
-import { db } from '@/db';
+import { db } from '@/src/db';
 import { eq, desc, and } from 'drizzle-orm';
-import { users, assistants, user_lesson_progress, lessons } from '@/db/schema';
-import type { AssistantPersona, SkillLevel } from '@/db/schema';
+import { users, user_lesson_progress } from '@/src/db/schema';
+import type { AssistantPersona, SkillLevel } from '@/src/db/schema';
 
 export interface UserPersonalizationContext {
   // User identity

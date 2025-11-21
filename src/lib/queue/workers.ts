@@ -153,9 +153,11 @@ export async function shutdownAllWorkers() {
 }
 
 /**
- * Handle graceful shutdown on process signals
+ * Register signal handlers for graceful shutdown
+ * Call this from your worker script (e.g., scripts/worker.ts)
+ * to enable graceful shutdown on SIGTERM/SIGINT
  */
-if (isWorkersEnabled()) {
+export function registerSignalHandlers() {
   process.on('SIGTERM', async () => {
     console.log('[Workers] Received SIGTERM signal');
     await shutdownAllWorkers();

@@ -5,7 +5,7 @@
  * These are injected into the system prompt to maintain consistent personality.
  */
 
-import type { AssistantPersona } from '@/db/schema';
+import type { AssistantPersona } from '@/src/db/schema';
 
 interface PersonaStyle {
   description: string;

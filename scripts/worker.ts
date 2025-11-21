@@ -17,7 +17,7 @@
  *   - OPENROUTER_API_KEY (for AI generation)
  */
 
-import { initializeAllWorkers, shutdownAllWorkers } from '../src/lib/queue';
+import { initializeAllWorkers, shutdownAllWorkers, registerSignalHandlers } from '../src/lib/queue';
 
 // Force enable workers for this script
 process.env.ENABLE_WORKERS = 'true';
@@ -70,21 +70,11 @@ try {
   process.exit(1);
 }
 
+// Register signal handlers for graceful shutdown
+registerSignalHandlers();
+
 // Keep the process alive
 process.stdin.resume();
-
-// Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('\n📦 Received SIGTERM - Shutting down gracefully...');
-  await shutdownAllWorkers();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  console.log('\n📦 Received SIGINT - Shutting down gracefully...');
-  await shutdownAllWorkers();
-  process.exit(0);
-});
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
