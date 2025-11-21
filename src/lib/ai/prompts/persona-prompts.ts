@@ -118,8 +118,8 @@ export const PERSONA_EXAMPLE_OPENINGS: Record<AssistantPersona, string[]> = {
     "Don't worry if this seems tricky at first, we'll work through it together!",
   ],
   direct: [
-    'Here's what you need to know about...',
-    'Let's cut to the chase:',
+    "Here's what you need to know about...",
+    "Let's cut to the chase:",
     'Bottom line:',
   ],
 };
