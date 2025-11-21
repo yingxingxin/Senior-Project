@@ -16,10 +16,13 @@ import { user_lesson_progress, activity_events } from './progress';
 import { users } from './auth';
 import { quizzes, quiz_questions } from './quizzes';
 import { user_music_tracks, user_theme_settings } from './preferences';
+import type { AILessonMetadata } from './ai-metadata-types';
 
 // ============ ENUMS ============
 
 export const assistantGenderEnum = pgEnum('assistant_gender', ['feminine', 'masculine', 'androgynous']);
+
+export const lessonScopeEnum = pgEnum('lesson_scope', ['global', 'user', 'shared']);
 
 // ============ TABLES ============
 
@@ -53,15 +56,24 @@ export const assistants = pgTable('assistants', {
 /**
  * Lessons Table - Contains structured learning modules with difficulty levels and estimated completion times
  *
- * WHEN CREATED: Content creation (admin/CMS)
+ * WHEN CREATED:
+ *   - Admin/CMS: Global lessons (scope='global')
+ *   - AI Generation: User-specific lessons (scope='user' or 'shared')
  * WHEN UPDATED: Content edits (title, description, estimated_duration_sec)
- * USED BY: Learning flow, progress tracking
+ * USED BY: Learning flow, progress tracking, AI generation
  *
  * USER STORIES SUPPORTED:
  *   - F06-US01: Quiz content source (lessons provide quiz material)
  *   - F08-US01: Topic-specific Q&A (content field)
  *   - F09-US01/02: Re-explanation source (different examples)
  *   - F20-US01/02: Progress tracking & resume (via usersLessonsProgress)
+ *   - AI-LESSONS: User-generated personalized lessons
+ *   - SOCIAL: Shared lessons between users
+ *
+ * LESSON SCOPES:
+ *   - global: Admin-curated, visible to all users (default)
+ *   - user: AI-generated, private to owner_user_id
+ *   - shared: AI-generated, shared with specific users (via shared_lesson_users table)
  *
  * NOTE: Assistant selection is user-driven at the user level
  */
@@ -82,12 +94,26 @@ export const lessons = pgTable('lessons', {
   icon: varchar('icon', { length: 10 }),
   is_published: boolean('is_published').notNull().default(true),
 
+  // AI-generated lesson fields
+  scope: lessonScopeEnum('scope').notNull().default('global'),
+  owner_user_id: integer('owner_user_id').references(() => users.id, { onDelete: 'cascade' }),
+  is_ai_generated: boolean('is_ai_generated').notNull().default(false),
+  ai_metadata: jsonb('ai_metadata').$type<AILessonMetadata>(),
+
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
   uniqueIndex('uq_lessons__slug').on(t.slug),
   index('ix_lessons__parent').on(t.parent_lesson_id),
   uniqueIndex('uq_lessons__parent_order').on(t.parent_lesson_id, t.order_index),
+  // AI lesson indexes
+  index('ix_lessons__scope').on(t.scope),
+  index('ix_lessons__owner_ai').on(t.owner_user_id).where(sql`${t.is_ai_generated} = true`),
+  index('ix_lessons__global_published').on(t.is_published).where(sql`${t.scope} = 'global'`),
+  // Constraint: user/shared lessons must have owner
+  check('ck_lessons__user_scope_requires_owner',
+    sql`(${t.scope} = 'global') OR (${t.owner_user_id} IS NOT NULL)`
+  ),
 ]);
 
 /**
@@ -148,6 +174,30 @@ export const user_lesson_sections = pgTable('user_lesson_sections', {
   primaryKey({ columns: [t.user_id, t.section_id] }),
   index('ix_user_lesson_sections__user').on(t.user_id),
   index('ix_user_lesson_sections__section').on(t.section_id),
+]);
+
+/**
+ * Shared Lesson Users Table - Tracks which users can access shared AI-generated lessons
+ *
+ * WHEN CREATED: User shares their AI-generated lesson with another user
+ * WHEN UPDATED: Never (immutable)
+ * WHEN DELETED: User unshares lesson or lesson/user is deleted
+ * USED BY: Social features, shared lesson access control
+ *
+ * USER STORIES SUPPORTED:
+ *   - SOCIAL-US01: Share AI lessons with friends
+ *   - SOCIAL-US02: Complete lessons together
+ *   - SOCIAL-US03: Track shared lesson progress
+ */
+export const shared_lesson_users = pgTable('shared_lesson_users', {
+  lesson_id: integer('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shared_by_user_id: integer('shared_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shared_at: timestamp('shared_at', { withTimezone: true }).defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.lesson_id, t.user_id] }),
+  index('ix_shared_lesson_users__user_id').on(t.user_id),
+  index('ix_shared_lesson_users__shared_by').on(t.shared_by_user_id),
 ]);
 
 /**
@@ -298,11 +348,17 @@ export const assistantsRelations = relations(assistants, ({ many }) => ({
   dialogues: many(dialogues),
 }));
 
-export const lessonsRelations = relations(lessons, ({ many }) => ({
+export const lessonsRelations = relations(lessons, ({ one, many }) => ({
   sections: many(lesson_sections),
   lessonProgress: many(user_lesson_progress),
   quizzes: many(quizzes),
   activityEvents: many(activity_events),
+  // AI lesson relations
+  owner: one(users, {
+    fields: [lessons.owner_user_id],
+    references: [users.id],
+  }),
+  sharedUsers: many(shared_lesson_users),
 }));
 
 export const lessonSectionsRelations = relations(lesson_sections, ({ one, many }) => ({
@@ -340,6 +396,21 @@ export const themesRelations = relations(themes, ({ many }) => ({
   userThemeSettings: many(user_theme_settings),
 }));
 
+export const sharedLessonUsersRelations = relations(shared_lesson_users, ({ one }) => ({
+  lesson: one(lessons, {
+    fields: [shared_lesson_users.lesson_id],
+    references: [lessons.id],
+  }),
+  user: one(users, {
+    fields: [shared_lesson_users.user_id],
+    references: [users.id],
+  }),
+  sharedBy: one(users, {
+    fields: [shared_lesson_users.shared_by_user_id],
+    references: [users.id],
+  }),
+}));
+
 // ============ TYPES ============
 
 export type Assistant = typeof assistants.$inferSelect;
@@ -354,6 +425,9 @@ export type NewLessonSection = typeof lesson_sections.$inferInsert;
 export type UserLessonSection = typeof user_lesson_sections.$inferSelect;
 export type NewUserLessonSection = typeof user_lesson_sections.$inferInsert;
 
+export type SharedLessonUser = typeof shared_lesson_users.$inferSelect;
+export type NewSharedLessonUser = typeof shared_lesson_users.$inferInsert;
+
 export type MusicTrack = typeof music_tracks.$inferSelect;
 export type NewMusicTrack = typeof music_tracks.$inferInsert;
 
@@ -367,6 +441,9 @@ export type NewTheme = typeof themes.$inferInsert;
 
 export const assistantGenderValues = assistantGenderEnum.enumValues;
 export type AssistantGender = (typeof assistantGenderValues)[number];
+
+export const lessonScopeValues = lessonScopeEnum.enumValues;
+export type LessonScope = (typeof lessonScopeValues)[number];
 
 export const dialogueRoleValues = ['assistant', 'user', 'system'] as const;
 export type DialogueRole = (typeof dialogueRoleValues)[number];
