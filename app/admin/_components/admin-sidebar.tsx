@@ -13,7 +13,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/src/lib/utils";
-import { LayoutDashboard, Users, ChevronDown, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, Users, ChevronDown, LogOut, Menu, Image } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heading, Body, Caption } from "@/components/ui/typography";
 import { Stack, Inline } from "@/components/ui/spacing";
@@ -35,6 +35,11 @@ const ADMIN_NAV: NavItem[] = [
     title: "Users",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Media",
+    href: "/admin/media",
+    icon: Image,
   },
 ];
 
