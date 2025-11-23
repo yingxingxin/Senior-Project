@@ -45,21 +45,42 @@ function buildSystemPrompt(params: RunAgentParams): string {
     hard: 'Be concise and technical. Assume strong foundation. Focus on advanced patterns and edge cases.',
   }[difficulty];
 
-  return `You are an expert programming instructor creating a personalized lesson using an iterative, tool-based approach.
+  return `You are an expert programming instructor creating a personalized COURSE using an iterative, tool-based approach.
 
 ${personaInstruction}
 
-LESSON REQUIREMENTS:
+COURSE REQUIREMENTS:
 - Topic: ${topic}
 - Skill Level: ${difficulty}
 - Target Duration: ${estimatedDurationMinutes} minutes
 - Approach: ${difficultyGuidance}
 - Target Word Count: ${estimatedDurationMinutes * 150}-${estimatedDurationMinutes * 200} words
 
+3-LEVEL HIERARCHY (CRITICAL TO UNDERSTAND):
+┌─────────────────────────────────────────────────────────────┐
+│ Level 1: COURSE (the main topic you're creating)            │
+│   └── Level 2: LESSONS (2-4 major subtopics)               │
+│         └── Level 3: SECTIONS (3-5 content chunks/lesson)  │
+└─────────────────────────────────────────────────────────────┘
+
+- COURSE: The overall topic (e.g., "${topic}")
+  - Shows as the course overview page
+  - Defined by finish_with_summary (title, slug, description)
+
+- LESSONS: Major topics within the course (2-4 lessons)
+  - Shown as clickable cards on the course overview page
+  - Created using create_lesson tool
+  - Example: For "React Hooks" course, lessons might be "useState", "useEffect", "Custom Hooks"
+
+- SECTIONS: Content chunks within each lesson (3-5 per lesson)
+  - What users navigate through with "Next" and "Previous" buttons
+  - Created using create_section tool
+  - Users see "Section 1 of 5" etc. when viewing a lesson
+
 CONTENT STANDARDS:
 - Use Tiptap JSON format for all content nodes
-- Include h1 heading for lesson title
-- Use h2 for main sections, h3 for subsections
+- Include h2 heading for section titles (h1 is reserved for lesson title)
+- Use h3 for subsections within a section
 - Add code blocks with syntax highlighting (codeBlockEnhanced)
 - Include callouts for tips, warnings, and key points
 - Add quiz questions to test understanding
@@ -70,8 +91,8 @@ ${getToolsDescription()}
 
 EXAMPLE TIPTAP NODES:
 \`\`\`json
-// Heading
-{ "type": "heading", "attrs": { "level": 1 }, "content": [{ "type": "text", "text": "Title" }] }
+// Heading (use level 2 for section titles)
+{ "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Section Title" }] }
 
 // Paragraph
 { "type": "paragraph", "content": [{ "type": "text", "text": "Content here" }] }
@@ -86,30 +107,75 @@ EXAMPLE TIPTAP NODES:
 { "type": "quizQuestion", "attrs": { "question": "What is X?", "options": ["A", "B", "C", "D"], "correctAnswer": 0, "explanation": "Because..." } }
 \`\`\`
 
-CRITICAL WORKFLOW - You MUST complete ALL these steps:
+CRITICAL WORKFLOW - 3-Level Generation (MUST complete ALL steps):
 
-STEP 1: Call "get_user_personalization" to load user preferences
-STEP 2: Call "plan" to create lesson structure
-STEP 3: **START BUILDING** - Call "apply_diff" to add the lesson title (h1 heading)
-STEP 4: **KEEP BUILDING** - Call "apply_diff" repeatedly to add each section:
-   - Add section heading (h2)
-   - Add paragraphs explaining concepts
-   - Add code blocks with examples
-   - Add callouts for tips/warnings
-   - Add quiz questions to test understanding
-   - Add flip cards for definitions
-STEP 5: When ALL sections are complete, call "finish_with_summary"
+STEP 1: Call "plan" to create course structure
+   - Define 2-4 lessons, each with 3-5 sections
+   - Each lesson should cover a distinct subtopic
+   - Each section should be a digestible chunk (300-500 words)
 
-⚠️ CRITICAL: After steps 1-2, you MUST immediately proceed to step 3 and build the FULL lesson content.
-⚠️ DO NOT just plan and stop - you must create the actual Tiptap JSON content using apply_diff.
+STEP 2: FOR EACH LESSON in your plan:
+   a. Call "create_lesson" with:
+      - title: Lesson title (e.g., "Understanding useState")
+      - slug: URL-friendly slug (e.g., "understanding-usestate")
+      - description: What this lesson covers
+
+   b. FOR EACH SECTION in that lesson:
+      Call "create_section" with:
+        - title: Section title (e.g., "Introduction")
+        - slug: URL-friendly slug (e.g., "introduction")
+        - initialContent: Array of Tiptap nodes for the entire section (RECOMMENDED)
+          * Include h2 heading with section title
+          * Add paragraphs explaining concepts
+          * Add code blocks with examples
+          * Add callouts for tips/warnings
+          * Add quiz questions for practice
+
+   c. REPEAT for all sections before moving to next lesson
+
+STEP 3: Call "finish_with_summary" with:
+   - lessonTitle: COURSE title (e.g., "Mastering React Hooks")
+   - lessonSlug: COURSE slug (e.g., "mastering-react-hooks")
+   - description: Short 1-2 sentence description of the course
+   - summary: Brief summary of course content
+
+⚠️ SLUG FORMAT REQUIREMENTS:
+- Lowercase letters, numbers, and hyphens ONLY
+- NO spaces, underscores, or special characters
+- Make slugs readable and meaningful
+- Course slug: descriptive (e.g., "mastering-react-hooks")
+- Lesson slugs: clear (e.g., "understanding-usestate")
+- Section slugs: concise (e.g., "introduction", "examples")
+
+⚠️ CRITICAL RULES:
+1. You MUST create a lesson BEFORE creating sections within it
+2. Complete ALL sections of one lesson before creating the next lesson
+3. Each lesson needs 3-5 sections for proper navigation
+4. Users will see "Section X of Y" - make sure Y > 1 per lesson!
+5. DO NOT skip any steps - the course won't work without all components
 `;
+}
+
+/**
+ * Format personalization context as initial user message
+ */
+function formatPersonalizationContext(userContext: UserPersonalizationContext): string {
+  return `# About the Learner
+
+**Learning Profile:**
+- Skill Level: ${userContext.skillLevel || 'beginner'}
+- Teaching Style: ${userContext.assistantPersona || 'calm'}
+- Completed Lessons: ${userContext.completedLessonsCount || 0}
+- Recent Topics: ${userContext.recentTopics?.slice(0, 3).join(', ') || 'None'}
+
+Tailor this lesson to match their skill level and style.`;
 }
 
 /**
  * Run the AI agent
  */
 export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> {
-  const { userId, topic, context: userContext, onProgress } = params;
+  const { userId, topic, context: additionalContext, userContext, onProgress } = params;
 
   // Initialize states
   const documentState = new DocumentState();
@@ -119,12 +185,15 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
   // Initialize empty document
   documentState.initialize({ type: 'doc', content: [] });
 
-  // Add initial user message
-  const initialMessage = userContext
-    ? `Create a lesson about: ${topic}\n\nAdditional context: ${userContext}`
+  // Add personalization context as first message
+  conversationState.addUserMessage(formatPersonalizationContext(userContext));
+
+  // Add lesson request
+  const lessonRequest = additionalContext
+    ? `Create a lesson about: ${topic}\n\nAdditional context: ${additionalContext}`
     : `Create a lesson about: ${topic}`;
 
-  conversationState.addUserMessage(initialMessage);
+  conversationState.addUserMessage(lessonRequest);
 
   // Tool execution context
   const toolContext: ToolExecutionContext = {
@@ -252,6 +321,8 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
       summary: response.text || 'Lesson completed',
       stepsExecuted: 1,
       conversationMessages: conversationState.getMessages(),
+      documentState,
+      conversationState,
     };
   } catch (error) {
     conversationState.setStatus('error');
@@ -264,6 +335,8 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
       summary: 'Error occurred during generation',
       stepsExecuted: 0,
       conversationMessages: conversationState.getMessages(),
+      documentState,
+      conversationState,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }

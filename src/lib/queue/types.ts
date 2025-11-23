@@ -51,6 +51,9 @@ export interface GenerateLessonJobResult {
   /** Number of sections generated */
   sectionCount: number;
 
+  /** Slug of the first section (for redirects) */
+  firstSectionSlug: string;
+
   /** Total generation time in milliseconds */
   generationTimeMs: number;
 

@@ -103,6 +103,88 @@ export interface AILessonMetadata {
    * Any generation errors or warnings
    */
   generation_errors?: string[];
+
+  // ============ AI Agent v3 fields ============
+
+  /**
+   * Original topic requested by user
+   */
+  topic?: string;
+
+  /**
+   * Difficulty level at time of generation
+   */
+  difficulty?: 'easy' | 'standard' | 'hard';
+
+  /**
+   * Additional context provided by user
+   */
+  context?: string | null;
+
+  /**
+   * ISO timestamp when generation started/completed
+   */
+  generation_timestamp?: string;
+
+  /**
+   * Target duration in minutes
+   */
+  estimated_duration_minutes?: number;
+
+  /**
+   * Total word count across all content
+   */
+  word_count?: number;
+
+  /**
+   * Number of lessons created (for courses)
+   */
+  lesson_count?: number;
+
+  /**
+   * Total number of sections across all lessons
+   */
+  total_section_count?: number;
+
+  /**
+   * Legacy: Number of sections (for single lesson)
+   */
+  section_count?: number;
+
+  /**
+   * Agent version used for generation
+   */
+  agent_version?: string;
+
+  /**
+   * Number of tool call steps executed
+   */
+  steps_executed?: number;
+
+  /**
+   * AI-generated summary of the content
+   */
+  final_summary?: string;
+
+  /**
+   * Parent course slug (for child lessons)
+   */
+  parent_course_slug?: string;
+
+  /**
+   * Lesson index within parent course
+   */
+  lesson_index?: number;
+
+  /**
+   * Section index within lesson
+   */
+  section_index?: number;
+
+  /**
+   * Parent lesson slug (legacy)
+   */
+  parent_lesson_slug?: string;
 }
 
 /**

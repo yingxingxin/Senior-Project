@@ -77,6 +77,7 @@ export async function processLessonGeneration(
       lessonSlug: result.lessonSlug,
       lessonTitle: result.lessonTitle,
       sectionCount: result.sectionCount,
+      firstSectionSlug: result.firstSectionSlug,
       generationTimeMs: result.generationTimeMs,
       tokenUsage: result.tokenUsage,
       modelUsed: result.modelUsed,

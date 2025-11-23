@@ -13,6 +13,7 @@ import type { Difficulty } from '@/src/db/schema';
 import { loadUserPersonalizationContext } from './personalization';
 import { runAgent } from './agent';
 import { countWordsInTiptap } from './tiptap-schema';
+import { eq } from 'drizzle-orm';
 
 export interface GenerateLessonParams {
   userId: number;
@@ -34,6 +35,7 @@ export interface GenerateLessonResult {
   lessonSlug: string;
   lessonTitle: string;
   sectionCount: number;
+  firstSectionSlug: string; // For redirecting to /courses/[slug]/[firstSection]
   generationTimeMs: number;
   tokenUsage?: {
     promptTokens: number;
@@ -42,6 +44,41 @@ export interface GenerateLessonResult {
   };
   modelUsed: string;
   wordCount: number;
+}
+
+/**
+ * Generate a fallback slug from topic (only used if AI fails to provide one)
+ */
+function generateFallbackSlug(topic: string): string {
+  return topic
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-')         // Spaces to hyphens
+    .replace(/-+/g, '-')          // Collapse multiple hyphens
+    .replace(/^-|-$/g, '')        // Trim hyphens from ends
+    .substring(0, 50);            // Limit length
+}
+
+/**
+ * Ensure a slug is unique in the database by appending a timestamp if needed
+ */
+async function ensureUniqueSlug(baseSlug: string): Promise<string> {
+  // Check if slug exists
+  const existing = await db
+    .select({ id: lessons.id })
+    .from(lessons)
+    .where(eq(lessons.slug, baseSlug))
+    .limit(1);
+
+  if (existing.length === 0) {
+    return baseSlug; // Slug is unique
+  }
+
+  // Slug exists, append timestamp to make it unique
+  const timestamp = Date.now();
+  const uniqueSlug = `${baseSlug}-${timestamp}`;
+  console.log(`[AI Agent] Slug "${baseSlug}" already exists, using "${uniqueSlug}"`);
+  return uniqueSlug;
 }
 
 /**
@@ -98,34 +135,55 @@ export async function generateAILessonWithFullAgent(
 
   await updateProgress('storing', 95, 'Saving lesson to database...');
 
-  // Extract lesson title from document
-  const firstHeading = agentResult.document.content?.find((node: any) =>
-    node.type === 'heading' && node.attrs?.level === 1
+  // Get all lessons from document state (Level 2)
+  const agentLessons = agentResult.documentState.getAllLessons();
+
+  if (agentLessons.length === 0) {
+    throw new Error('No lessons created by agent. Generation failed.');
+  }
+
+  // Calculate total sections across all lessons
+  const totalSections = agentLessons.reduce((sum, lesson) => sum + lesson.sections.length, 0);
+
+  if (totalSections === 0) {
+    throw new Error('No sections created in any lesson. Generation failed.');
+  }
+
+  // Get AI-generated course metadata from conversation state
+  const courseTitle = agentResult.conversationState.metadata.lessonTitle || topic;
+  let courseSlug = agentResult.conversationState.metadata.lessonSlug || generateFallbackSlug(topic);
+  const description = agentResult.conversationState.metadata.description || agentResult.summary;
+
+  // Validate course slug format
+  if (!/^[a-z0-9-]+$/.test(courseSlug)) {
+    console.warn(`[AI Agent] Invalid course slug: ${courseSlug}, using fallback`);
+    courseSlug = generateFallbackSlug(topic);
+  }
+
+  // Ensure slug is unique in the database (append timestamp if needed)
+  courseSlug = await ensureUniqueSlug(courseSlug);
+
+  // Calculate total word count across all sections in all lessons
+  const wordCount = agentLessons.reduce((lessonSum, lesson) =>
+    lessonSum + lesson.sections.reduce((sectionSum, section) =>
+      sectionSum + countWordsInTiptap(section.document), 0
+    ), 0
   );
 
-  const lessonTitle = firstHeading?.content?.[0]?.text || topic;
+  console.log(`[AI Agent] Creating course with ${agentLessons.length} lessons and ${totalSections} total sections`);
 
-  // Calculate word count
-  const wordCount = countWordsInTiptap(agentResult.document);
-
-  // Generate slug
-  const slug = `${lessonTitle
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 50)}-${Date.now().toString(36)}`;
-
-  // Store lesson in database
-  const [lesson] = await db
+  // Level 1: Create COURSE (parent lesson with parent_lesson_id = null)
+  const [courseRecord] = await db
     .insert(lessons)
     .values({
-      slug,
-      title: lessonTitle,
-      description: agentResult.summary.substring(0, 500),
+      slug: courseSlug,
+      title: courseTitle,
+      description: description.substring(0, 500),
       difficulty,
       estimated_duration_sec: estimatedDurationMinutes * 60,
-      scope: 'user',
+      scope: 'user' as const,
       owner_user_id: userId,
+      parent_lesson_id: null, // This makes it a "course"
       is_ai_generated: true,
       ai_metadata: {
         topic,
@@ -136,37 +194,87 @@ export async function generateAILessonWithFullAgent(
         generation_timestamp: new Date().toISOString(),
         estimated_duration_minutes: estimatedDurationMinutes,
         word_count: wordCount,
-        agent_version: 'v3_full_agent',
+        lesson_count: agentLessons.length,
+        total_section_count: totalSections,
+        agent_version: 'v3_full_hierarchy',
         steps_executed: agentResult.stepsExecuted,
         final_summary: agentResult.summary,
       },
     })
     .returning();
 
-  // Store lesson content
-  await db.insert(lesson_sections).values({
-    lesson_id: lesson.id,
-    slug: 'content',
-    title: 'Content',
-    order_index: 1,
-    body_json: agentResult.document,
-    body_md: '', // Required field, empty for JSON lessons
-  });
+  console.log(`[AI Agent] Created course: ${courseRecord.id} (${courseSlug})`);
+
+  // Level 2: Create LESSONS (child lessons with parent_lesson_id = course.id)
+  const lessonRecords = await db
+    .insert(lessons)
+    .values(
+      agentLessons.map((lesson, index) => ({
+        slug: lesson.slug,
+        title: lesson.title,
+        description: lesson.description || '',
+        difficulty,
+        estimated_duration_sec: Math.floor(estimatedDurationMinutes * 60 / agentLessons.length),
+        scope: 'user' as const,
+        owner_user_id: userId,
+        parent_lesson_id: courseRecord.id, // Links to course
+        order_index: index,
+        is_ai_generated: true,
+        ai_metadata: {
+          lesson_index: index,
+          parent_course_slug: courseSlug,
+          section_count: lesson.sections.length,
+        },
+      }))
+    )
+    .returning();
+
+  console.log(`[AI Agent] Created ${lessonRecords.length} lessons`);
+
+  // Level 3: Create SECTIONS (lesson_sections for each lesson)
+  let sectionCount = 0;
+  for (let lessonIndex = 0; lessonIndex < lessonRecords.length; lessonIndex++) {
+    const lessonRecord = lessonRecords[lessonIndex];
+    const agentLesson = agentLessons[lessonIndex];
+
+    // Create multiple sections per lesson - this is what makes "Section X of Y" work!
+    for (let sectionIndex = 0; sectionIndex < agentLesson.sections.length; sectionIndex++) {
+      const section = agentLesson.sections[sectionIndex];
+      await db.insert(lesson_sections).values({
+        lesson_id: lessonRecord.id,
+        slug: section.slug,
+        title: section.title,
+        order_index: sectionIndex,
+        body_json: section.document,
+        body_md: '', // Required field, empty for JSON lessons
+      });
+      sectionCount++;
+    }
+
+    console.log(`[AI Agent] Created ${agentLesson.sections.length} sections for lesson "${lessonRecord.title}"`);
+  }
+
+  console.log(`[AI Agent] Created ${sectionCount} total lesson_sections across ${lessonRecords.length} lessons`);
 
   const generationTimeMs = Date.now() - startTime;
 
-  console.log(`[AI Agent v3] Lesson generated in ${generationTimeMs}ms`, {
-    lessonId: lesson.id,
-    title: lessonTitle,
+  console.log(`[AI Agent v3] Course generated in ${generationTimeMs}ms`, {
+    courseId: courseRecord.id,
+    title: courseTitle,
+    lessons: lessonRecords.length,
+    totalSections: sectionCount,
     steps: agentResult.stepsExecuted,
     wordCount,
   });
 
+  // For firstSectionSlug, we want the first lesson's slug (what appears on course overview)
+  // The user will navigate to /courses/[courseSlug]/[lessonSlug] then see sections
   return {
-    lessonId: lesson.id,
-    lessonSlug: slug,
-    lessonTitle,
-    sectionCount: 1,
+    lessonId: courseRecord.id,
+    lessonSlug: courseSlug,
+    lessonTitle: courseTitle,
+    sectionCount: sectionCount, // Total sections across all lessons
+    firstSectionSlug: lessonRecords[0].slug, // First lesson's slug (for redirect to first lesson)
     generationTimeMs,
     tokenUsage: undefined, // Not tracked in agent mode yet
     modelUsed: process.env.OPENROUTER_MODEL || 'openai/gpt-4o',

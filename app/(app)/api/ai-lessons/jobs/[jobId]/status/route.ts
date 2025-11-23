@@ -57,8 +57,9 @@ export async function GET(
               lessonSlug: status.result.lessonSlug,
               lessonTitle: status.result.lessonTitle,
               sectionCount: status.result.sectionCount,
+              firstSectionSlug: status.result.firstSectionSlug,
               generationTimeMs: status.result.generationTimeMs,
-              lessonUrl: `/lessons/${status.result.lessonSlug}`,
+              lessonUrl: `/courses/${status.result.lessonSlug}`,
             }
           }
         : {}),

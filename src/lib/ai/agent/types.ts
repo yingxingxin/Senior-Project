@@ -86,6 +86,27 @@ export interface DocumentChunk {
 }
 
 /**
+ * Lesson section (Level 3 - content chunks within a lesson)
+ */
+export interface LessonSection {
+  slug: string;
+  title: string;
+  orderIndex: number;
+  document: TiptapDocument;
+}
+
+/**
+ * Lesson (Level 2 - topics within a course)
+ */
+export interface Lesson {
+  slug: string;
+  title: string;
+  description: string;
+  orderIndex: number;
+  sections: LessonSection[];
+}
+
+/**
  * Tool definition
  */
 export interface AgentTool {
@@ -114,13 +135,54 @@ export interface ToolResult {
 }
 
 /**
- * Document state (tracks current document and chunks)
+ * Document state (tracks current document, lessons, and sections)
  */
 export interface DocumentState {
   document: TiptapDocument;
   chunks: DocumentChunk[];
   currentChunkIndex: number;
   chunkSize: number;
+
+  // Document operations (for legacy tools)
+  initialize(document?: TiptapDocument): void;
+  getDocument(): TiptapDocument;
+  updateDocument(updatedDocument: TiptapDocument): void;
+  replaceDocument(newDocument: TiptapDocument): void;
+  isEmpty(): boolean;
+  getDocumentText(): string;
+
+  // Chunk navigation
+  getCurrentChunk(): DocumentChunk | null;
+  readFirstChunk(): DocumentChunk | null;
+  readNextChunk(): DocumentChunk | null;
+  readPreviousChunk(): DocumentChunk | null;
+  getChunkInfo(): {
+    currentIndex: number;
+    totalChunks: number;
+    currentCharCount: number;
+    totalCharCount: number;
+  };
+
+  // Lesson management (Level 2)
+  createLesson(title: string, slug: string, description?: string): void;
+  getCurrentLesson(): Lesson | null;
+  getLessonBySlug(slug: string): Lesson | null;
+  getAllLessons(): Lesson[];
+  hasLessons(): boolean;
+  getLessonCount(): number;
+
+  // Section management (Level 3 - within current lesson)
+  createSection(title: string, slug: string): void;
+  getCurrentSection(): LessonSection | null;
+  getSectionBySlug(slug: string): LessonSection | null;
+  getSectionDocument(slug: string): TiptapDocument;
+  updateSectionDocument(slug: string, document: TiptapDocument): void;
+  getAllSections(): LessonSection[];
+  hasSections(): boolean;
+  getSectionCount(): number;
+
+  // Cloning for checkpoints
+  clone(): DocumentState;
 }
 
 /**
@@ -143,6 +205,8 @@ export interface AgentRunResult {
   summary: string;
   stepsExecuted: number;
   conversationMessages: ChatMessage[];
+  documentState: DocumentState;
+  conversationState: ConversationState;
   error?: string;
 }
 

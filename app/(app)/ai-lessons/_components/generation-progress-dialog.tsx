@@ -17,7 +17,7 @@ import { Sparkles, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 interface GenerationProgressDialogProps {
   jobId: string;
   topic: string;
-  onComplete: (lessonSlug: string) => void;
+  onComplete: (lessonSlug: string, firstSectionSlug: string) => void;
   onCancel: () => void;
 }
 
@@ -36,6 +36,7 @@ interface JobStatus {
     lessonSlug: string;
     lessonTitle: string;
     sectionCount: number;
+    firstSectionSlug: string;
     generationTimeMs: number;
     lessonUrl: string;
   };
@@ -77,7 +78,7 @@ export function GenerationProgressDialog({
         if (data.state === 'completed' && data.result) {
           clearInterval(intervalId);
           setTimeout(() => {
-            onComplete(data.result!.lessonSlug);
+            onComplete(data.result!.lessonSlug, data.result!.firstSectionSlug);
           }, 1500); // Short delay to show success state
         }
 

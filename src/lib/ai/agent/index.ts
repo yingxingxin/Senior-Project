@@ -24,7 +24,6 @@ export * from './tools';
 // Tool registry
 export {
   getAllTools,
-  getTool,
   isFinalTool,
   getToolsDescription,
 } from './tool-registry';

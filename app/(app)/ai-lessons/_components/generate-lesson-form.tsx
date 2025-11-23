@@ -64,8 +64,9 @@ export function GenerateLessonForm() {
     }
   };
 
-  const handleGenerationComplete = (lessonSlug: string) => {
-    router.push(`/lessons/${lessonSlug}`);
+  const handleGenerationComplete = (lessonSlug: string, firstSectionSlug: string) => {
+    // Redirect to course overview page to show all child lessons
+    router.push(`/courses/${lessonSlug}`);
   };
 
   const handleGenerationCancel = () => {
