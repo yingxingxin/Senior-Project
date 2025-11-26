@@ -30,12 +30,22 @@ const TextNodeSchema = z.object({
 });
 
 /**
+ * Generic Tiptap node type for recursive schemas
+ */
+interface TiptapNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: (TiptapNode | { type: 'text'; text: string })[];
+  text?: string;
+}
+
+/**
  * Base Node Schema (recursive definition for nested content)
  */
-const BaseNodeSchema: z.ZodType<any> = z.lazy(() =>
+const BaseNodeSchema: z.ZodType<TiptapNode> = z.lazy(() =>
   z.object({
     type: z.string(),
-    attrs: z.record(z.any()).optional(),
+    attrs: z.record(z.string(), z.unknown()).optional(),
     content: z.array(z.union([BaseNodeSchema, TextNodeSchema])).optional(),
   })
 );
@@ -56,7 +66,7 @@ const HeadingNodeSchema = z.object({
  */
 const ParagraphNodeSchema = z.object({
   type: z.literal('paragraph'),
-  attrs: z.record(z.any()).optional(),
+  attrs: z.record(z.string(), z.unknown()).optional(),
   content: z.array(z.union([TextNodeSchema, BaseNodeSchema])).optional(),
 });
 
@@ -255,13 +265,15 @@ export function validateTiptapJSON(json: unknown): {
  *
  * Attempts to fix common issues before validation fails.
  */
-export function sanitizeTiptapJSON(json: any): any {
+export function sanitizeTiptapJSON(json: unknown): TiptapDocument | unknown {
   if (!json || typeof json !== 'object') {
     return json;
   }
 
+  const jsonObj = json as Record<string, unknown>;
+
   // Ensure root is doc type
-  if (json.type !== 'doc') {
+  if (jsonObj.type !== 'doc') {
     return {
       type: 'doc',
       content: Array.isArray(json) ? json : [json],
@@ -269,27 +281,29 @@ export function sanitizeTiptapJSON(json: any): any {
   }
 
   // Recursively sanitize content
-  if (Array.isArray(json.content)) {
-    json.content = json.content
-      .filter((node: any) => node && typeof node === 'object')
-      .map((node: any) => {
+  if (Array.isArray(jsonObj.content)) {
+    jsonObj.content = jsonObj.content
+      .filter((node: unknown) => node && typeof node === 'object')
+      .map((node: unknown) => {
+        const nodeObj = node as Record<string, unknown>;
         // Fix missing type
-        if (!node.type) {
-          console.warn('Node missing type, skipping:', node);
+        if (!nodeObj.type) {
+          console.warn('Node missing type, skipping:', nodeObj);
           return null;
         }
 
         // Ensure text nodes have text field
-        if (node.type === 'text' && typeof node.text !== 'string') {
+        if (nodeObj.type === 'text' && typeof nodeObj.text !== 'string') {
           return null;
         }
 
         // Recursively sanitize nested content
-        if (Array.isArray(node.content)) {
-          node.content = sanitizeTiptapJSON({ type: 'doc', content: node.content }).content;
+        if (Array.isArray(nodeObj.content)) {
+          const sanitized = sanitizeTiptapJSON({ type: 'doc', content: nodeObj.content as unknown[] });
+          nodeObj.content = (sanitized as Record<string, unknown>).content;
         }
 
-        return node;
+        return nodeObj;
       })
       .filter(Boolean);
   }
@@ -301,12 +315,12 @@ export function sanitizeTiptapJSON(json: any): any {
  * Extract text content from Tiptap JSON (for search, preview, etc.)
  */
 export function extractTextFromTiptap(doc: TiptapDocument): string {
-  const extractFromNode = (node: any): string => {
-    if (node.type === 'text') {
+  const extractFromNode = (node: TiptapNode | { type: 'text'; text: string }): string => {
+    if (node.type === 'text' && 'text' in node) {
       return node.text || '';
     }
 
-    if (Array.isArray(node.content)) {
+    if ('content' in node && Array.isArray(node.content)) {
       return node.content.map(extractFromNode).join('');
     }
 
@@ -343,7 +357,7 @@ export function validateLessonContent(doc: TiptapDocument): {
   }
 
   // Check for at least one heading
-  const hasHeading = doc.content.some((node: any) => node.type === 'heading');
+  const hasHeading = doc.content.some((node) => node.type === 'heading');
   if (!hasHeading) {
     errors.push('Lesson should start with a heading');
   }
@@ -355,7 +369,7 @@ export function validateLessonContent(doc: TiptapDocument): {
   }
 
   // Check for at least one code example (if programming lesson)
-  const hasCodeBlock = doc.content.some((node: any) => node.type === 'codeBlockEnhanced');
+  const hasCodeBlock = doc.content.some((node) => node.type === 'codeBlockEnhanced');
   // This is a soft requirement, so just log a warning
   if (!hasCodeBlock) {
     console.warn('Lesson has no code examples');

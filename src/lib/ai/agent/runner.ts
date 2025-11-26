@@ -9,7 +9,7 @@ import { openrouter } from '@/lib/openrouter';
 import type { AgentRunResult, ProgressCallback, ToolExecutionContext } from './types';
 import { DocumentState } from './document-state';
 import { ConversationState } from './conversation-state';
-import { getAllTools, isFinalTool, getToolsDescription } from './tool-registry';
+import { getAllTools, getToolsDescription } from './tool-registry';
 import { createCheckpoint, CheckpointManager } from './checkpoints';
 import { buildPersonaInstruction } from '../prompts/persona-prompts';
 import type { UserPersonalizationContext } from '../personalization';
@@ -78,34 +78,66 @@ COURSE REQUIREMENTS:
   - Users see "Section 1 of 5" etc. when viewing a lesson
 
 CONTENT STANDARDS:
-- Use Tiptap JSON format for all content nodes
-- Include h2 heading for section titles (h1 is reserved for lesson title)
-- Use h3 for subsections within a section
-- Add code blocks with syntax highlighting (codeBlockEnhanced)
+- Write content in EXTENDED MARKDOWN format (will be parsed to Tiptap JSON automatically)
+- Use ## for section titles (# is reserved for lesson title)
+- Use ### for subsections within a section
+- Add code blocks with language identifiers for syntax highlighting
 - Include callouts for tips, warnings, and key points
 - Add quiz questions to test understanding
-- Use flip cards for definitions
+- Use flip cards for definitions and key concepts
 - Match ${difficulty} difficulty throughout
 
 ${getToolsDescription()}
 
-EXAMPLE TIPTAP NODES:
-\`\`\`json
-// Heading (use level 2 for section titles)
-{ "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Section Title" }] }
+EXTENDED MARKDOWN FORMAT:
 
-// Paragraph
-{ "type": "paragraph", "content": [{ "type": "text", "text": "Content here" }] }
+Write your content using standard Markdown plus these extensions:
 
-// Callout
-{ "type": "callout", "attrs": { "type": "tip" }, "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Tip content" }] }] }
+## Standard Markdown (built-in)
+- \`# Heading 1\`, \`## Heading 2\`, etc.
+- \`**bold**\` and \`*italic*\`
+- \`\\\`inline code\\\`\`
+- \`\\\`\\\`\\\`language\` for code blocks
+- \`- item\` for bullet lists
+- \`1. item\` for numbered lists
 
-// Code Block
-{ "type": "codeBlockEnhanced", "attrs": { "language": "javascript" }, "content": [{ "type": "text", "text": "const x = 1;" }] }
-
-// Quiz
-{ "type": "quizQuestion", "attrs": { "question": "What is X?", "options": ["A", "B", "C", "D"], "correctAnswer": 0, "explanation": "Because..." } }
+## Callouts (tips, warnings, notes)
 \`\`\`
+:::tip
+Pro tip content here. Always check your inputs!
+:::
+
+:::warning
+Warning: This could cause issues if not handled correctly.
+:::
+
+:::note
+Important note about this concept.
+:::
+
+:::info
+Additional information the learner should know.
+:::
+\`\`\`
+
+## Flip Cards (definitions, key concepts)
+\`\`\`
+???Term or Concept
+Definition or explanation on the back of the card.
+???
+
+???Another Term
+Its definition here.
+???
+\`\`\`
+Consecutive flip cards will be grouped together automatically.
+
+## Quizzes (multiple choice)
+\`\`\`
+[quiz: What is the correct answer? | Option A | Option B* | Option C | Option D]
+Explanation of why Option B is correct. This appears after the user answers.
+\`\`\`
+Mark the correct answer with * after the option text.
 
 CRITICAL WORKFLOW - 3-Level Generation (MUST complete ALL steps):
 
@@ -124,12 +156,13 @@ STEP 2: FOR EACH LESSON in your plan:
       Call "create_section" with:
         - title: Section title (e.g., "Introduction")
         - slug: URL-friendly slug (e.g., "introduction")
-        - initialContent: Array of Tiptap nodes for the entire section (RECOMMENDED)
-          * Include h2 heading with section title
+        - content: Section content in EXTENDED MARKDOWN format (REQUIRED)
+          * Start with ## heading for section title
           * Add paragraphs explaining concepts
-          * Add code blocks with examples
-          * Add callouts for tips/warnings
-          * Add quiz questions for practice
+          * Add \`\`\`language code blocks with examples
+          * Add :::tip or :::warning callouts
+          * Add ???front\\nback??? flip cards for key terms
+          * Add [quiz: ...] questions to test understanding
 
    c. REPEAT for all sections before moving to next lesson
 
@@ -241,8 +274,7 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
       messages,
       tools,
       temperature: 0.7,
-      maxSteps: 30, // SDK will loop internally up to 30 times to allow full lesson generation
-      stopWhen: stepCountIs(30), // Enable multi-step tool calling - continue until 30 steps or AI stops naturally
+      stopWhen: stepCountIs(30), // SDK will loop internally up to 30 times to allow full lesson generation
     });
 
     // Log what happened

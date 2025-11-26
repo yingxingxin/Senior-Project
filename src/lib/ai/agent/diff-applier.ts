@@ -5,17 +5,22 @@
  * Finds content, deletes specified parts, and inserts new content.
  */
 
-import type { TiptapDocument } from '../tiptap-schema';
+import type { TiptapDocument, TiptapBlockNode } from '../tiptap-schema';
+
+/**
+ * Node type for text nodes in Tiptap
+ */
+type TiptapTextNode = { type: 'text'; text?: string };
 
 /**
  * Extract text from Tiptap node for searching
  */
-function extractText(node: any): string {
-  if (node.type === 'text') {
+function extractText(node: TiptapBlockNode | TiptapTextNode): string {
+  if (node.type === 'text' && 'text' in node) {
     return node.text || '';
   }
-  if (node.content && Array.isArray(node.content)) {
-    return node.content.map(extractText).join('');
+  if ('content' in node && node.content && Array.isArray(node.content)) {
+    return node.content.map((n) => extractText(n as TiptapBlockNode | TiptapTextNode)).join('');
   }
   return '';
 }
@@ -56,8 +61,9 @@ function findContent(
 
 /**
  * Delete content from a text node
+ * Note: This function is currently unused but kept for future use
  */
-function deleteFromTextNode(node: any, startOffset: number, length: number): any {
+function _deleteFromTextNode(node: TiptapTextNode, startOffset: number, length: number): TiptapTextNode {
   if (node.type !== 'text') {
     return node;
   }
@@ -78,7 +84,7 @@ function deleteFromTextNode(node: any, startOffset: number, length: number): any
 function insertContentAt(
   document: TiptapDocument,
   insertAtIndex: number,
-  newContent: any[]
+  newContent: TiptapBlockNode[]
 ): TiptapDocument {
   if (!document.content) {
     return {
@@ -112,7 +118,7 @@ export function applyDiff(
   document: TiptapDocument,
   beforeContent: string | null,
   deleteContent: string | null,
-  insertContent: any[]
+  insertContent: TiptapBlockNode[]
 ): {
   success: boolean;
   document: TiptapDocument;
@@ -146,7 +152,7 @@ export function applyDiff(
 
         // Simple deletion: remove nodes that contain the delete text
         // This is a simplified implementation - in production, you'd want more sophisticated text node handling
-        workingDoc.content = workingDoc.content?.filter((node: any) => {
+        workingDoc.content = workingDoc.content?.filter((node: TiptapBlockNode) => {
           const nodeText = extractText(node);
           return !nodeText.includes(deleteContent);
         }) || [];
@@ -206,7 +212,7 @@ export function validateDocument(document: TiptapDocument): {
   }
 
   // Check each top-level node has a type
-  document.content?.forEach((node: any, index: number) => {
+  document.content?.forEach((node, index) => {
     if (!node.type) {
       errors.push(`Node at index ${index} missing type`);
     }

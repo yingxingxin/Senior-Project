@@ -100,6 +100,7 @@ export async function getLessonGenerationJobStatus(jobId: string) {
     result: returnValue as GenerateLessonJobResult | undefined,
     error: failedReason,
     data: job.data,
+    timestamp: job.timestamp, // When job was created
     processedOn: job.processedOn,
     finishedOn: job.finishedOn,
     attemptsMade: job.attemptsMade,

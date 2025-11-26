@@ -45,7 +45,7 @@ export async function GET(
 
     // Return status information
     return NextResponse.json({
-      jobId: status.id,
+      jobId: status.jobId,
       state: status.state, // 'waiting', 'active', 'completed', 'failed', 'delayed'
       progress: status.progress || { percentage: 0, step: 'waiting', message: 'Waiting to start' },
 
@@ -65,8 +65,8 @@ export async function GET(
         : {}),
 
       // Include error if failed
-      ...(status.state === 'failed' && status.failedReason
-        ? { error: status.failedReason }
+      ...(status.state === 'failed' && status.error
+        ? { error: status.error }
         : {}),
 
       // Metadata

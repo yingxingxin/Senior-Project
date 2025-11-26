@@ -62,7 +62,8 @@ export function GenerationProgressDialog({
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    // Ref to store intervalId for cleanup
+    let intervalIdRef: NodeJS.Timeout | null = null;
 
     async function pollStatus() {
       try {
@@ -76,7 +77,7 @@ export function GenerationProgressDialog({
 
         // Handle completion
         if (data.state === 'completed' && data.result) {
-          clearInterval(intervalId);
+          if (intervalIdRef) clearInterval(intervalIdRef);
           setTimeout(() => {
             onComplete(data.result!.lessonSlug, data.result!.firstSectionSlug);
           }, 1500); // Short delay to show success state
@@ -84,7 +85,7 @@ export function GenerationProgressDialog({
 
         // Handle failure
         if (data.state === 'failed') {
-          clearInterval(intervalId);
+          if (intervalIdRef) clearInterval(intervalIdRef);
         }
       } catch (error) {
         console.error('Error polling job status:', error);
@@ -94,10 +95,10 @@ export function GenerationProgressDialog({
 
     // Poll every 2 seconds (with initial poll)
     pollStatus(); // Initial poll
-    intervalId = setInterval(pollStatus, 2000);
+    intervalIdRef = setInterval(pollStatus, 2000);
 
     return () => {
-      clearInterval(intervalId);
+      if (intervalIdRef) clearInterval(intervalIdRef);
     };
   }, [jobId, onComplete]);
 

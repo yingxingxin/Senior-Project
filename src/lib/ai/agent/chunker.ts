@@ -13,13 +13,16 @@ const DEFAULT_CHUNK_SIZE = 32000; // ~32k characters per chunk
 /**
  * Count characters in a Tiptap node
  */
-function countNodeCharacters(node: any): number {
-  if (node.type === 'text') {
+function countNodeCharacters(node: TiptapBlockNode | { type: 'text'; text?: string }): number {
+  if (node.type === 'text' && 'text' in node) {
     return node.text?.length || 0;
   }
 
-  if (node.content && Array.isArray(node.content)) {
-    return node.content.reduce((sum: number, child: any) => sum + countNodeCharacters(child), 0);
+  if ('content' in node && node.content && Array.isArray(node.content)) {
+    return node.content.reduce(
+      (sum: number, child) => sum + countNodeCharacters(child as TiptapBlockNode | { type: 'text'; text?: string }),
+      0
+    );
   }
 
   return 0;
@@ -52,11 +55,11 @@ export function chunkDocument(
     }];
   }
 
-  let currentChunkNodes: any[] = [];
+  let currentChunkNodes: TiptapBlockNode[] = [];
   let currentChunkCharCount = 0;
   let startNodeIndex = 0;
 
-  document.content.forEach((node: any, nodeIndex: number) => {
+  document.content.forEach((node, nodeIndex) => {
     const nodeCharCount = countNodeCharacters(node);
 
     // If adding this node would exceed chunk size AND we have content, create chunk
@@ -122,7 +125,7 @@ export function getChunk(chunks: DocumentChunk[], index: number): DocumentChunk 
  * Get the full document from chunks
  */
 export function mergeChunks(chunks: DocumentChunk[]): TiptapDocument {
-  const allNodes: any[] = [];
+  const allNodes: TiptapBlockNode[] = [];
 
   chunks.forEach(chunk => {
     if (chunk.content.content) {

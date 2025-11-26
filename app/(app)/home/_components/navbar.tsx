@@ -21,7 +21,6 @@ import {
   LogOut,
   Bell,
   Bot,
-  Sparkles,
   MessageSquare,
   Swords,
   Music,
@@ -50,7 +49,6 @@ export default function Navbar({ data }: NavbarProps) {
   const navItems = [
     { href: "/home", label: "Home", icon: Home },
     { href: "/courses", label: "Courses", icon: BookOpen },
-    { href: "/ai-lessons", label: "AI Lessons", icon: Sparkles },
     { href: "/quizzes", label: "Quiz", icon: Bot },
     { href: "/study", label: "Study", icon: GraduationCap },
     { href: "/editor", label: "Practice", icon: Swords },

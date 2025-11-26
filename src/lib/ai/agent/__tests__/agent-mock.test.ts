@@ -156,8 +156,8 @@ const messages = conversationState.getMessagesForAI();
 assert(messages.length > 0, 'Messages formatted for AI');
 
 // Check message types
-const hasUserMessage = messages.some((m: any) => m.role === 'user');
-const hasAssistantMessage = messages.some((m: any) => m.role === 'assistant');
+const hasUserMessage = messages.some((m) => m.role === 'user');
+const hasAssistantMessage = messages.some((m) => m.role === 'assistant');
 assert(hasUserMessage === true, 'User messages included');
 assert(hasAssistantMessage === true, 'Assistant messages included');
 console.log('');
@@ -206,7 +206,7 @@ assert(errorDiff.message.includes('Could not find'), 'Error message is descripti
 conversationState.addToolCallResult('apply_diff', 'tc3', errorDiff.message, true);
 const lastMessage = conversationState.getMessages()[conversationState.getMessages().length - 1];
 assert(lastMessage.type === 'toolCallResult', 'Error recorded as tool result');
-assert((lastMessage as any).isError === true, 'Error flag set');
+assert(lastMessage.type === 'toolCallResult' && lastMessage.isError === true, 'Error flag set');
 console.log('');
 
 // Test 9: Verify document structure
@@ -217,7 +217,7 @@ assert(finalDoc.type === 'doc', 'Document has correct type');
 assert(finalDoc.content !== undefined, 'Document has content');
 
 // Check node types
-const nodeTypes = finalDoc.content!.map((node: any) => node.type);
+const nodeTypes = finalDoc.content!.map((node) => node.type);
 assert(nodeTypes.includes('heading'), 'Contains heading');
 assert(nodeTypes.includes('paragraph'), 'Contains paragraphs');
 assert(nodeTypes.includes('codeBlockEnhanced'), 'Contains code block');

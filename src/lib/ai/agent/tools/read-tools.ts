@@ -6,12 +6,12 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { ToolExecutionContext } from '../types';
+import type { ToolExecutionContext, DocumentChunk } from '../types';
 
 /**
  * Serialize Tiptap document chunk to text for AI
  */
-function serializeChunkForAI(chunk: any): string {
+function serializeChunkForAI(chunk: DocumentChunk | null): string {
   if (!chunk || !chunk.content || !chunk.content.content) {
     return '[Empty chunk]';
   }
@@ -58,7 +58,7 @@ export function createReadNextChunkTool(context: ToolExecutionContext) {
 
       if (!chunk) {
         const currentChunk = context.documentState.getCurrentChunk();
-        return `Already at the last chunk (${currentChunk?.index + 1} of ${currentChunk?.totalChunks})`;
+        return `Already at the last chunk (${(currentChunk?.index ?? 0) + 1} of ${currentChunk?.totalChunks ?? 1})`;
       }
 
       return serializeChunkForAI(chunk);

@@ -150,9 +150,10 @@ export async function generateAILessonWithFullAgent(
   }
 
   // Get AI-generated course metadata from conversation state
-  const courseTitle = agentResult.conversationState.metadata.lessonTitle || topic;
-  let courseSlug = agentResult.conversationState.metadata.lessonSlug || generateFallbackSlug(topic);
-  const description = agentResult.conversationState.metadata.description || agentResult.summary;
+  const metadata = agentResult.conversationState.metadata;
+  const courseTitle = (metadata.lessonTitle as string) || topic;
+  let courseSlug = (metadata.lessonSlug as string) || generateFallbackSlug(topic);
+  const description = (metadata.description as string) || agentResult.summary;
 
   // Validate course slug format
   if (!/^[a-z0-9-]+$/.test(courseSlug)) {

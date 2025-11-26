@@ -48,7 +48,7 @@ export async function processLessonGeneration(
     const result = await generateAILessonWithFullAgent({
       userId,
       topic,
-      difficulty,
+      difficulty: difficulty ?? 'standard', // Default to standard if not specified
       context,
       estimatedDurationMinutes,
       languagePreference,
@@ -57,7 +57,8 @@ export async function processLessonGeneration(
       // Progress callback - updates BullMQ job progress
       onProgress: async (progress) => {
         await updateProgress(job, {
-          step: progress.step as any,
+          // Map agent step to queue step type
+          step: progress.step as LessonGenerationProgress['step'],
           percentage: progress.percentage,
           message: progress.message,
         });
@@ -79,7 +80,13 @@ export async function processLessonGeneration(
       sectionCount: result.sectionCount,
       firstSectionSlug: result.firstSectionSlug,
       generationTimeMs: result.generationTimeMs,
-      tokenUsage: result.tokenUsage,
+      tokenUsage: result.tokenUsage
+        ? {
+            prompt: result.tokenUsage.promptTokens,
+            completion: result.tokenUsage.completionTokens,
+            total: result.tokenUsage.totalTokens,
+          }
+        : { prompt: 0, completion: 0, total: 0 },
       modelUsed: result.modelUsed,
     };
   } catch (error) {

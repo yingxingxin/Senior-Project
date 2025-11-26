@@ -4,6 +4,7 @@
  * Core TypeScript interfaces and types for the AI Agent system.
  */
 
+import type { z } from 'zod';
 import type { TiptapDocument } from '../tiptap-schema';
 
 /**
@@ -43,7 +44,7 @@ export interface ToolCallChatMessage {
   type: 'toolCall';
   toolName: string;
   toolCallId: string;
-  arguments: any;
+  arguments: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -70,7 +71,7 @@ export interface Checkpoint {
   conversationMessages: ChatMessage[];
   documentSnapshot: TiptapDocument;
   timestamp: Date;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -112,8 +113,8 @@ export interface Lesson {
 export interface AgentTool {
   name: string;
   description: string;
-  parameters: any; // Zod schema
-  execute: (args: any, context: ToolExecutionContext) => Promise<ToolResult>;
+  parameters: z.ZodType<Record<string, unknown>>;
+  execute: (args: Record<string, unknown>, context: ToolExecutionContext) => Promise<ToolResult>;
   isFinal?: boolean; // If true, ends agent run when called
 }
 
@@ -131,7 +132,7 @@ export interface ToolExecutionContext {
 export interface ToolResult {
   success: boolean;
   result: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -193,7 +194,7 @@ export interface ConversationState {
   messages: ChatMessage[];
   checkpoints: Checkpoint[];
   currentCheckpointId: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 /**

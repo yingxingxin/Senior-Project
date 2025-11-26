@@ -23,7 +23,7 @@ export interface GenerateLessonJobData {
   context?: string;
 
   /** Source that triggered generation */
-  triggerSource: 'chat' | 'manual' | 'onboarding' | 'cron';
+  triggerSource: 'chat' | 'manual' | 'onboarding' | 'cron' | 'recommendation';
 
   /** Estimated duration preference in minutes */
   estimatedDurationMinutes?: number;

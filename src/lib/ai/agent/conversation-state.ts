@@ -21,7 +21,7 @@ export class ConversationState implements IConversationState {
   messages: ChatMessage[];
   checkpoints: Checkpoint[];
   currentCheckpointId: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   constructor() {
     this.status = 'idle';
@@ -60,7 +60,7 @@ export class ConversationState implements IConversationState {
   /**
    * Add a tool call message
    */
-  addToolCall(toolName: string, toolCallId: string, args: any): void {
+  addToolCall(toolName: string, toolCallId: string, args: Record<string, unknown>): void {
     const message: ToolCallChatMessage = {
       type: 'toolCall',
       toolName,
@@ -113,31 +113,19 @@ export class ConversationState implements IConversationState {
 
   /**
    * Get messages formatted for AI (system, user, assistant, tool)
+   * Returns messages compatible with Vercel AI SDK generateText
+   * Note: Using simplified types that work with AI SDK's ModelMessage
    */
-  getMessagesForAI(): any[] {
-    const aiMessages: any[] = [];
+  getMessagesForAI(): Array<{ role: 'user' | 'assistant'; content: string }> {
+    const aiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
 
     for (const msg of this.messages) {
       if (msg.type === 'user') {
-        aiMessages.push({
-          role: 'user',
-          content: msg.text,
-        });
+        aiMessages.push({ role: 'user', content: msg.text });
       } else if (msg.type === 'ai') {
-        aiMessages.push({
-          role: 'assistant',
-          content: msg.text,
-        });
-      } else if (msg.type === 'toolCall') {
-        // Tool calls are added by the AI SDK automatically
-        // We just need to track them for history
-      } else if (msg.type === 'toolCallResult') {
-        aiMessages.push({
-          role: 'tool',
-          content: msg.result,
-          toolCallId: msg.toolCallId,
-        });
+        aiMessages.push({ role: 'assistant', content: msg.text });
       }
+      // Tool calls and results are handled automatically by AI SDK
       // Skip checkpoint messages in AI conversation
     }
 

@@ -152,10 +152,11 @@ const validDoc: TiptapDocument = {
 const validation1 = validateDocument(validDoc);
 assert(validation1.valid === true, 'Valid document passes validation');
 
-const invalidDoc: any = {
+// Test with invalid document type - using type assertion for testing purposes
+const invalidDoc = {
   type: 'wrong', // Should be 'doc'
   content: [],
-};
+} as TiptapDocument;
 
 const validation2 = validateDocument(invalidDoc);
 assert(validation2.valid === false, 'Invalid document fails validation');

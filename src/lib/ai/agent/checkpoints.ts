@@ -15,7 +15,7 @@ import { randomUUID } from 'crypto';
 export function createCheckpoint(
   conversationState: ConversationState,
   documentState: DocumentState,
-  metadata: Record<string, any> = {}
+  metadata: Record<string, unknown> = {}
 ): Checkpoint {
   const checkpoint: Checkpoint = {
     id: randomUUID(),

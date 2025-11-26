@@ -69,6 +69,7 @@ export function initializeLessonGenerationWorker() {
       return await processLessonGeneration(job);
     },
     {
+      connection: getRedisConnection(), // Explicitly set connection (required)
       ...defaultWorkerOptions,
       // Specific concurrency for lesson generation (AI calls are expensive)
       concurrency: parseInt(process.env.LESSON_WORKER_CONCURRENCY || '2', 10),

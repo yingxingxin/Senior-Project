@@ -5,7 +5,7 @@
  * Supports the 3-level hierarchy: Course → Lessons → Sections
  */
 
-import type { TiptapDocument } from '../tiptap-schema';
+import type { TiptapDocument, TiptapBlockNode } from '../tiptap-schema';
 import type { DocumentChunk, DocumentState as IDocumentState, Lesson, LessonSection } from './types';
 import { chunkDocument, getChunk, rechunkDocument } from './chunker';
 
@@ -141,12 +141,12 @@ export class DocumentState implements IDocumentState {
    * Get document as text (for debugging)
    */
   getDocumentText(): string {
-    const extractText = (node: any): string => {
-      if (node.type === 'text') {
+    const extractText = (node: TiptapBlockNode | { type: 'text'; text: string }): string => {
+      if (node.type === 'text' && 'text' in node) {
         return node.text || '';
       }
-      if (node.content && Array.isArray(node.content)) {
-        return node.content.map(extractText).join('');
+      if ('content' in node && node.content && Array.isArray(node.content)) {
+        return node.content.map((n) => extractText(n as TiptapBlockNode | { type: 'text'; text: string })).join('');
       }
       return '';
     };

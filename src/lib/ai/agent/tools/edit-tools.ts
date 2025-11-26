@@ -8,6 +8,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolExecutionContext } from '../types';
 import { applyDiff, validateDocument } from '../diff-applier';
+import { parseMarkdownToTiptap } from '../../markdown-parser';
+import type { TiptapDocument } from '../../tiptap-schema';
 
 /**
  * Apply diff tool - main editing tool
@@ -113,19 +115,25 @@ IMPORTANT: You must create a lesson before creating sections.`,
  * Create section tool - creates a new section within the current lesson (Level 3)
  *
  * Sections are what users navigate through with "Next" and "Previous" buttons.
- * Each section contains Tiptap content.
+ * Each section contains Tiptap content, written in Markdown.
  */
 export function createCreateSectionTool(context: ToolExecutionContext) {
   return tool({
-    description: `Create a new section within the CURRENT lesson. Sections are what users navigate through with "Next" button.
+    description: `Create a new section within the CURRENT lesson with Markdown content.
+Sections are what users navigate through with "Next" button.
 IMPORTANT: You must create a lesson first using create_lesson before creating sections.
-Optionally provide initialContent to populate the section immediately (recommended).`,
+
+Write content in extended Markdown format:
+- Standard Markdown: # headings, **bold**, *italic*, \`code\`, lists, code blocks
+- Callouts: :::tip, :::warning, :::note, :::info (end with :::)
+- Flip cards: ???Front text\\nBack text???
+- Quizzes: [quiz: Question | Option A | Option B* | Option C]\\nExplanation (* marks correct)`,
     inputSchema: z.object({
       title: z.string().describe('Section title (e.g., "Introduction")'),
       slug: z.string().describe('URL-friendly slug using lowercase letters, numbers, and hyphens only (e.g., "introduction")'),
-      initialContent: z.array(z.any()).optional().describe('Optional: Array of Tiptap nodes to immediately add to the section (headings, paragraphs, code blocks, etc.). Recommended to include all section content here to avoid a separate edit_section call.'),
+      content: z.string().describe('Section content in extended Markdown format. Include headings, paragraphs, callouts, flip cards, quizzes, and code blocks as needed.'),
     }),
-    execute: async ({ title, slug, initialContent }) => {
+    execute: async ({ title, slug, content }) => {
       // Check if there's an active lesson
       const currentLesson = context.documentState.getCurrentLesson();
       if (!currentLesson) {
@@ -144,22 +152,30 @@ Optionally provide initialContent to populate the section immediately (recommend
 
       context.documentState.createSection(title, slug);
 
-      // If initial content provided, add it immediately
-      if (initialContent && initialContent.length > 0) {
-        const currentDoc = context.documentState.getSectionDocument(slug);
-        const result = applyDiff(currentDoc, null, null, initialContent);
+      // Parse Markdown to Tiptap JSON
+      if (content && content.trim().length > 0) {
+        try {
+          const parsedDoc = parseMarkdownToTiptap(content) as TiptapDocument;
 
-        if (!result.success) {
-          return `✓ Section created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}", but failed to add initial content: ${result.message}`;
+          // Validate the parsed document
+          const validation = validateDocument(parsedDoc);
+          if (!validation.valid) {
+            return `✓ Section created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}", but content validation failed: ${validation.errors.join(', ')}`;
+          }
+
+          // Update section document with parsed content
+          context.documentState.updateSectionDocument(slug, parsedDoc);
+
+          const sectionCount = context.documentState.getSectionCount();
+          const nodeCount = parsedDoc.content?.length || 0;
+          return `✓ Section ${sectionCount} created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}" with ${nodeCount} content block(s).`;
+        } catch (error) {
+          return `✓ Section created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}", but failed to parse Markdown: ${error instanceof Error ? error.message : 'Unknown error'}`;
         }
-
-        context.documentState.updateSectionDocument(slug, result.document);
-        const sectionCount = context.documentState.getSectionCount();
-        return `✓ Section ${sectionCount} created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}" with ${initialContent.length} initial node(s).`;
       }
 
       const sectionCount = context.documentState.getSectionCount();
-      return `✓ Section ${sectionCount} created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}". This is now the active section. Use edit_section to add content.`;
+      return `✓ Section ${sectionCount} created: "${title}" (slug: ${slug}) in lesson "${currentLesson.title}". This is now the active section.`;
     },
   });
 }

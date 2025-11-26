@@ -10,11 +10,11 @@ import Link from 'next/link';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 
 /**
- * Generate New AI Lesson Page
+ * Generate New AI Course Page
  *
- * Provides a form to create a new AI-generated personalized lesson.
+ * Provides a form to create a new AI-generated personalized course.
  */
-export default async function NewAILessonPage() {
+export default async function NewCoursePage() {
   // Check authentication
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -25,14 +25,14 @@ export default async function NewAILessonPage() {
   }
 
   return (
-    <div className="min-h-dvh relative text-foreground animate-gradient">
-      <main className="mx-auto max-w-3xl px-4 pt-6 pb-16 relative z-10">
+    <div className="min-h-dvh bg-background text-foreground">
+      <main className="mx-auto max-w-3xl px-4 pt-6 pb-16">
         <Stack gap="loose">
           {/* Back button */}
           <Button variant="outline" asChild className="self-start">
-            <Link href="/ai-lessons">
+            <Link href="/courses">
               <ArrowLeft className="h-4 w-4" />
-              Back to AI Lessons
+              Back to Courses
             </Link>
           </Button>
 
@@ -41,10 +41,10 @@ export default async function NewAILessonPage() {
             <Sparkles className="h-8 w-8 text-primary" />
             <div>
               <Heading level={1} className="text-foreground">
-                Generate AI Lesson
+                Create AI Course
               </Heading>
               <Body className="text-muted-foreground">
-                Create a personalized lesson tailored to your learning style
+                Generate a personalized course tailored to your learning style
               </Body>
             </div>
           </div>
@@ -56,11 +56,11 @@ export default async function NewAILessonPage() {
 
           {/* Info section */}
           <Card className="p-6 bg-primary/5 border-primary/20">
-            <Stack gap="compact">
+            <Stack gap="tight">
               <Body className="font-semibold">How it works</Body>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                 <li>Choose any topic you want to learn</li>
-                <li>AI generates a comprehensive lesson with interactive elements</li>
+                <li>AI generates a comprehensive course with multiple lessons</li>
                 <li>Content is personalized to your skill level and learning preferences</li>
                 <li>Generation typically takes 30-60 seconds</li>
               </ul>

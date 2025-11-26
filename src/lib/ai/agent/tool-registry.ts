@@ -11,14 +11,18 @@ import { createMetaTools } from './tools/meta-tools';
 
 /**
  * Wrap a tool to log its execution results
+ * Uses a generic approach that preserves AI SDK tool compatibility
  */
-function wrapToolWithLogging(toolName: string, tool: any, stepRef: { current: number }) {
-  const originalExecute = tool.execute;
+function wrapToolWithLogging<T>(toolName: string, tool: T, stepRef: { current: number }): T {
+  // Type assertion for the execute property - AI SDK tools have complex union types
+  const typedTool = tool as { execute: (...args: unknown[]) => unknown };
+  const originalExecute = typedTool.execute;
 
-  tool.execute = async (...args: any[]) => {
+  // Create a wrapped execute function with logging
+  typedTool.execute = async (...args: unknown[]) => {
     const startTime = Date.now();
     try {
-      const result = await originalExecute(...args);
+      const result = await originalExecute.apply(tool, args);
       const duration = Date.now() - startTime;
 
       const resultStr = typeof result === 'string' ? result : JSON.stringify(result);
@@ -56,13 +60,14 @@ export function getAllTools(context: ToolExecutionContext, userId: number, stepR
     ...createMetaTools(context),
   };
 
-  // Wrap all tools with logging
-  const wrappedTools: any = {};
-  for (const [name, tool] of Object.entries(tools)) {
-    wrappedTools[name] = wrapToolWithLogging(name, tool, stepRef);
-  }
+  // Wrap all tools with logging, preserving their original types
+  const toolEntries = Object.entries(tools);
+  const wrappedEntries = toolEntries.map(([name, tool]) => [
+    name,
+    wrapToolWithLogging(name, tool, stepRef),
+  ]);
 
-  return wrappedTools;
+  return Object.fromEntries(wrappedEntries) as typeof tools;
 }
 
 /**
@@ -86,7 +91,7 @@ AVAILABLE TOOLS:
 - create_lesson: Create a new lesson within the course. Lessons appear on the course overview page.
 
 **Section Management (Level 3):**
-- create_section: Create a new section within the CURRENT lesson. Sections are what users "Next" through.
+- create_section: Create a new section within the CURRENT lesson with Markdown content.
 - edit_section: Edit the current active section by adding/modifying content.
 
 **Reading & Navigation:**
@@ -107,7 +112,7 @@ WORKFLOW:
 2. FOR EACH LESSON in your plan:
    a. Call "create_lesson" with title, slug, description
    b. FOR EACH SECTION in that lesson:
-      Call "create_section" with title, slug, AND initialContent (recommended)
+      Call "create_section" with title, slug, AND content (Markdown string)
 3. Call "finish_with_summary" with course metadata when ALL lessons and sections complete
 
 SLUG GUIDELINES:
@@ -120,6 +125,6 @@ IMPORTANT:
 - You must create a lesson BEFORE creating sections within it
 - Each lesson's sections are saved separately to the database
 - Build one lesson at a time, completing all its sections before moving to the next
-- Use appropriate Tiptap node types (heading, paragraph, callout, codeBlockEnhanced, quizQuestion)
+- Write content in EXTENDED MARKDOWN - it will be parsed to Tiptap JSON automatically
 `.trim();
 }
