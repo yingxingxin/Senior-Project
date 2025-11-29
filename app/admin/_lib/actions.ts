@@ -97,7 +97,7 @@ export async function getAdminDashboard(range: RangeKey): Promise<AdminDashboard
     getAdminUserCount.execute({}),
     getAdminLessonCount.execute({}),
     getAdminQuizCount.execute({}),
-    getNewUserCount.execute({ startDate: start }),
+    getNewUserCount.execute({ startDate: start.toISOString() }),
     db
       .select({ c: count() })
       .from(users)

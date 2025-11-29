@@ -139,6 +139,7 @@ export interface DocumentState {
   createLesson(title: string, slug: string, description?: string): void;
   getCurrentLesson(): Lesson | null;
   getLessonBySlug(slug: string): Lesson | null;
+  setCurrentLessonBySlug(slug: string): boolean;
   getAllLessons(): Lesson[];
   hasLessons(): boolean;
   getLessonCount(): number;

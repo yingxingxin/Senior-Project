@@ -8,7 +8,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'nova-feminine',
     name: 'Nova',
     gender: 'feminine' as const,
-    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/power_smart.jpg',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-feminine-headshot.png',
     hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-feminine-full-body.png',
     tagline: 'Brilliant strategist with infectious enthusiasm.',
     description:
@@ -18,7 +18,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'atlas-masculine',
     name: 'Atlas',
     gender: 'masculine' as const,
-    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/tomoyw.jpg',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/atlas-masculine-headshot.png',
     hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/atlas-masculine-full-body.png',
     tagline: 'Steady mentor with years of wisdom.',
     description:
@@ -28,7 +28,7 @@ export const ASSISTANT_FIXTURES = [
     slug: 'sage-androgynous',
     name: 'Sage',
     gender: 'androgynous' as const,
-    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/femto.jpg',
+    avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/sage-androgynous-headshot.png',
     hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/sage-androgynous-full-body.png',
     tagline: 'Intuitive guide who reads between the lines.',
     description:

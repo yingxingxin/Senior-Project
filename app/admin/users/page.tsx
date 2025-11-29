@@ -1,39 +1,70 @@
-import { db, users } from "@/src/db";
-import { desc } from "drizzle-orm";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stack } from "@/components/ui/spacing";
 import { Heading, Muted } from "@/components/ui/typography";
+import { getPaginatedUsers } from "@/src/db/queries/admin";
+import { parsePaginationParams } from "@/src/lib/pagination";
+import { UsersTable } from "./_components/users-table";
+import { UsersFilters } from "./_components/users-filters";
 
-async function getUsers() {
-  return await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      createdAt: users.created_at,
-      isEmailVerified: users.is_email_verified,
-      onboardingCompleted: users.onboarding_completed_at,
-      onboardingStep: users.onboarding_step,
-      skillLevel: users.skill_level,
-    })
-    .from(users)
-    .orderBy(desc(users.created_at));
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function UsersPage() {
-  const allUsers = await getUsers();
+async function UsersContent({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+  const { page, pageSize } = parsePaginationParams(searchParams);
+
+  // Parse filter params
+  const search = typeof searchParams.search === "string" ? searchParams.search : undefined;
+  const role = searchParams.role === "admin" || searchParams.role === "user" ? searchParams.role : undefined;
+  const onboardingStatus =
+    searchParams.onboarding === "completed" || searchParams.onboarding === "pending"
+      ? searchParams.onboarding
+      : undefined;
+  const createdAfter = typeof searchParams.created_gte === "string" ? searchParams.created_gte : undefined;
+
+  const result = await getPaginatedUsers({
+    page,
+    pageSize,
+    search,
+    role,
+    onboardingStatus,
+    createdAfter,
+  });
+
+  return (
+    <>
+      <UsersFilters
+        search={search}
+        role={role}
+        onboardingStatus={onboardingStatus}
+        createdAfter={createdAfter}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+          <CardDescription>
+            {result.total} total users • Page {result.page} of {result.totalPages}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UsersTable
+            users={result.data}
+            pagination={{
+              page: result.page,
+              pageSize: result.pageSize,
+              total: result.total,
+              totalPages: result.totalPages,
+            }}
+          />
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+export default async function UsersPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
 
   return (
     <Stack gap="loose">
@@ -44,86 +75,23 @@ export default async function UsersPage() {
         </Muted>
       </Stack>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <CardDescription>
-            {allUsers.length} total users • Click on a user to view details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Skill Level</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {user.email}
-                      {user.isEmailVerified && (
-                        <Badge variant="outline" className="text-xs">
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {user.onboardingCompleted ? (
-                      <Badge variant="outline" className="bg-green-50">
-                        Completed
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-yellow-50">
-                        {user.onboardingStep || "Not Started"}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.skillLevel ? (
-                      <Badge variant="outline">{user.skillLevel}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
-                      : "Unknown"}
-                  </TableCell>
-                  <TableCell>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/admin/users/${user.id}`}>View</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {allUsers.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <Suspense
+        fallback={
+          <Card>
+            <CardHeader>
+              <CardTitle>All Users</CardTitle>
+              <CardDescription>Loading...</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center h-48">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            </CardContent>
+          </Card>
+        }
+      >
+        <UsersContent searchParams={resolvedParams} />
+      </Suspense>
     </Stack>
   );
 }
