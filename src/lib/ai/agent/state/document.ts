@@ -113,6 +113,19 @@ export class DocumentState implements IDocumentState {
   }
 
   /**
+   * Set current lesson by slug (for explicit targeting)
+   * Used by create_section to target a specific lesson.
+   * Returns false if lesson not found.
+   */
+  setCurrentLessonBySlug(slug: string): boolean {
+    const index = this.lessons.findIndex(l => l.slug === slug);
+    if (index === -1) return false;
+    this.currentLessonIndex = index;
+    this.currentSectionIndex = -1;
+    return true;
+  }
+
+  /**
    * Get all lessons
    */
   getAllLessons(): Lesson[] {

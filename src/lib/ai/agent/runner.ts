@@ -140,6 +140,7 @@ STEP 1: Call "plan" to create course structure
    - Define 2-4 lessons, each with 3-5 sections
    - Each lesson should cover a distinct subtopic
    - Each section should be a digestible chunk (300-500 words)
+   - Tool response shows current state and next steps
 
 STEP 2: FOR EACH LESSON in your plan:
    a. Call "create_lesson" with:
@@ -149,6 +150,7 @@ STEP 2: FOR EACH LESSON in your plan:
 
    b. FOR EACH SECTION in that lesson:
       Call "create_section" with:
+        - lesson_slug: REQUIRED - which lesson this section belongs to (e.g., "understanding-usestate")
         - title: Section title (e.g., "Introduction")
         - slug: URL-friendly slug (e.g., "introduction")
         - content: Section content in EXTENDED MARKDOWN format (REQUIRED)
@@ -159,13 +161,14 @@ STEP 2: FOR EACH LESSON in your plan:
           * Add ???front\\nback??? flip cards for key terms
           * Add [quiz: ...] questions to test understanding
 
-   c. REPEAT for all sections before moving to next lesson
+   Tool responses show progress and remaining work - use them to track what's done.
 
 STEP 3: Call "finish_with_summary" with:
    - lessonTitle: COURSE title (e.g., "Mastering React Hooks")
    - lessonSlug: COURSE slug (e.g., "mastering-react-hooks")
    - description: Short 1-2 sentence description of the course
    - summary: Brief summary of course content
+   - Will FAIL if any lesson has 0 sections!
 
 ⚠️ SLUG FORMAT REQUIREMENTS:
 - Lowercase letters, numbers, and hyphens ONLY
@@ -176,11 +179,11 @@ STEP 3: Call "finish_with_summary" with:
 - Section slugs: concise (e.g., "introduction", "examples")
 
 ⚠️ CRITICAL RULES:
-1. You MUST create a lesson BEFORE creating sections within it
-2. Complete ALL sections of one lesson before creating the next lesson
+1. create_section REQUIRES lesson_slug - you must specify which lesson each section belongs to
+2. You MUST create a lesson BEFORE creating sections within it
 3. Each lesson needs 3-5 sections for proper navigation
 4. Users will see "Section X of Y" - make sure Y > 1 per lesson!
-5. DO NOT skip any steps - the course won't work without all components
+5. finish_with_summary will FAIL if ANY lesson has 0 sections - check tool responses for progress
 `;
 }
 

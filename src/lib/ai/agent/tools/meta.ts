@@ -69,14 +69,37 @@ Always use this as the FIRST step before creating any content.`,
 
       const planMarkdown = planLines.join('\n');
 
-      // Store plan in conversation metadata
+      // Store plan with tracking info for progress monitoring
+      // Each lesson tracks: created (bool), plannedSectionCount, createdSectionCount
       context.conversationState.metadata.plan = {
-        lessons,
+        lessons: lessons.map(lesson => ({
+          title: lesson.title,
+          slug: lesson.slug,
+          description: lesson.description,
+          plannedSectionCount: lesson.sections.length,
+          createdSectionCount: 0,
+          created: false,
+        })),
         estimatedDuration,
         markdown: planMarkdown,
       };
 
-      return `Plan created with ${lessons.length} lessons and ${totalSections} total sections:\n\n${planMarkdown}`;
+      // Build full state feedback
+      const remainingList = lessons.map(l => `- Lesson "${l.slug}" (${l.sections.length} sections)`).join('\n');
+
+      return `Plan created with ${lessons.length} lessons and ${totalSections} sections.
+
+${planMarkdown}
+
+## Current State
+- Lessons: 0/${lessons.length} created
+- Sections: 0/${totalSections} created
+
+## Next Steps
+Create lesson "${lessons[0].slug}" using create_lesson
+
+## Remaining
+${remainingList}`;
     },
   });
 }
@@ -105,6 +128,30 @@ export function createFinishWithSummaryTool(context: ToolExecutionContext) {
       // Validate lesson slug format
       if (!/^[a-z0-9-]+$/.test(lessonSlug)) {
         return 'Error: lessonSlug must contain only lowercase letters, numbers, and hyphens. No spaces or special characters.';
+      }
+
+      // Validate no empty lessons - this is the key fix for the empty lessons bug
+      const allLessons = context.documentState.getAllLessons();
+      const emptyLessons = allLessons.filter(l => l.sections.length === 0);
+
+      if (emptyLessons.length > 0) {
+        // Get plan data for expected section counts
+        const plan = context.conversationState.metadata.plan as {
+          lessons: Array<{ slug: string; plannedSectionCount: number }>;
+        } | undefined;
+
+        const emptyLessonDetails = emptyLessons.map(l => {
+          const planned = plan?.lessons.find(p => p.slug === l.slug);
+          return `- "${l.slug}": 0/${planned?.plannedSectionCount || '?'} sections`;
+        }).join('\n');
+
+        return `Error: Cannot finish - ${emptyLessons.length} lesson(s) have 0 sections:
+${emptyLessonDetails}
+
+## Action Required
+Create sections for each empty lesson using create_section with the appropriate lesson_slug.
+
+Example: create_section with lesson_slug="${emptyLessons[0].slug}"`;
       }
 
       const summaryLines = [
