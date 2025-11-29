@@ -14,6 +14,7 @@ export * from './auth';
 
 // Learning Content & Resources
 export * from './lessons';
+export * from './ai-metadata-types';
 
 // Quizzes & Assessment
 export * from './quizzes';

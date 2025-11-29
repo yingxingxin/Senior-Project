@@ -92,7 +92,7 @@ export interface Course {
   id: string;
   title: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: 'easy' | 'standard' | 'hard';
   estimatedDuration: string;
   lessonsCount: number;
   icon: string;
@@ -104,7 +104,7 @@ export const COURSES: ReadonlyArray<Course> = [
     id: 'programming-foundations',
     title: 'Programming Foundations',
     description: 'Learn the fundamentals of programming with hands-on exercises and real-world examples.',
-    difficulty: 'beginner',
+    difficulty: 'easy',
     estimatedDuration: '8-12 weeks',
     lessonsCount: 24,
     icon: '💻',
@@ -114,7 +114,7 @@ export const COURSES: ReadonlyArray<Course> = [
     id: 'data-structures-algorithms-python',
     title: 'Data Structures & Algorithms in Python',
     description: 'Master essential data structures and algorithms using Python with practical implementations.',
-    difficulty: 'intermediate',
+    difficulty: 'standard',
     estimatedDuration: '10-14 weeks',
     lessonsCount: 32,
     icon: '🐍',
@@ -124,7 +124,7 @@ export const COURSES: ReadonlyArray<Course> = [
     id: 'oop-java',
     title: 'Object-Oriented Programming in Java',
     description: 'Deep dive into OOP principles, design patterns, and advanced Java concepts.',
-    difficulty: 'advanced',
+    difficulty: 'hard',
     estimatedDuration: '12-16 weeks',
     lessonsCount: 28,
     icon: '☕',

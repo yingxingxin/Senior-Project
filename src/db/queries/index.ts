@@ -26,6 +26,9 @@ export * from './quizzes';
 // Lesson queries
 export * from './lessons';
 
+// AI Lesson queries
+export * from './ai-lessons';
+
 // Admin queries
 export * from './admin';
 

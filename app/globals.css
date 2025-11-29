@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -777,6 +778,11 @@
 
   .code-block-enhanced code {
     @apply block p-4 text-sm font-mono overflow-x-auto;
+  }
+
+  /* Hide ProseMirror's trailing break in code blocks (causes extra blank line) */
+  .code-block-enhanced .ProseMirror-trailingBreak {
+    display: none;
   }
 
   .code-block-enhanced[data-line-numbers] code {

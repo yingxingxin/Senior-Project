@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/lib": ["src/lib/index"],
+      "@/db": ["src/db/index"],
+      "@/db/*": ["src/db/*"]
+    }
+  },
+  "include": ["scripts/**/*", "src/**/*"],
+  "exclude": ["node_modules"]
+}

@@ -314,3 +314,28 @@ export async function getCoursesWithStats() {
   }
 }
 
+/**
+ * Get curated courses (non-AI generated) with lesson counts
+ */
+export async function getCuratedCourses() {
+  const allCourses = await getCoursesWithStats();
+  return allCourses.filter(course => !course.isAiGenerated);
+}
+
+/**
+ * Get user's AI-generated courses with lesson counts
+ */
+export async function getUserAICourses() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const allCourses = await getCoursesWithStats();
+  const userId = parseInt(session.user.id);
+
+  return allCourses.filter(
+    course => course.isAiGenerated && course.ownerUserId === userId
+  );
+}
+
