@@ -1,21 +1,14 @@
 /**
  * Document State Manager
  *
- * Manages the current Tiptap document, lessons, and sections.
- * Supports the 3-level hierarchy: Course → Lessons → Sections
+ * Manages the 3-level hierarchy: Course → Lessons → Sections
  */
 
-import type { TiptapDocument, TiptapBlockNode } from '../tiptap-schema';
-import type { DocumentChunk, DocumentState as IDocumentState, Lesson, LessonSection } from './types';
-import { chunkDocument, getChunk, rechunkDocument } from './chunker';
-
-const DEFAULT_CHUNK_SIZE = 32000;
+import type { TiptapDocument, TiptapBlockNode } from '../../tiptap';
+import type { DocumentState as IDocumentState, Lesson, LessonSection } from '../types';
 
 export class DocumentState implements IDocumentState {
   document: TiptapDocument;
-  chunks: DocumentChunk[];
-  currentChunkIndex: number;
-  chunkSize: number;
 
   // Lesson management (Level 2)
   private lessons: Lesson[];
@@ -24,11 +17,8 @@ export class DocumentState implements IDocumentState {
   // Section tracking within current lesson (Level 3)
   private currentSectionIndex: number;
 
-  constructor(chunkSize: number = DEFAULT_CHUNK_SIZE) {
+  constructor() {
     this.document = { type: 'doc', content: [] };
-    this.chunks = [];
-    this.currentChunkIndex = 0;
-    this.chunkSize = chunkSize;
     this.lessons = [];
     this.currentLessonIndex = -1;
     this.currentSectionIndex = -1;
@@ -39,68 +29,6 @@ export class DocumentState implements IDocumentState {
    */
   initialize(document: TiptapDocument = { type: 'doc', content: [] }): void {
     this.document = document;
-    this.chunks = chunkDocument(document, this.chunkSize);
-    this.currentChunkIndex = 0;
-  }
-
-  /**
-   * Get the current chunk
-   */
-  getCurrentChunk(): DocumentChunk | null {
-    return getChunk(this.chunks, this.currentChunkIndex);
-  }
-
-  /**
-   * Navigate to first chunk
-   */
-  readFirstChunk(): DocumentChunk | null {
-    this.currentChunkIndex = 0;
-    return this.getCurrentChunk();
-  }
-
-  /**
-   * Navigate to next chunk
-   */
-  readNextChunk(): DocumentChunk | null {
-    if (this.currentChunkIndex < this.chunks.length - 1) {
-      this.currentChunkIndex++;
-      return this.getCurrentChunk();
-    }
-    return null;
-  }
-
-  /**
-   * Navigate to previous chunk
-   */
-  readPreviousChunk(): DocumentChunk | null {
-    if (this.currentChunkIndex > 0) {
-      this.currentChunkIndex--;
-      return this.getCurrentChunk();
-    }
-    return null;
-  }
-
-  /**
-   * Replace entire document
-   */
-  replaceDocument(newDocument: TiptapDocument): void {
-    this.document = newDocument;
-    this.chunks = rechunkDocument(newDocument, this.chunkSize);
-    this.currentChunkIndex = 0;
-  }
-
-  /**
-   * Update document (used after apply_diff)
-   */
-  updateDocument(updatedDocument: TiptapDocument): void {
-    this.document = updatedDocument;
-    // Re-chunk after modification
-    const oldChunkIndex = this.currentChunkIndex;
-    this.chunks = rechunkDocument(updatedDocument, this.chunkSize);
-
-    // Try to maintain similar chunk position
-    // If old index is out of bounds, go to last chunk
-    this.currentChunkIndex = Math.min(oldChunkIndex, this.chunks.length - 1);
   }
 
   /**
@@ -108,26 +36,6 @@ export class DocumentState implements IDocumentState {
    */
   getDocument(): TiptapDocument {
     return this.document;
-  }
-
-  /**
-   * Get chunk information for display
-   */
-  getChunkInfo(): {
-    currentIndex: number;
-    totalChunks: number;
-    currentCharCount: number;
-    totalCharCount: number;
-  } {
-    const currentChunk = this.getCurrentChunk();
-    const totalCharCount = this.chunks.reduce((sum, chunk) => sum + chunk.characterCount, 0);
-
-    return {
-      currentIndex: this.currentChunkIndex,
-      totalChunks: this.chunks.length,
-      currentCharCount: currentChunk?.characterCount || 0,
-      totalCharCount,
-    };
   }
 
   /**
@@ -158,10 +66,8 @@ export class DocumentState implements IDocumentState {
    * Clone the state (for checkpoints)
    */
   clone(): DocumentState {
-    const cloned = new DocumentState(this.chunkSize);
+    const cloned = new DocumentState();
     cloned.document = JSON.parse(JSON.stringify(this.document));
-    cloned.chunks = JSON.parse(JSON.stringify(this.chunks));
-    cloned.currentChunkIndex = this.currentChunkIndex;
     cloned.lessons = JSON.parse(JSON.stringify(this.lessons));
     cloned.currentLessonIndex = this.currentLessonIndex;
     cloned.currentSectionIndex = this.currentSectionIndex;

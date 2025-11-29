@@ -16,7 +16,12 @@
     "db:migrate-quiz-progress": "node scripts/migrate-quiz-progress.js",
     "worker": "tsx --tsconfig tsconfig.worker.json scripts/worker.ts",
     "worker:dev": "tsx watch --tsconfig tsconfig.worker.json scripts/worker.ts",
-    "test:agent": "npx tsx src/lib/ai/agent/__tests__/chunker.test.ts && npx tsx src/lib/ai/agent/__tests__/diff-applier.test.ts && npx tsx src/lib/ai/agent/__tests__/document-state.test.ts && npx tsx src/lib/ai/agent/__tests__/agent-mock.test.ts"
+    "test:agent": "npx tsx src/lib/ai/agent/__tests__/agent-mock.test.ts",
+    "docker:worker:build": "docker build -f Dockerfile.worker -t senior-project-worker:latest .",
+    "docker:worker:up": "docker compose -f docker-compose.worker.yml up -d",
+    "docker:worker:down": "docker compose -f docker-compose.worker.yml down",
+    "docker:worker:logs": "docker compose -f docker-compose.worker.yml logs -f worker",
+    "docker:worker:deploy": "docker compose -f docker-compose.worker.yml up -d --build --force-recreate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.65",

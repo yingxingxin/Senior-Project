@@ -7,15 +7,10 @@
 import { generateText, stepCountIs } from 'ai';
 import { openrouter } from '@/lib/openrouter';
 import type { AgentRunResult, ProgressCallback, ToolExecutionContext } from './types';
-import { DocumentState } from './document-state';
-import { ConversationState } from './conversation-state';
-import { getAllTools, getToolsDescription } from './tool-registry';
-import { createCheckpoint, CheckpointManager } from './checkpoints';
-import { buildPersonaInstruction } from '../prompts/persona-prompts';
+import { DocumentState, ConversationState } from './state';
+import { getAllTools, getToolsDescription } from './tools';
+import { buildPersonaInstruction } from '../prompts';
 import type { UserPersonalizationContext } from '../personalization';
-
-const MAX_STEPS = 50; // Prevent infinite loops
-const CHECKPOINT_INTERVAL = 5; // Save checkpoint every 5 steps
 
 export interface RunAgentParams {
   userId: number;
@@ -213,7 +208,6 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
   // Initialize states
   const documentState = new DocumentState();
   const conversationState = new ConversationState();
-  const checkpointManager = new CheckpointManager();
 
   // Initialize empty document
   documentState.initialize({ type: 'doc', content: [] });
@@ -334,13 +328,11 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
 
     // Get final document
     const finalDocument = documentState.getDocument();
-    const finalDocInfo = documentState.getChunkInfo();
 
     // Log final summary
     console.log(`[Agent] Execution complete:`, {
       success: true,
-      documentNodes: documentState.document.content.length,
-      documentChars: finalDocInfo.totalCharCount,
+      lessonsCreated: documentState.getLessonCount(),
       isEmpty: documentState.isEmpty(),
       totalMessages: conversationState.messages.length,
       toolCalls: conversationState.messages.filter((m) => m.type === 'toolCall').length,

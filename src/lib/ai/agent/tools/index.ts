@@ -4,6 +4,6 @@
  * Central export for all agent tools.
  */
 
-export * from './read-tools';
-export * from './edit-tools';
-export * from './meta-tools';
+export * from './edit';
+export * from './meta';
+export { getAllTools, isFinalTool, getToolsDescription } from './registry';

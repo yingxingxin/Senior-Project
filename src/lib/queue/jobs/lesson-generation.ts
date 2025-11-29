@@ -11,7 +11,7 @@ import type {
   GenerateLessonJobResult,
   LessonGenerationProgress,
 } from '../types';
-import { generateAILessonWithFullAgent } from '@/lib/ai/lesson-generator-v3';
+import { generateAILessonWithFullAgent } from '@/lib/ai';
 
 /**
  * Process a lesson generation job

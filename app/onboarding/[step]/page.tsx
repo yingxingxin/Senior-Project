@@ -56,6 +56,21 @@ export default async function OnboardingStepPage({ params }: Props) {
 
   if (step === 'skill_quiz') {
     const questions = await getSkillQuizQuestions();
+
+    // Handle missing quiz gracefully
+    if (!questions) {
+      return (
+        <Stack gap="loose">
+          <Stack gap="tight">
+            <Display level={1}>Setup Incomplete</Display>
+            <Body variant="large" className="text-muted-foreground">
+              The skill assessment quiz hasn&apos;t been configured yet. Please contact support or try again later.
+            </Body>
+          </Stack>
+        </Stack>
+      );
+    }
+
     return (
       <Stack gap="loose">
         <Stack gap="tight">

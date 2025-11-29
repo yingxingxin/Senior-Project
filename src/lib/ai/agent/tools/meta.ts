@@ -160,31 +160,11 @@ export function createFinishWithSummaryTool(context: ToolExecutionContext) {
 }
 
 /**
- * Ask user tool - ask clarifying questions (future feature)
- */
-export function createAskUserTool(context: ToolExecutionContext) {
-  return tool({
-    description: 'Ask the user a clarifying question if the requirements are unclear. Note: In current implementation, this will use reasonable defaults.',
-    inputSchema: z.object({
-      question: z.string().describe('The question to ask the user'),
-      suggestedDefault: z.string().describe('Suggested default answer if user does not respond'),
-    }),
-    execute: async ({ question, suggestedDefault }) => {
-      // In current implementation, we just use the default
-      // In future, this could pause execution and wait for user input
-
-      return `Question noted: "${question}". Using default: "${suggestedDefault}"`;
-    },
-  });
-}
-
-/**
  * Create all meta tools with context
  */
 export function createMetaTools(context: ToolExecutionContext) {
   return {
     plan: createPlanTool(context),
     finish_with_summary: createFinishWithSummaryTool(context),
-    ask_user: createAskUserTool(context),
   };
 }

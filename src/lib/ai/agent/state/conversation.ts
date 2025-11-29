@@ -14,7 +14,7 @@ import type {
   AgentStatus,
   Checkpoint,
   ConversationState as IConversationState,
-} from './types';
+} from '../types';
 
 export class ConversationState implements IConversationState {
   status: AgentStatus;

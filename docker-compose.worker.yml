@@ -1,0 +1,15 @@
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: ghcr.io/yingxingxin/senior-project-worker:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    stop_grace_period: 5m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

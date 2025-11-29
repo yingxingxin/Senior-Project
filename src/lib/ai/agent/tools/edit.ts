@@ -1,80 +1,15 @@
 /**
  * Edit Tools
  *
- * Tools for modifying the Tiptap document using diffs.
+ * Tools for creating lessons and sections in the 3-level hierarchy.
  */
 
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolExecutionContext } from '../types';
-import { applyDiff, validateDocument } from '../diff-applier';
-import { parseMarkdownToTiptap } from '../../markdown-parser';
-import type { TiptapDocument } from '../../tiptap-schema';
-
-/**
- * Apply diff tool - main editing tool
- */
-export function createApplyDiffTool(context: ToolExecutionContext) {
-  return tool({
-    description: 'Apply changes to the document by specifying what to delete and what to insert. Use beforeContent to locate where to make changes.',
-    inputSchema: z.object({
-      beforeContent: z.string().optional().describe('Text snippet that appears before the location where you want to make changes. Leave empty to append to end.'),
-      deleteContent: z.string().optional().describe('Text content to delete (if any)'),
-      insertContent: z.array(z.any()).describe('Array of Tiptap nodes to insert (headings, paragraphs, code blocks, etc.)'),
-    }),
-    execute: async ({ beforeContent, deleteContent, insertContent }) => {
-      const currentDoc = context.documentState.getDocument();
-
-      const result = applyDiff(
-        currentDoc,
-        beforeContent || null,
-        deleteContent || null,
-        insertContent
-      );
-
-      if (!result.success) {
-        return result.message;
-      }
-
-      // Validate the updated document
-      const validation = validateDocument(result.document);
-      if (!validation.valid) {
-        return `Document validation failed: ${validation.errors.join(', ')}`;
-      }
-
-      // Update document state
-      context.documentState.updateDocument(result.document);
-
-      return result.message;
-    },
-  });
-}
-
-/**
- * Replace document tool - replace entire document at once
- */
-export function createReplaceDocumentTool(context: ToolExecutionContext) {
-  return tool({
-    description: 'Replace the entire document with new content. Use this to start fresh or rewrite completely.',
-    inputSchema: z.object({
-      newDocument: z.object({
-        type: z.literal('doc'),
-        content: z.array(z.any()),
-      }).describe('Complete new Tiptap document'),
-    }),
-    execute: async ({ newDocument }) => {
-      const validation = validateDocument(newDocument);
-
-      if (!validation.valid) {
-        return `Invalid document: ${validation.errors.join(', ')}`;
-      }
-
-      context.documentState.replaceDocument(newDocument);
-
-      return `Document replaced with ${newDocument.content.length} top-level nodes`;
-    },
-  });
-}
+import { validateDocument } from '../lib';
+import { parseMarkdownToTiptap } from '../../tiptap';
+import type { TiptapDocument } from '../../tiptap';
 
 /**
  * Create lesson tool - creates a new lesson (Level 2 in the hierarchy)
@@ -181,61 +116,11 @@ Write content in extended Markdown format:
 }
 
 /**
- * Edit section tool - edits the current active section
- */
-export function createEditSectionTool(context: ToolExecutionContext) {
-  return tool({
-    description: 'Edit the current active section by applying changes. Use beforeContent to locate where to insert content.',
-    inputSchema: z.object({
-      beforeContent: z.string().optional().describe('Text snippet that appears before where you want to insert. Leave empty to append to end.'),
-      deleteContent: z.string().optional().describe('Text content to delete (if any)'),
-      insertContent: z.array(z.any()).describe('Array of Tiptap nodes to insert (headings, paragraphs, code blocks, etc.)'),
-    }),
-    execute: async ({ beforeContent, deleteContent, insertContent }) => {
-      const currentSection = context.documentState.getCurrentSection();
-
-      if (!currentSection) {
-        return 'Error: No active section. Create a section first using create_section.';
-      }
-
-      const currentDoc = context.documentState.getSectionDocument(currentSection.slug);
-
-      const result = applyDiff(
-        currentDoc,
-        beforeContent || null,
-        deleteContent || null,
-        insertContent
-      );
-
-      if (!result.success) {
-        return result.message;
-      }
-
-      // Validate the updated document
-      const validation = validateDocument(result.document);
-      if (!validation.valid) {
-        return `Document validation failed: ${validation.errors.join(', ')}`;
-      }
-
-      // Update section document
-      context.documentState.updateSectionDocument(currentSection.slug, result.document);
-
-      return `✓ ${result.message} (Section: "${currentSection.title}")`;
-    },
-  });
-}
-
-/**
  * Create all edit tools with context
  */
 export function createEditTools(context: ToolExecutionContext) {
   return {
-    // 3-level hierarchy tools (primary workflow)
-    create_lesson: createCreateLessonTool(context),  // Level 2: Lessons
-    create_section: createCreateSectionTool(context), // Level 3: Sections
-    edit_section: createEditSectionTool(context),
-    // Legacy document tools (keep for backward compatibility)
-    apply_diff: createApplyDiffTool(context),
-    replace_document: createReplaceDocumentTool(context),
+    create_lesson: createCreateLessonTool(context),
+    create_section: createCreateSectionTool(context),
   };
 }

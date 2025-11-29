@@ -22,7 +22,7 @@ import type { JSONContent } from '@tiptap/core';
 import { marked } from 'marked';
 
 // Import server-safe extensions (no browser dependencies)
-import { getServerExtensions } from './tiptap-extensions-server';
+import { getServerExtensions } from './extensions';
 
 // Configure marked for GFM
 marked.setOptions({

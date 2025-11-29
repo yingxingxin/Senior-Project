@@ -5,7 +5,7 @@
  */
 
 import type { z } from 'zod';
-import type { TiptapDocument } from '../tiptap-schema';
+import type { TiptapDocument } from '../tiptap';
 
 /**
  * Agent status states
@@ -75,18 +75,6 @@ export interface Checkpoint {
 }
 
 /**
- * Document chunk
- */
-export interface DocumentChunk {
-  index: number;          // 0-based chunk index
-  totalChunks: number;    // Total number of chunks
-  content: TiptapDocument; // Tiptap JSON for this chunk
-  characterCount: number; // Number of characters
-  startNodeIndex: number; // Starting node index in full document
-  endNodeIndex: number;   // Ending node index in full document
-}
-
-/**
  * Lesson section (Level 3 - content chunks within a lesson)
  */
 export interface LessonSection {
@@ -140,29 +128,12 @@ export interface ToolResult {
  */
 export interface DocumentState {
   document: TiptapDocument;
-  chunks: DocumentChunk[];
-  currentChunkIndex: number;
-  chunkSize: number;
 
-  // Document operations (for legacy tools)
+  // Document operations
   initialize(document?: TiptapDocument): void;
   getDocument(): TiptapDocument;
-  updateDocument(updatedDocument: TiptapDocument): void;
-  replaceDocument(newDocument: TiptapDocument): void;
   isEmpty(): boolean;
   getDocumentText(): string;
-
-  // Chunk navigation
-  getCurrentChunk(): DocumentChunk | null;
-  readFirstChunk(): DocumentChunk | null;
-  readNextChunk(): DocumentChunk | null;
-  readPreviousChunk(): DocumentChunk | null;
-  getChunkInfo(): {
-    currentIndex: number;
-    totalChunks: number;
-    currentCharCount: number;
-    totalCharCount: number;
-  };
 
   // Lesson management (Level 2)
   createLesson(title: string, slug: string, description?: string): void;
@@ -182,7 +153,7 @@ export interface DocumentState {
   hasSections(): boolean;
   getSectionCount(): number;
 
-  // Cloning for checkpoints
+  // Cloning
   clone(): DocumentState;
 }
 

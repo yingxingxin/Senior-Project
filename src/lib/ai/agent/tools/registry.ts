@@ -4,10 +4,9 @@
  * Registers all available tools for use with Vercel AI SDK.
  */
 
-import type { ToolExecutionContext } from './types';
-import { createReadTools } from './tools/read-tools';
-import { createEditTools } from './tools/edit-tools';
-import { createMetaTools } from './tools/meta-tools';
+import type { ToolExecutionContext } from '../types';
+import { createEditTools } from './edit';
+import { createMetaTools } from './meta';
 
 /**
  * Wrap a tool to log its execution results
@@ -52,11 +51,9 @@ function wrapToolWithLogging<T>(toolName: string, tool: T, stepRef: { current: n
  */
 export function getAllTools(context: ToolExecutionContext, userId: number, stepRef: { current: number }) {
   const tools = {
-    // Read tools
-    ...createReadTools(context),
-    // Edit tools
+    // Edit tools (create_lesson, create_section)
     ...createEditTools(context),
-    // Meta tools
+    // Meta tools (plan, finish_with_summary)
     ...createMetaTools(context),
   };
 
@@ -92,12 +89,6 @@ AVAILABLE TOOLS:
 
 **Section Management (Level 3):**
 - create_section: Create a new section within the CURRENT lesson with Markdown content.
-- edit_section: Edit the current active section by adding/modifying content.
-
-**Reading & Navigation:**
-- read_first_chunk: Start reading the current section from the beginning
-- read_next_chunk: Navigate to the next chunk (for large sections)
-- read_previous_chunk: Go back to review previous content
 
 **Completion:**
 - finish_with_summary: Provide course metadata (title, slug, description) and mark complete (ALWAYS use this last)

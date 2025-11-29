@@ -199,11 +199,12 @@ export async function resetOnboardingAction() {
 export async function getSkillQuizQuestions() {
   // Find the skill assessment quiz
   const skillQuiz = await db.query.quizzes.findFirst({
-    where: eq(quizzes.topic_slug, 'Skill Assessment'),
+    where: eq(quizzes.topic_slug, 'skill-assessment'),
   });
 
   if (!skillQuiz) {
-    throw new Error('Skill assessment quiz not found. Please run migrations and seed.');
+    console.error('[getSkillQuizQuestions] Skill assessment quiz not found');
+    return null;
   }
 
   // Get questions with options for the skill assessment quiz
@@ -212,6 +213,11 @@ export async function getSkillQuizQuestions() {
     orderBy: asc(quiz_questions.order_index),
     limit: 5,
   });
+
+  if (questions.length === 0) {
+    console.error('[getSkillQuizQuestions] No questions found for skill quiz');
+    return null;
+  }
 
   return questions.map(q => ({
     id: q.id,
@@ -268,7 +274,7 @@ export async function submitSkillQuizAnswers(submission: SkillQuizSubmission) {
   // Find the skill assessment quiz
   console.log('[Server Action] Finding skill assessment quiz...');
   const skillQuiz = await db.query.quizzes.findFirst({
-    where: eq(quizzes.topic_slug, 'Skill Assessment'),
+    where: eq(quizzes.topic_slug, 'skill-assessment'),
   });
 
   if (!skillQuiz) {

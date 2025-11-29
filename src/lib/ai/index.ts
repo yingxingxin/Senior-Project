@@ -4,13 +4,13 @@
  * Central export point for all AI-powered lesson generation functionality.
  */
 
-// Main lesson generator (Full AI Agent with iterative tools)
+// Main lesson generator
 export {
   generateAILessonWithFullAgent as generateAILesson,
-  generateAILessonWithFullAgent, // Also export with descriptive name
+  generateAILessonWithFullAgent, // Also export with original name for compatibility
   type GenerateLessonParams,
   type GenerateLessonResult,
-} from './lesson-generator-v3';
+} from './lesson-generator';
 
 // AI Agent System (for advanced usage)
 export * from './agent';
@@ -24,18 +24,20 @@ export {
 } from './personalization';
 
 // Persona prompt builders (used by agent)
-export { buildPersonaInstruction, PERSONA_STYLES, PERSONA_EXAMPLE_OPENINGS, PERSONA_CALLOUT_USAGE } from './prompts/persona-prompts';
+export { buildPersonaInstruction, PERSONA_STYLES, PERSONA_EXAMPLE_OPENINGS, PERSONA_CALLOUT_USAGE } from './prompts';
 
-// Tiptap validation
+// Tiptap utilities (content processing)
 export {
   validateTiptapJSON,
   sanitizeTiptapJSON,
   validateLessonContent,
   extractTextFromTiptap,
   countWordsInTiptap,
+  parseMarkdownToTiptap,
+  validateParsedContent,
   type TiptapDocument,
   type TiptapBlockNode,
   type TiptapTextNode,
   TiptapDocumentSchema,
   BlockNodeSchema,
-} from './tiptap-schema';
+} from './tiptap';

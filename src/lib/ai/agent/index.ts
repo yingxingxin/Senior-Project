@@ -1,45 +1,20 @@
 /**
  * AI Agent Module
  *
- * Full implementation of Tiptap-style AI Agent for iterative lesson generation.
+ * Implementation of AI Agent for lesson generation using the 3-level hierarchy.
  */
 
 // Main runner
 export { runAgent, type RunAgentParams } from './runner';
 
 // State management
-export { DocumentState } from './document-state';
-export { ConversationState } from './conversation-state';
+export { DocumentState, ConversationState } from './state';
 
-// Checkpoint system
-export {
-  createCheckpoint,
-  restoreCheckpoint,
-  CheckpointManager,
-} from './checkpoints';
-
-// Tools
+// Tools (includes registry exports)
 export * from './tools';
-
-// Tool registry
-export {
-  getAllTools,
-  isFinalTool,
-  getToolsDescription,
-} from './tool-registry';
 
 // Types
 export * from './types';
 
 // Utilities
-export {
-  chunkDocument,
-  getChunk,
-  mergeChunks,
-  rechunkDocument,
-} from './chunker';
-
-export {
-  applyDiff,
-  validateDocument,
-} from './diff-applier';
+export { validateDocument } from './lib';
