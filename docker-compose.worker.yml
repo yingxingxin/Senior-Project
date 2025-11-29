@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    network_mode: host
     stop_grace_period: 5m
     logging:
       driver: json-file

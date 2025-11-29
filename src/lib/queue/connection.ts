@@ -59,7 +59,7 @@ export function getRedisConnectionFromUrl(): ConnectionOptions | null {
       tls: url.protocol === 'rediss:' || url.hostname.includes('upstash.io') ? {} : undefined,
 
       // Upstash-specific settings (required for BullMQ compatibility)
-      family: 6, // Use IPv6 for Upstash
+      family: 4, // Use IPv4 (IPv6 not available on all VPS)
       enableReadyCheck: false, // Disable ready check for Upstash
       enableOfflineQueue: false, // Disable offline queue for clearer errors
 
