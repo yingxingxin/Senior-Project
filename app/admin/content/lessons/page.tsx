@@ -20,9 +20,9 @@ async function LessonsContent({ searchParams }: { searchParams: Record<string, s
   // Parse filter params
   const search = typeof searchParams.search === "string" ? searchParams.search : undefined;
   const difficulty =
-    searchParams.difficulty === "beginner" ||
-    searchParams.difficulty === "intermediate" ||
-    searchParams.difficulty === "advanced"
+    searchParams.difficulty === "easy" ||
+    searchParams.difficulty === "standard" ||
+    searchParams.difficulty === "hard"
       ? searchParams.difficulty
       : undefined;
   const scope =

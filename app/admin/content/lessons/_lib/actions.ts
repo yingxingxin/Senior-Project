@@ -16,7 +16,7 @@ interface LessonFormData {
   title: string;
   slug: string;
   description?: string;
-  difficulty?: "beginner" | "intermediate" | "advanced" | null;
+  difficulty?: "easy" | "standard" | "hard" | null;
   estimatedDurationMin?: number | null;
   icon?: string | null;
   isPublished: boolean;

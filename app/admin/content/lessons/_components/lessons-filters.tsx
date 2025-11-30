@@ -108,9 +108,9 @@ export function LessonsFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Levels</SelectItem>
-            <SelectItem value="beginner">Beginner</SelectItem>
-            <SelectItem value="intermediate">Intermediate</SelectItem>
-            <SelectItem value="advanced">Advanced</SelectItem>
+            <SelectItem value="easy">Easy</SelectItem>
+            <SelectItem value="standard">Standard</SelectItem>
+            <SelectItem value="hard">Hard</SelectItem>
           </SelectContent>
         </Select>
 

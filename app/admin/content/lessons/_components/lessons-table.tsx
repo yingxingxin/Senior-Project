@@ -49,9 +49,9 @@ const columns: ColumnDef<AdminLesson>[] = [
         <Badge
           variant="outline"
           className={
-            row.original.difficulty === "beginner"
+            row.original.difficulty === "easy"
               ? "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-              : row.original.difficulty === "intermediate"
+              : row.original.difficulty === "standard"
                 ? "bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300"
                 : "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300"
           }

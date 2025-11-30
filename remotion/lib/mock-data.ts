@@ -153,3 +153,124 @@ export const mockCTA = {
   button: "Get Started Free",
   subtext: "No credit card required",
 };
+
+// Hero scene chat scripts for landing page carousel
+export const mockHeroChats = {
+  nova: {
+    messages: [
+      {
+        role: "assistant" as const,
+        text: "Ready to learn something amazing today? Let's dive in!",
+      },
+      {
+        role: "user" as const,
+        text: "I want to learn Python basics",
+      },
+      {
+        role: "assistant" as const,
+        text: "Perfect choice! Python is beginner-friendly. Let's start with variables!",
+      },
+    ],
+    gradient: {
+      colors: ["#667eea", "#ec4899", "#8b5cf6"],
+      angle: 135,
+    },
+    particleStyle: "sparkle" as const,
+  },
+  atlas: {
+    messages: [
+      {
+        role: "assistant" as const,
+        text: "Let's approach this systematically. What's your learning goal?",
+      },
+      {
+        role: "user" as const,
+        text: "I need to understand data structures",
+      },
+      {
+        role: "assistant" as const,
+        text: "We'll cover arrays, then linked lists, then trees. Step by step.",
+      },
+    ],
+    gradient: {
+      colors: ["#1e3a5f", "#0d9488", "#164e63"],
+      angle: 135,
+    },
+    particleStyle: "grid" as const,
+  },
+  sage: {
+    messages: [
+      {
+        role: "assistant" as const,
+        text: "Take your time. What would you like to explore today?",
+      },
+      {
+        role: "user" as const,
+        text: "I'm struggling with recursion",
+      },
+      {
+        role: "assistant" as const,
+        text: "Recursion is like looking into a mirror reflecting a mirror. Let's explore together.",
+      },
+    ],
+    gradient: {
+      colors: ["#14532d", "#d97706", "#365314"],
+      angle: 135,
+    },
+    particleStyle: "float" as const,
+  },
+} as const;
+
+export type HeroChatData = typeof mockHeroChats[keyof typeof mockHeroChats];
+
+// Feature video data for landing page feature sections
+export const mockFeatureVideos = {
+  courseCreation: {
+    courseTitle: "Python Fundamentals",
+    courseIcon: "🐍",
+    lessons: [
+      { title: "Introduction to Python", duration: "10 min", status: "complete" as const },
+      { title: "Variables & Data Types", duration: "15 min", status: "complete" as const },
+      { title: "Control Flow", duration: "20 min", status: "in-progress" as const },
+      { title: "Functions", duration: "25 min", status: "locked" as const },
+      { title: "Lists & Dictionaries", duration: "20 min", status: "locked" as const },
+    ],
+  },
+  studyMode: {
+    lessonTitle: "Python Functions",
+    messages: [
+      {
+        role: "assistant" as const,
+        text: "Let's learn about functions! They help organize reusable code.",
+      },
+      {
+        role: "user" as const,
+        text: "How do I define a function with parameters?",
+      },
+      {
+        role: "assistant" as const,
+        text: "Great question! Here's how you define a function:",
+        hasCode: true,
+      },
+    ],
+    codeExample: `def greet(name):
+    return f"Hello, {name}!"
+
+# Try it out
+greet("Alex")  # Returns "Hello, Alex!"`,
+  },
+  gamification: {
+    xpEarned: 50,
+    totalXp: 2450,
+    xpToNextLevel: 3000,
+    streak: 7,
+    levelProgress: 82,
+    newBadge: {
+      name: "Python Pioneer",
+      icon: "🐍",
+      description: "Complete your first Python lesson",
+    },
+  },
+} as const;
+
+export type FeatureVideoData = typeof mockFeatureVideos;

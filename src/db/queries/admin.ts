@@ -214,7 +214,7 @@ export type AdminLesson = {
   slug: string;
   title: string;
   description: string | null;
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  difficulty: 'easy' | 'standard' | 'hard' | null;
   estimatedDurationSec: number | null;
   parentLessonId: number | null;
   orderIndex: number;
@@ -229,7 +229,7 @@ export type AdminLesson = {
 
 export interface GetPaginatedLessonsParams extends PaginationParams {
   search?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'easy' | 'standard' | 'hard';
   scope?: 'global' | 'user' | 'shared';
   isPublished?: boolean;
   parentLessonId?: number | null; // null = top-level courses only
@@ -380,7 +380,7 @@ export async function createLesson(data: {
   slug: string;
   title: string;
   description?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'easy' | 'standard' | 'hard';
   estimatedDurationSec?: number;
   parentLessonId?: number;
   orderIndex?: number;
@@ -418,7 +418,7 @@ export async function updateLesson(
     slug?: string;
     title?: string;
     description?: string | null;
-    difficulty?: 'beginner' | 'intermediate' | 'advanced' | null;
+    difficulty?: 'easy' | 'standard' | 'hard' | null;
     estimatedDurationSec?: number | null;
     parentLessonId?: number | null;
     orderIndex?: number;

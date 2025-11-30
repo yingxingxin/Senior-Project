@@ -28,7 +28,7 @@ const lessonFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes"),
   description: z.string().optional(),
-  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional().nullable(),
+  difficulty: z.enum(["easy", "standard", "hard"]).optional().nullable(),
   estimatedDurationMin: z.number().min(0).optional().nullable(),
   icon: z.string().optional().nullable(),
   isPublished: z.boolean(),
@@ -250,16 +250,16 @@ export function LessonForm({ lesson, parentOptions, onSubmit, onDelete }: Lesson
                 <Label>Difficulty</Label>
                 <Select
                   value={form.watch("difficulty") ?? "none"}
-                  onValueChange={(v) => form.setValue("difficulty", v === "none" ? null : v as "beginner" | "intermediate" | "advanced")}
+                  onValueChange={(v) => form.setValue("difficulty", v === "none" ? null : v as "easy" | "standard" | "hard")}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
                   </SelectContent>
                 </Select>
               </Stack>
