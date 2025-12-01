@@ -62,8 +62,7 @@ int main(){
 }
 `,
 
-        // Not including html/sql here (no real for-loop). By omitting them,
-        // your listForLang(lang) will hide this exercise for those languages.
+
     },
 };
 
