@@ -1461,18 +1461,18 @@ Our form components follow a **colocation pattern**: page-specific forms live ad
 app/
 ├── (auth)/
 │   ├── login/
-│   │   ├── page.tsx
+│   │   ├── page_old.tsx
 │   │   └── login-form.tsx          ← Page-specific form
 │   ├── signup/
-│   │   ├── page.tsx
+│   │   ├── page_old.tsx
 │   │   └── signup-form.tsx         ← Page-specific form
 │   └── forgot-password/
-│       ├── page.tsx
+│       ├── page_old.tsx
 │       └── forgot-password-form.tsx ← Page-specific form
 │
 └── onboarding/
     ├── persona/
-    │   ├── page.tsx
+    │   ├── page_old.tsx
     │   └── persona-selection-form.tsx ← Page-specific form
     └── ...
 
@@ -1848,7 +1848,7 @@ To add a new animation:
 **Page-specific components:**
 ```
 app/[route]/
-├── page.tsx
+├── page_old.tsx
 ├── component-a.tsx  ← Only used on this page
 └── component-b.tsx  ← Only used on this page
 ```
@@ -1877,7 +1877,7 @@ Keep in page directory when:
 
 #### Relative Imports for Colocated Files
 ```tsx
-// In app/(auth)/login/page.tsx
+// In app/(auth)/login/page_old.tsx
 import { LoginForm } from "./login-form"  // ✅ Relative
 ```
 

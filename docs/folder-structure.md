@@ -84,11 +84,11 @@ Senior-Project/
 │   │   │   ├── schemas.ts       (Zod validation)
 │   │   │   └── index.ts         (Exports)
 │   │   ├── login/
-│   │   │   └── page.tsx
+│   │   │   └── page_old.tsx
 │   │   ├── signup/
-│   │   │   └── page.tsx
+│   │   │   └── page_old.tsx
 │   │   └── forgot-password/
-│   │       └── page.tsx
+│   │       └── page_old.tsx
 │   │
 │   ├── (app)/                   ← Route group for app pages
 │   │   └── home/
@@ -96,7 +96,7 @@ Senior-Project/
 │   │       │   ├── navbar.tsx
 │   │       │   ├── assistant-hero.tsx
 │   │       │   └── ...
-│   │       └── page.tsx
+│   │       └── page_old.tsx
 │   │
 │   └── onboarding/
 │       ├── _components/         ← All onboarding components
@@ -111,13 +111,13 @@ Senior-Project/
 │       │   ├── server.ts
 │       │   └── steps.ts
 │       ├── persona/
-│       │   └── page.tsx
+│       │   └── page_old.tsx
 │       ├── gender/
-│       │   └── page.tsx
+│       │   └── page_old.tsx
 │       ├── skill-quiz/
-│       │   └── page.tsx
+│       │   └── page_old.tsx
 │       └── guided-intro/
-│           └── page.tsx
+│           └── page_old.tsx
 │
 └── src/lib/
     ├── auth.ts                  ← BetterAuth server config (global)
@@ -136,7 +136,7 @@ app/onboarding/
 ├── _components/         ← Not a route (underscore prefix)
 │   └── shared-ui.tsx
 └── persona/
-    └── page.tsx         ← Route: /onboarding/persona
+    └── page_old.tsx         ← Route: /onboarding/persona
 ```
 
 **When to use:**
@@ -151,10 +151,10 @@ app/onboarding/
 ```
 app/
 ├── (auth)/
-│   ├── login/page.tsx       → URL: /login
-│   └── signup/page.tsx      → URL: /signup
+│   ├── login/page_old.tsx       → URL: /login
+│   └── signup/page_old.tsx      → URL: /signup
 └── (app)/
-    └── home/page.tsx        → URL: /home
+    └── home/page_old.tsx        → URL: /home
 ```
 
 **When to use:**
@@ -392,7 +392,7 @@ import { LoginHeader } from "./login-header"
    │   ├── auth-form.tsx
    │   └── login-form.tsx
    └── login/
-       └── page.tsx
+       └── page_old.tsx
    ```
 
 3. **Use private folders for non-routes**
@@ -475,11 +475,11 @@ app/(auth)/
 │   ├── schemas.ts        (Zod validation)
 │   └── email.ts          (Email utilities)
 ├── login/
-│   └── page.tsx
+│   └── page_old.tsx
 ├── signup/
-│   └── page.tsx
+│   └── page_old.tsx
 └── forgot-password/
-    └── page.tsx
+    └── page_old.tsx
 ```
 
 **Why this works:**
@@ -505,13 +505,13 @@ app/onboarding/
 │   ├── server.ts      ← Server actions
 │   └── steps.ts       ← Step configuration
 ├── persona/
-│   └── page.tsx
+│   └── page_old.tsx
 ├── gender/
-│   └── page.tsx
+│   └── page_old.tsx
 ├── skill-quiz/
-│   └── page.tsx
+│   └── page_old.tsx
 └── guided-intro/
-    └── page.tsx
+    └── page_old.tsx
 ```
 
 **Why this works:**
@@ -530,7 +530,7 @@ app/(app)/home/
 │   ├── assistant-hero.tsx
 │   ├── achievements-section.tsx
 │   └── recent-activities.tsx
-└── page.tsx
+└── page_old.tsx
 ```
 
 **Why this works:**
@@ -554,8 +554,8 @@ app/(app)/home/
 
 2. **Add pages:**
    ```bash
-   touch "app/(app)/dashboard/page.tsx"
-   touch "app/(app)/dashboard/settings/page.tsx"
+   touch "app/(app)/dashboard/page_old.tsx"
+   touch "app/(app)/dashboard/settings/page_old.tsx"
    ```
 
 3. **Add shared components:**
@@ -572,7 +572,7 @@ app/(app)/home/
 
 5. **Import in pages:**
    ```tsx
-   // app/(app)/dashboard/page.tsx
+   // app/(app)/dashboard/page_old.tsx
    import { Sidebar } from "./_components/sidebar"
    import { getAnalytics } from "./_lib/analytics"
 
@@ -597,7 +597,7 @@ touch "app/(app)/dashboard/_components/analytics-chart.tsx"
 ```
 
 ```tsx
-// app/(app)/dashboard/page.tsx
+// app/(app)/dashboard/page_old.tsx
 import { AnalyticsChart } from "./_components/analytics-chart"
 ```
 
@@ -609,7 +609,7 @@ touch "app/(app)/dashboard/_components/confirmation-modal.tsx"
 ```
 
 ```tsx
-// app/(app)/dashboard/settings/page.tsx
+// app/(app)/dashboard/settings/page_old.tsx
 import { ConfirmationModal } from "../_components/confirmation-modal"
 ```
 
@@ -632,7 +632,7 @@ export async function fetchDashboardData() { ... }
 ```
 
 ```tsx
-// app/(app)/dashboard/page.tsx
+// app/(app)/dashboard/page_old.tsx
 import { fetchDashboardData } from "./_lib/api-client"
 ```
 

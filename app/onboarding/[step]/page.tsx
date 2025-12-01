@@ -1,5 +1,5 @@
 /**
- * app/onboarding/[step]/page.tsx
+ * app/onboarding/[step]/page_old.tsx
  *
  * Renders the appropriate form based on the step
  */
