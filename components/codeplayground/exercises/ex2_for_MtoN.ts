@@ -53,19 +53,17 @@ int main() {
 }`,
     },
 
-    // Dynamic generator for random M and N
     generate: () => {
-        // 1. Choose a random range M..N
+
         const start = randInt(1, 5);         // 1..5
         const span = randInt(2, 5);          // at least 2
         const end = start + span;           // end > start
 
-        // 2. Prompt shown to the user
+
         const prompt =
             `Write a program that prints the numbers from ${start} to ${end}, ` +
             `each number on its own line, using a for-loop.`;
 
-        // 3. Expected output lines
         const expected = {
             mode: "stdout" as const,
             expectedLines: Array.from(
@@ -75,7 +73,6 @@ int main() {
             ignoreOrder: false,
         };
 
-        // 4. Return full generated exercise (prompt + expected + any params)
         return {
             prompt,
             expected,
