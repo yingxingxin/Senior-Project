@@ -33,12 +33,12 @@ async function cleanupInvalidQuizzes() {
     `;
 
     if (invalidQuizzes.length === 0) {
-      console.log('✅ No invalid quizzes found. Database is clean!');
+      console.log('No invalid quizzes found. Database is clean!');
       await sql.end();
       process.exit(0);
     }
 
-    console.log(`⚠️  Found ${invalidQuizzes.length} invalid quiz(es):`);
+    console.log(`Found ${invalidQuizzes.length} invalid quiz(es):`);
     invalidQuizzes.forEach(q => {
       console.log(`   - ID ${q.id}: slug="${q.slug || '(null)'}", title="${q.title || '(null)'}"`);
     });
@@ -55,13 +55,13 @@ async function cleanupInvalidQuizzes() {
          OR skill_level IS NULL
     `;
 
-    console.log(`\n✅ Deleted ${result.count} invalid quiz(es).`);
-    console.log('🎉 Cleanup complete!');
+    console.log(`\nDeleted ${result.count} invalid quiz(es).`);
+    console.log('Cleanup complete!');
 
     await sql.end();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error cleaning up quizzes:', error);
+    console.error('Error cleaning up quizzes:', error);
     if (sql) await sql.end();
     process.exit(1);
   }

@@ -2,6 +2,19 @@ import { notFound } from "next/navigation";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { getUserProfileByHandle } from "@/src/db/queries/profile";
+import { getDailyActivityStats } from "@/src/db/queries/activities";
+import { getHeatmapDateRangeByDays, buildHeatmapCells } from "@/src/lib/date/activityHeatmap";
+import { LearningHeatmap } from "./_components/learning-heatmap";
+import { ProfileAssistantCard } from "./_components/profile-assistant-card";
+import { FriendButton } from "./_components/friend-button";
+import { getRandomPublicProfiles } from "@/src/db/queries/profile";
+import { getFriendshipStatus, areFriends } from "@/src/db/queries/friends";
+import { getTestimonialsForProfile } from "@/src/db/queries/testimonials";
+import { TestimonialsSection } from "./_components/testimonials-section";
+import { UserCard } from "@/app/(app)/explore/_components/user-card";
+import { db } from "@/src/db";
+import { users, assistants } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,12 +58,99 @@ export default async function PublicProfilePage({
     notFound();
   }
 
+  // Get friendship status if logged in and not viewing own profile
+  let friendshipStatus: "none" | "pending_incoming" | "pending_outgoing" | "friends" = "none";
+  if (session?.user && !isOwner) {
+    const currentUserId = Number(session.user.id);
+    friendshipStatus = await getFriendshipStatus(
+      currentUserId,
+      profileData.user_id,
+      currentUserId
+    );
+  }
+
   const { theme, projects, experiences } = profileData;
 
   // Extract theme values
   const accentColor = theme?.accent_color || undefined;
   const backgroundImageUrl = theme?.background_image_url || undefined;
   const fontStyle = theme?.font_style || "default";
+  const showAssistant = theme?.show_assistant ?? true;
+
+  // Get assistant info if configured and should be shown
+  let assistantInfo: {
+    name: string | null;
+    avatarUrl: string | null;
+    tagline: string | null;
+  } | null = null;
+
+  if (showAssistant) {
+    const [user] = await db
+      .select({
+        assistant_id: users.assistant_id,
+      })
+      .from(users)
+      .where(eq(users.id, profileData.user_id))
+      .limit(1);
+
+    if (user?.assistant_id) {
+      const [assistant] = await db
+        .select({
+          name: assistants.name,
+          avatar_url: assistants.avatar_url,
+          tagline: assistants.tagline,
+        })
+        .from(assistants)
+        .where(eq(assistants.id, user.assistant_id))
+        .limit(1);
+
+      if (assistant) {
+        assistantInfo = {
+          name: assistant.name,
+          avatarUrl: assistant.avatar_url,
+          tagline: assistant.tagline,
+        };
+      }
+    }
+  }
+
+  // Fetch activity heatmap data
+  // Heatmap visibility: Show if profile is public OR user is the owner
+  // TODO: Add show_learning_stats privacy flag in the future
+  const isViewable = profileData.is_public || isOwner;
+  let heatmapCells: ReturnType<typeof buildHeatmapCells> = [];
+
+  // Get recommended profiles (exclude current user)
+  const recommendedProfiles = await getRandomPublicProfiles(4, profileData.user_id);
+
+  // Get testimonials for this profile
+  const testimonials = await getTestimonialsForProfile(profileData.user_id);
+
+  // Check if current user can write testimonials (must be friends)
+  let canWriteTestimonial = false;
+  if (session?.user && !isOwner) {
+    const currentUserId = Number(session.user.id);
+    canWriteTestimonial = await areFriends(currentUserId, profileData.user_id);
+  }
+
+  if (isViewable) {
+    const { from, to } = getHeatmapDateRangeByDays(30);
+    try {
+      // Format dates as YYYY-MM-DD strings for the SQL query
+      const fromDateStr = from.toISOString().split('T')[0];
+      const toDateStr = to.toISOString().split('T')[0];
+      
+      const dailyStats = await getDailyActivityStats.execute({
+        userId: profileData.user_id,
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+      });
+      heatmapCells = buildHeatmapCells(from, to, dailyStats);
+    } catch (error) {
+      // Silently fail if query errors (e.g., no activity table yet)
+      console.error('Failed to fetch activity stats:', error);
+    }
+  }
 
   // Generate initials from display name or handle
   const displayName = profileData.display_name || profileData.handle;
@@ -104,15 +204,28 @@ export default async function PublicProfilePage({
               </Avatar>
 
               <div className="flex-1">
-                <Heading level={1} className="mb-1">
-                  {displayName}
-                </Heading>
-                <Muted className="mb-2 text-lg">@{profileData.handle}</Muted>
-                {profileData.tagline && (
-                  <Body className="text-muted-foreground">
-                    {profileData.tagline}
-                  </Body>
-                )}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <Heading level={1} className="mb-1">
+                      {displayName}
+                    </Heading>
+                    <Muted className="mb-2 text-lg">@{profileData.handle}</Muted>
+                    {profileData.tagline && (
+                      <Body className="text-muted-foreground">
+                        {profileData.tagline}
+                      </Body>
+                    )}
+                  </div>
+                  {/* Friend Button */}
+                  {session?.user && !isOwner && (
+                    <FriendButton
+                      profileUserId={profileData.user_id}
+                      handle={profileData.handle}
+                      friendshipStatus={friendshipStatus}
+                      accentColor={accentColor}
+                    />
+                  )}
+                </div>
 
                 {/* Social Links */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-4 md:justify-start">
@@ -184,6 +297,26 @@ export default async function PublicProfilePage({
             </CardHeader>
             <CardContent>
               <Body className="whitespace-pre-wrap">{profileData.bio}</Body>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Assistant Card */}
+        {showAssistant && assistantInfo && (
+          <ProfileAssistantCard
+            handle={handle}
+            assistantName={assistantInfo.name}
+            assistantAvatarUrl={assistantInfo.avatarUrl}
+            assistantTagline={assistantInfo.tagline}
+            accentColor={accentColor}
+          />
+        )}
+
+        {/* Learning Activity Heatmap */}
+        {isViewable && heatmapCells.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <LearningHeatmap cells={heatmapCells} accentColor={accentColor} />
             </CardContent>
           </Card>
         )}
@@ -324,6 +457,49 @@ export default async function PublicProfilePage({
                       <Separator className="mt-4" />
                     )}
                   </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Testimonials Section */}
+        <TestimonialsSection
+          recipientUserId={profileData.user_id}
+          testimonials={testimonials.map((t) => ({
+            id: t.id,
+            body: t.body,
+            created_at: t.created_at,
+            author_user_id: t.author_user_id,
+            author_handle: t.author_handle,
+            author_display_name: t.author_display_name,
+            author_avatar_url: t.author_avatar_url,
+          }))}
+          isOwner={isOwner}
+          canWrite={canWriteTestimonial}
+          accentColor={accentColor}
+        />
+
+        {/* Recommended Profiles */}
+        {recommendedProfiles.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle
+                style={
+                  accentColor
+                    ? {
+                        color: accentColor,
+                      }
+                    : undefined
+                }
+              >
+                More learners to explore
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {recommendedProfiles.map((user) => (
+                  <UserCard key={user.user_id} {...user} />
                 ))}
               </div>
             </CardContent>

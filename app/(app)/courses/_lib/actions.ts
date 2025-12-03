@@ -20,6 +20,7 @@ import {
   checkLessonCompletion,
   getAllCourses
 } from "@/src/db/queries/lessons";
+import { insertActivityEvent } from "@/src/db/queries/activities";
 
 export interface CourseLesson {
   id: number;
@@ -131,10 +132,22 @@ export async function startLesson(lessonId: number): Promise<{ success: boolean;
   }
 
   try {
+    const userId = parseInt(session.user.id);
     // Start or update lesson progress
     await startLessonProgress.execute({
-      userId: parseInt(session.user.id),
+      userId,
       lessonId: lessonId,
+    });
+
+    // Record activity event for lesson started
+    await insertActivityEvent.execute({
+      userId,
+      eventType: 'lesson_started',
+      pointsDelta: 5, // Small points for starting
+      lessonId: lessonId,
+      quizId: null,
+      quizAttemptId: null,
+      achievementId: null,
     });
 
     return { success: true };
@@ -154,10 +167,22 @@ export async function completeLessonAction(lessonId: number): Promise<{ success:
   }
 
   try {
+    const userId = parseInt(session.user.id);
     // Mark lesson as completed
     await completeLesson.execute({
-      userId: parseInt(session.user.id),
+      userId,
       lessonId: lessonId,
+    });
+
+    // Record activity event for lesson completed
+    await insertActivityEvent.execute({
+      userId,
+      eventType: 'lesson_completed',
+      pointsDelta: 50, // Points for completing a lesson
+      lessonId: lessonId,
+      quizId: null,
+      quizAttemptId: null,
+      achievementId: null,
     });
 
     return { success: true };
@@ -263,9 +288,21 @@ export async function checkAndCompleteLesson(lessonId: number): Promise<{ wasCom
     
     // If all sections are completed, mark the lesson as completed
     if (totalSections > 0 && completedSections >= totalSections) {
+      const userId = parseInt(session.user.id);
       await completeLesson.execute({
-        userId: parseInt(session.user.id),
+        userId,
         lessonId: lessonId,
+      });
+
+      // Record activity event for lesson completed
+      await insertActivityEvent.execute({
+        userId,
+        eventType: 'lesson_completed',
+        pointsDelta: 50, // Points for completing a lesson
+        lessonId: lessonId,
+        quizId: null,
+        quizAttemptId: null,
+        achievementId: null,
       });
 
       return { wasCompleted: true };

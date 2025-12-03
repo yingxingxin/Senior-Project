@@ -64,22 +64,22 @@ Our design system is built on five foundational principles:
 ### When to Use What
 
 #### Use Design System Components When:
-- ✅ Building page layouts (Stack, Grid, Inline)
-- ✅ Adding text content (Display, Heading, Body, Muted, Caption)
-- ✅ Structuring forms (Form primitives)
-- ✅ Creating consistent UI (Button, Card, Alert from shadcn)
+- [OK] Building page layouts (Stack, Grid, Inline)
+- [OK] Adding text content (Display, Heading, Body, Muted, Caption)
+- [OK] Structuring forms (Form primitives)
+- [OK] Creating consistent UI (Button, Card, Alert from shadcn)
 
 #### Use Raw Tailwind When:
-- ✅ Adding padding inside components (`p-4`, `px-6`, `py-2`)
-- ✅ Fine-tuning margins (`mt-2`, `mb-1`, `-mx-4`)
-- ✅ One-off adjustments that don't fit semantic patterns
-- ✅ Component-specific styling needs
+- [OK] Adding padding inside components (`p-4`, `px-6`, `py-2`)
+- [OK] Fine-tuning margins (`mt-2`, `mb-1`, `-mx-4`)
+- [OK] One-off adjustments that don't fit semantic patterns
+- [OK] Component-specific styling needs
 
 #### Never Do:
-- ❌ Hardcode colors (`bg-gray-900`, `text-blue-500`)
-- ❌ Use `space-y-*` for layout structure (use `<Stack>`)
-- ❌ Duplicate form fields (use shared form components)
-- ❌ Skip semantic HTML (always use proper heading hierarchy)
+- [X] Hardcode colors (`bg-gray-900`, `text-blue-500`)
+- [X] Use `space-y-*` for layout structure (use `<Stack>`)
+- [X] Duplicate form fields (use shared form components)
+- [X] Skip semantic HTML (always use proper heading hierarchy)
 
 ---
 
@@ -98,12 +98,12 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Main page container
+// [OK] Main page container
 <div className="bg-background min-h-screen">
   <main>...</main>
 </div>
 
-// ❌ Don't use for cards
+// [X] Don't use for cards
 <div className="bg-background"> {/* Use bg-card instead */}
   <Card>...</Card>
 </div>
@@ -116,10 +116,10 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Card backgrounds
+// [OK] Card backgrounds
 <Card className="bg-card">...</Card>
 
-// ✅ Modal backgrounds
+// [OK] Modal backgrounds
 <Dialog>
   <DialogContent className="bg-card">...</DialogContent>
 </Dialog>
@@ -132,12 +132,12 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Secondary sections, disabled states
+// [OK] Secondary sections, disabled states
 <div className="bg-muted p-4 rounded">
   <Muted variant="small">Secondary info</Muted>
 </div>
 
-// ✅ Form field backgrounds
+// [OK] Form field backgrounds
 <Input className="bg-muted" disabled />
 ```
 
@@ -148,12 +148,12 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Primary buttons
+// [OK] Primary buttons
 <Button className="bg-primary text-primary-foreground">
   Continue
 </Button>
 
-// ✅ Brand accents
+// [OK] Brand accents
 <div className="border-l-4 border-primary">...</div>
 ```
 
@@ -174,10 +174,10 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Delete buttons
+// [OK] Delete buttons
 <Button variant="destructive">Delete Account</Button>
 
-// ✅ Error alerts
+// [OK] Error alerts
 <Alert variant="destructive">
   <AlertDescription>Operation failed</AlertDescription>
 </Alert>
@@ -202,10 +202,10 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Main content text (default, often unnecessary to specify)
+// [OK] Main content text (default, often unnecessary to specify)
 <Body>This uses text-foreground by default</Body>
 
-// ✅ Override when needed
+// [OK] Override when needed
 <span className="text-foreground font-medium">Important</span>
 ```
 
@@ -216,10 +216,10 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Subtitles, captions
+// [OK] Subtitles, captions
 <Muted variant="small">This uses text-muted-foreground</Muted>
 
-// ✅ Placeholder text
+// [OK] Placeholder text
 <Input placeholder="Enter email" className="placeholder:text-muted-foreground" />
 ```
 
@@ -227,12 +227,12 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 **Purpose:** Brand text, primary emphasis
 **Usage:**
 ```tsx
-// ✅ Links in brand color
+// [OK] Links in brand color
 <Link href="/features" className="text-primary underline">
   Learn more
 </Link>
 
-// ✅ Text on primary backgrounds
+// [OK] Text on primary backgrounds
 <div className="bg-primary text-primary-foreground p-4">
   Highlighted content
 </div>
@@ -253,10 +253,10 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Card borders
+// [OK] Card borders
 <Card className="border border-border">...</Card>
 
-// ✅ Dividers
+// [OK] Dividers
 <div className="border-t border-border mt-4 pt-4">...</div>
 ```
 
@@ -274,7 +274,7 @@ All colors are defined as CSS variables in `app/globals.css` using OKLCH color s
 
 **Usage:**
 ```tsx
-// ✅ Automatically applied by form components
+// [OK] Automatically applied by form components
 <Input /> {/* Has focus:ring-ring */}
 <Button /> {/* Has focus:ring-ring */}
 ```
@@ -360,11 +360,11 @@ interface DisplayProps {
 
 **Usage:**
 ```tsx
-// ✅ Landing page hero
+// [OK] Landing page hero
 <Display level={1}>Welcome to Sprite.exe</Display>
 // Renders: <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
 
-// ✅ With semantic override
+// [OK] With semantic override
 <Display level={1} as="h2">
   Visually looks like H1, but semantically H2
 </Display>
@@ -822,7 +822,7 @@ console.log(greeting);`}
 
 ### Typography Anti-Patterns
 
-#### ❌ Don't hardcode text sizes
+#### [X] Don't hardcode text sizes
 ```tsx
 // Wrong
 <h1 className="text-4xl font-semibold">Title</h1>
@@ -831,7 +831,7 @@ console.log(greeting);`}
 <Heading level={1}>Title</Heading>
 ```
 
-#### ❌ Don't skip heading hierarchy
+#### [X] Don't skip heading hierarchy
 ```tsx
 // Wrong - jumps from H1 to H3
 <Heading level={1}>Page</Heading>
@@ -842,7 +842,7 @@ console.log(greeting);`}
 <Heading level={2}>Section</Heading>
 ```
 
-#### ❌ Don't use heading for styling
+#### [X] Don't use heading for styling
 ```tsx
 // Wrong - using H1 for big text without semantic meaning
 <Heading level={1} as="div">Just big text</Heading>
@@ -851,7 +851,7 @@ console.log(greeting);`}
 <Display level={1}>Hero Text</Display>
 ```
 
-#### ❌ Don't forget muted-foreground for secondary text
+#### [X] Don't forget muted-foreground for secondary text
 ```tsx
 // Wrong - manually applying color
 <p className="text-sm text-zinc-500 dark:text-zinc-400">Help text</p>
@@ -1229,7 +1229,7 @@ interface GridProps {
 
 ### Spacing Anti-Patterns
 
-#### ❌ Don't use Stack/Grid for padding
+#### [X] Don't use Stack/Grid for padding
 ```tsx
 // Wrong - padding should use raw Tailwind
 <Stack gap="default" className="p-4"> {/* ✓ p-4 is fine */}
@@ -1246,7 +1246,7 @@ interface GridProps {
 </Stack>
 ```
 
-#### ❌ Don't use space-y-* for layout
+#### [X] Don't use space-y-* for layout
 ```tsx
 // Wrong
 <div className="space-y-6">
@@ -1261,7 +1261,7 @@ interface GridProps {
 </Stack>
 ```
 
-#### ❌ Don't mix raw gap with Grid/Inline
+#### [X] Don't mix raw gap with Grid/Inline
 ```tsx
 // Wrong
 <Grid cols={3} className="gap-8"> {/* Don't override with raw gap */}
@@ -1718,7 +1718,7 @@ export function MultiStepForm() {
 
 ### Form Anti-Patterns
 
-#### ❌ Don't duplicate form fields
+#### [X] Don't duplicate form fields
 ```tsx
 // Wrong - creating custom email field
 <FormField name="email">
@@ -1729,7 +1729,7 @@ export function MultiStepForm() {
 <EmailField name="email" />
 ```
 
-#### ❌ Don't put page-specific forms in components/
+#### [X] Don't put page-specific forms in components/
 ```tsx
 // Wrong
 components/auth/LoginForm.tsx  // This is page-specific
@@ -1738,7 +1738,7 @@ components/auth/LoginForm.tsx  // This is page-specific
 app/(auth)/login/login-form.tsx  // Colocated with page
 ```
 
-#### ❌ Don't skip fieldset for disabled state
+#### [X] Don't skip fieldset for disabled state
 ```tsx
 // Wrong - disabling each field individually
 <Input disabled={isSubmitting} />
@@ -1864,27 +1864,27 @@ components/
 #### When to Extract to components/
 
 Extract to `components/` when:
-- ✅ Used in 2+ different page routes
-- ✅ Truly reusable utility (form field primitives)
-- ✅ Design system primitive (Button, Input)
+- [OK] Used in 2+ different page routes
+- [OK] Truly reusable utility (form field primitives)
+- [OK] Design system primitive (Button, Input)
 
 Keep in page directory when:
-- ✅ Only used on one page
-- ✅ Page-specific business logic
-- ✅ Unlikely to be reused
+- [OK] Only used on one page
+- [OK] Page-specific business logic
+- [OK] Unlikely to be reused
 
 ### Import Patterns
 
 #### Relative Imports for Colocated Files
 ```tsx
 // In app/(auth)/login/page_old.tsx
-import { LoginForm } from "./login-form"  // ✅ Relative
+import { LoginForm } from "./login-form"  // [OK] Relative
 ```
 
 #### Absolute Imports for Shared Components
 ```tsx
 // From anywhere
-import { Button } from "@/components/ui/button"  // ✅ Absolute
+import { Button } from "@/components/ui/button"  // [OK] Absolute
 import { Heading } from "@/components/ui/typography"
 import { Stack } from "@/components/ui/spacing"
 ```

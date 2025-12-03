@@ -807,13 +807,13 @@ async function seedQuizzes() {
       console.log(`✓ Created quiz: "${quizData.title}" (${quizData.questions.length} questions)`);
     }
 
-    console.log(`\n✅ Successfully seeded ${sampleQuizzes.length} quizzes!`);
-    console.log(`📊 Total questions: ${sampleQuizzes.reduce((sum, q) => sum + q.questions.length, 0)}`);
+    console.log(`\nSuccessfully seeded ${sampleQuizzes.length} quizzes!`);
+    console.log(`Total questions: ${sampleQuizzes.reduce((sum, q) => sum + q.questions.length, 0)}`);
 
     await sql.end();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding quizzes:', error);
+    console.error('Error seeding quizzes:', error);
     if (sql) await sql.end();
     process.exit(1);
   }

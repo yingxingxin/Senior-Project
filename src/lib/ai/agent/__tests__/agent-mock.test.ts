@@ -13,10 +13,10 @@ import type { TiptapDocument } from '../../tiptap-schema';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
-    console.error(`❌ FAILED: ${message}`);
+    console.error(`FAILED: ${message}`);
     process.exit(1);
   }
-  console.log(`✅ PASSED: ${message}`);
+  console.log(`PASSED: ${message}`);
 }
 
 console.log('=== Mock Agent Tests ===\n');
@@ -223,14 +223,14 @@ assert(nodeTypes.includes('paragraph'), 'Contains paragraphs');
 assert(nodeTypes.includes('codeBlockEnhanced'), 'Contains code block');
 console.log('');
 
-console.log('🎉 All mock agent tests passed!\n');
+console.log('All mock agent tests passed!\n');
 console.log('Agent workflow simulation:');
-console.log('  1. ✅ Initialize states');
-console.log('  2. ✅ Process user message');
-console.log('  3. ✅ Execute plan tool');
-console.log('  4. ✅ Apply multiple diffs');
-console.log('  5. ✅ Save checkpoints');
-console.log('  6. ✅ Read chunks');
-console.log('  7. ✅ Handle errors');
-console.log('  8. ✅ Complete with summary');
-console.log('  9. ✅ Return to idle state\n');
+console.log('  1. Initialize states');
+console.log('  2. Process user message');
+console.log('  3. Execute plan tool');
+console.log('  4. Apply multiple diffs');
+console.log('  5. Save checkpoints');
+console.log('  6. Read chunks');
+console.log('  7. Handle errors');
+console.log('  8. Complete with summary');
+console.log('  9. Return to idle state\n');

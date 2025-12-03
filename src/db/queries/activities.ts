@@ -7,7 +7,7 @@
 
 import { db } from '@/src/db';
 import { activity_events, lessons, quizzes, achievements } from '@/src/db/schema';
-import { eq, and, desc, sql, count } from 'drizzle-orm';
+import { eq, and, desc, sql, count, gte, lte } from 'drizzle-orm';
 
 /**
  * Get user activity stats
@@ -115,6 +115,42 @@ export const getRecentActivityWithDetails = db
   .orderBy(desc(activity_events.occurred_at))
   .limit(sql.placeholder('limit'))
   .prepare('get_recent_activity_with_details');
+
+/**
+ * Get daily activity stats
+ *
+ * Returns aggregated daily activity statistics (points and event counts) for a user
+ * within a specified date range. Used for activity heatmaps and learning analytics.
+ *
+ * @param userId - The user's ID
+ * @param fromDate - Start date (inclusive, normalized to start of day)
+ * @param toDate - End date (inclusive, normalized to start of day)
+ * @returns Array of daily stats with date (YYYY-MM-DD), total_points, and event_count
+ *
+ * @example
+ * const dailyStats = await getDailyActivityStats.execute({
+ *   userId: 123,
+ *   fromDate: new Date('2024-01-01'),
+ *   toDate: new Date('2024-06-30'),
+ * });
+ */
+export const getDailyActivityStats = db
+  .select({
+    date: sql<string>`DATE(${activity_events.occurred_at})::text`,
+    total_points: sql<number>`COALESCE(SUM(${activity_events.points_delta}), 0)`,
+    event_count: sql<number>`COUNT(*)::integer`,
+  })
+  .from(activity_events)
+  .where(
+    and(
+      eq(activity_events.user_id, sql.placeholder('userId')),
+      sql`DATE(${activity_events.occurred_at}) >= DATE(${sql.placeholder('fromDate')})`,
+      sql`DATE(${activity_events.occurred_at}) <= DATE(${sql.placeholder('toDate')})`
+    )
+  )
+  .groupBy(sql`DATE(${activity_events.occurred_at})`)
+  .orderBy(sql`DATE(${activity_events.occurred_at})`)
+  .prepare('get_daily_activity_stats');
 
 /**
  * Insert activity event

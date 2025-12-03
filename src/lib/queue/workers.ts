@@ -78,7 +78,7 @@ export function initializeLessonGenerationWorker() {
 
   // Event: Job completed successfully
   lessonGenerationWorker.on('completed', (job, result) => {
-    console.log(`[Worker] ✅ Job completed: ${job.id}`, {
+    console.log(`[Worker] Job completed: ${job.id}`, {
       lessonId: result.lessonId,
       lessonTitle: result.lessonTitle,
       generationTimeMs: result.generationTimeMs,
@@ -87,7 +87,7 @@ export function initializeLessonGenerationWorker() {
 
   // Event: Job failed after all retries
   lessonGenerationWorker.on('failed', (job, error) => {
-    console.error(`[Worker] ❌ Job failed: ${job?.id}`, {
+    console.error(`[Worker] Job failed: ${job?.id}`, {
       error: error.message,
       attemptsMade: job?.attemptsMade,
     });
@@ -100,12 +100,12 @@ export function initializeLessonGenerationWorker() {
 
   // Event: Worker ready
   lessonGenerationWorker.on('ready', () => {
-    console.log('[Worker] 🚀 Lesson generation worker ready');
+    console.log('[Worker] Lesson generation worker ready');
   });
 
   // Event: Worker stalled (job took too long)
   lessonGenerationWorker.on('stalled', (jobId) => {
-    console.warn(`[Worker] ⚠️ Job stalled: ${jobId}`);
+    console.warn(`[Worker] Job stalled: ${jobId}`);
   });
 
   console.log('[Workers] Lesson generation worker initialized');

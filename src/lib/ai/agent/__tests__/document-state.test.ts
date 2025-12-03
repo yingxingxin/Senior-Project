@@ -10,10 +10,10 @@ import type { TiptapDocument } from '../../tiptap-schema';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
-    console.error(`❌ FAILED: ${message}`);
+    console.error(`FAILED: ${message}`);
     process.exit(1);
   }
-  console.log(`✅ PASSED: ${message}`);
+  console.log(`PASSED: ${message}`);
 }
 
 console.log('=== Document State Tests ===\n');
@@ -161,4 +161,4 @@ assert(currentAfter !== null, 'Current chunk exists after explicit read');
 assert(currentAfter!.index === 0, 'Current chunk is first chunk');
 console.log('');
 
-console.log('🎉 All document state tests passed!\n');
+console.log('All document state tests passed!\n');

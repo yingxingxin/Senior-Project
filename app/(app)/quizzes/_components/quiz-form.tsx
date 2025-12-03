@@ -457,7 +457,7 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
               {hints[question.id] && (
                 <div className="mt-2 p-3 rounded-lg bg-muted/50 border border-border">
                   <Muted variant="small" className="font-medium mb-1 block">
-                    💡 Hint from {assistantName}:
+                    Hint from {assistantName}:
                   </Muted>
                   <Body variant="small" className="text-muted-foreground">
                     {hints[question.id]}

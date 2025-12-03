@@ -8,6 +8,7 @@ import {
   createQuizAttemptAnswer,
   deleteQuizProgress,
 } from '@/src/db/queries';
+import { insertActivityEvent } from '@/src/db/queries/activities';
 import { z } from 'zod';
 
 const submitRequestSchema = z.object({
@@ -124,6 +125,31 @@ export async function POST(
       userId,
       quizId: quiz.id,
     });
+
+    // Record activity event for quiz submission
+    const pointsEarned = score * 10; // 10 points per correct answer
+    await insertActivityEvent.execute({
+      userId,
+      eventType: 'quiz_submitted',
+      pointsDelta: pointsEarned,
+      lessonId: null,
+      quizId: quiz.id,
+      quizAttemptId: attempt.id,
+      achievementId: null,
+    });
+
+    // If perfect score, record additional achievement event
+    if (score === totalQuestions) {
+      await insertActivityEvent.execute({
+        userId,
+        eventType: 'quiz_perfect',
+        pointsDelta: 20, // Bonus points for perfect score
+        lessonId: null,
+        quizId: quiz.id,
+        quizAttemptId: attempt.id,
+        achievementId: null,
+      });
+    }
 
     return NextResponse.json({
       score,

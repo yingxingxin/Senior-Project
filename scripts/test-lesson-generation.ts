@@ -18,7 +18,7 @@ import { enqueueLessonGeneration, getLessonGenerationJobStatus } from '../src/li
 const TEST_USER_ID = 1;
 
 async function main() {
-  console.log('🧪 Testing Lesson Generation Fix\n');
+  console.log('Testing Lesson Generation Fix\n');
   console.log('This will create a course about "Heaps and Heapsort" to test the fix.');
   console.log('The bug was: lessons created with 0 sections.\n');
 
@@ -31,7 +31,7 @@ async function main() {
     estimatedDurationMinutes: 15,
   });
 
-  console.log(`✅ Job enqueued: ${jobId}\n`);
+  console.log(`Job enqueued: ${jobId}\n`);
   console.log('Polling for status...\n');
 
   // Poll for job completion
@@ -43,13 +43,13 @@ async function main() {
     const status = await getLessonGenerationJobStatus(jobId!);
 
     if (!status) {
-      console.log('❌ Job not found');
+      console.log('Job not found');
       break;
     }
 
     // Only log state changes
     if (status.state !== lastState) {
-      console.log(`📊 State: ${status.state}`);
+      console.log(`State: ${status.state}`);
       lastState = status.state;
     }
 
@@ -63,22 +63,22 @@ async function main() {
 
     // Check completion
     if (status.state === 'completed') {
-      console.log('\n\n✅ Job completed successfully!\n');
+      console.log('\n\nJob completed successfully!\n');
       console.log('Result:', JSON.stringify(status.result, null, 2));
 
       // Check if any lessons were created with sections
       if (status.result?.sectionCount && status.result.sectionCount > 0) {
-        console.log(`\n🎉 SUCCESS: Created ${status.result.sectionCount} sections total`);
+        console.log(`\nSUCCESS: Created ${status.result.sectionCount} sections total`);
         console.log(`   Course ID: ${status.result.lessonId}`);
         console.log(`   Course Slug: ${status.result.lessonSlug}`);
       } else {
-        console.log('\n❌ FAILURE: No sections created (bug not fixed?)');
+        console.log('\nFAILURE: No sections created (bug not fixed?)');
       }
       break;
     }
 
     if (status.state === 'failed') {
-      console.log('\n\n❌ Job failed!');
+      console.log('\n\nJob failed!');
       console.log('Error:', status.error);
       break;
     }
@@ -88,7 +88,7 @@ async function main() {
   }
 
   if (pollCount >= maxPolls) {
-    console.log('\n⏱️ Timeout - job taking too long');
+    console.log('\nTimeout - job taking too long');
   }
 
   process.exit(0);

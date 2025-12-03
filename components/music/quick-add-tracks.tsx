@@ -43,12 +43,12 @@ export function QuickAddTracks({ userId, onTracksAdded }: QuickAddTracksProps) {
       
       if (result.success) {
         onTracksAdded?.(availableTracks);
-        console.log('✅ All tracks added to your playlist!');
+        console.log('All tracks added to your playlist!');
       } else {
-        console.error('❌ Failed to add tracks:', result.error);
+        console.error('Failed to add tracks:', result.error);
       }
     } catch (error) {
-      console.error('❌ Error adding tracks:', error);
+      console.error('Error adding tracks:', error);
     } finally {
       setIsAdding(false);
     }

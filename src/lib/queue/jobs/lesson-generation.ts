@@ -65,7 +65,7 @@ export async function processLessonGeneration(
       },
     });
 
-    console.log(`[Job ${job.id}] ✅ Lesson generation completed:`, {
+    console.log(`[Job ${job.id}] Lesson generation completed:`, {
       lessonId: result.lessonId,
       title: result.lessonTitle,
       wordCount: result.wordCount,
@@ -90,7 +90,7 @@ export async function processLessonGeneration(
       modelUsed: result.modelUsed,
     };
   } catch (error) {
-    console.error(`[Job ${job.id}] ❌ Lesson generation failed:`, error);
+    console.error(`[Job ${job.id}] Lesson generation failed:`, error);
 
     // Log more details for debugging
     if (error instanceof Error) {

@@ -76,7 +76,7 @@ export function CourseCreationScene() {
   const lessonSections = [
     { title: "Introduction to Functions", duration: "5 min", icon: "📖" },
     { title: "Function Parameters", duration: "8 min", icon: "🔧" },
-    { title: "Return Values", duration: "6 min", icon: "↩️" },
+    { title: "Return Values", duration: "6 min", icon: "" },
     { title: "Practice Exercises", duration: "10 min", icon: "💻" },
   ];
 

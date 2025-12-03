@@ -397,7 +397,7 @@ export async function seed() {
         description: "Learn OOP principles and best practices.",
         difficulty: "standard" as const,
         estimated_duration_sec: 21600, // 6 hours total
-        icon: "🏗️",
+        icon: "",
         order_index: 3,
         is_published: true,
         parent_lesson_id: null,
@@ -485,7 +485,7 @@ export async function seed() {
           estimated_duration_sec: 3600, // 60 minutes
           parent_lesson_id: programmingFoundationsCourseId,
           order_index: 4,
-          icon: "⚙️",
+          icon: "",
           is_published: true,
         },
         {
@@ -548,12 +548,12 @@ export async function seed() {
             content: [
               { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Different Callout Types' }] },
               { type: 'paragraph', content: [{ type: 'text', text: 'Callouts help draw attention to important information. Here are all the available types:' }] },
-              generateCalloutJson('tip', '💡 Tips provide helpful suggestions and best practices.').content[0],
-              generateCalloutJson('info', 'ℹ️ Info callouts provide additional context and background information.').content[0],
-              generateCalloutJson('success', '✅ Success callouts highlight positive outcomes and achievements.').content[0],
-              generateCalloutJson('warning', '⚠️ Warnings alert you to potential pitfalls and important caveats.').content[0],
-              generateCalloutJson('error', '❌ Error callouts point out common mistakes to avoid.').content[0],
-              generateCalloutJson('note', '📝 Notes provide supplementary information worth remembering.').content[0],
+              generateCalloutJson('tip', 'Tips provide helpful suggestions and best practices.').content[0],
+              generateCalloutJson('info', 'Info callouts provide additional context and background information.').content[0],
+              generateCalloutJson('success', 'Success callouts highlight positive outcomes and achievements.').content[0],
+              generateCalloutJson('warning', 'Warnings alert you to potential pitfalls and important caveats.').content[0],
+              generateCalloutJson('error', 'Error callouts point out common mistakes to avoid.').content[0],
+              generateCalloutJson('note', 'Notes provide supplementary information worth remembering.').content[0],
             ],
           },
         },
@@ -1010,7 +1010,7 @@ export async function seed() {
         });
     }
 
-    console.log(`✅ Created/updated ${themeRecords.length} built-in unified themes`);
+    console.log(`Created/updated ${themeRecords.length} built-in unified themes`);
 
     // Seed levels
     console.log("Creating levels...");
@@ -1168,9 +1168,9 @@ export async function seed() {
       console.log("  → Skill Assessment quiz already exists, skipping");
     }
 
-    console.log("✅ Database seed completed successfully!");
+    console.log("Database seed completed successfully!");
   } catch (error) {
-    console.error("❌ Error seeding database:", error);
+    console.error("Error seeding database:", error);
     throw error;
   }
 }
@@ -1179,11 +1179,11 @@ export async function seed() {
 if (require.main === module) {
   seed()
     .then(() => {
-      console.log("🎉 Seed script finished");
+      console.log("Seed script finished");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("💥 Seed script failed:", error);
+      console.error("Seed script failed:", error);
       process.exit(1);
     });
 }

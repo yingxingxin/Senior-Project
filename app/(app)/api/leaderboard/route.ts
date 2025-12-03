@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from 'src/db';                 // ⬅️ same import you used in timed-runs route
+import { db } from 'src/db';
 import { timedRuns } from 'src/db/schema/timedRuns';
-import { users } from 'src/db/schema/auth';  // ⬅️ adjust path to where your users table lives
+import { users } from 'src/db/schema/auth';
 import { and, eq, sql } from 'drizzle-orm';
 
 export async function GET(req: Request): Promise<NextResponse> {

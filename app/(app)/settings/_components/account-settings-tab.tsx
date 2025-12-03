@@ -73,11 +73,11 @@ export function AccountSettingsTab({ user }: AccountSettingsTabProps) {
             <div className="flex items-center gap-2">
               {user.emailVerified ? (
                 <Muted variant="small" className="text-success">
-                  ✓ Email verified
+                  Email verified
                 </Muted>
               ) : (
                 <Muted variant="small" className="text-warning">
-                  ⚠ Email not verified
+                  Email not verified
                 </Muted>
               )}
             </div>

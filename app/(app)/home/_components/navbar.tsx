@@ -25,6 +25,8 @@ import {
     Swords,
     Music,
     GraduationCap, ClipboardList,
+    Search,
+    Users,
 } from "lucide-react";
 
 import { NavbarData } from "@/app/(app)/actions";
@@ -53,6 +55,7 @@ export default function Navbar({ data }: NavbarProps) {
     { href: "/study", label: "Study", icon: GraduationCap },
     { href: "/editor", label: "Practice", icon: Swords },
     { href: "/leaderboard", label: "Leaderboard", icon: ClipboardList },
+    { href: "/explore", label: "Explore", icon: Search },
     { href: "/ask", label: "Ask AI", icon: MessageSquare },
   ];
 
@@ -202,6 +205,12 @@ export default function Navbar({ data }: NavbarProps) {
                     <Link href="/settings/profile" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
                       <User className="h-4 w-4" />
                       <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/friends" className="flex items-center gap-2.5 px-4 py-2 text-foreground hover:bg-accent cursor-pointer">
+                      <Users className="h-4 w-4" />
+                      <span>Friends</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

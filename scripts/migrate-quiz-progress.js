@@ -75,19 +75,19 @@ async function runMigration() {
             (errorCode === '42P01' && errorMsg.includes('index'))) { // relation does not exist for indexes (they'll be created after table)
           console.log(`⚠ [${i + 1}/${statements.length}] Skipped: ${error.message.split('\n')[0]}`);
         } else {
-          console.error(`❌ [${i + 1}/${statements.length}] Failed:`, error.message);
+          console.error(`[${i + 1}/${statements.length}] Failed:`, error.message);
           throw error;
         }
       }
     }
 
-    console.log('\n✅ Migration completed successfully!');
-    console.log('🎉 Done!');
+    console.log('\nMigration completed successfully!');
+    console.log('Done!');
 
     await sql.end();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error running migration:', error);
+    console.error('Error running migration:', error);
     if (sql) await sql.end();
     process.exit(1);
   }

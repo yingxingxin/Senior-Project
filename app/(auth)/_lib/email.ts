@@ -66,7 +66,7 @@ export async function sendWelcomeEmail(toEmail: string, username: string) {
       subject: `Welcome to ${EMAIL_FROM_NAME}!`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Welcome to ${EMAIL_FROM_NAME}, ${username}! 🎉</h2>
+          <h2>Welcome to ${EMAIL_FROM_NAME}, ${username}!</h2>
           <p>Your email has been successfully verified and your account is now active.</p>
 
           <div style="background-color: #f4f4f5; padding: 20px; border-radius: 8px; margin: 30px 0;">

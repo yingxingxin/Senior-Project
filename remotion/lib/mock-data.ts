@@ -72,7 +72,7 @@ export const mockCourses = [
     id: "data-structures",
     title: "Data Structures",
     description: "Essential data structures every developer needs",
-    icon: "🏗️",
+    icon: "",
     lessonsCount: 10,
     duration: "6 hours",
     progress: 0,
@@ -141,7 +141,7 @@ export const mockDashboard = {
     nextLesson: "Return Values",
   },
   quickActions: [
-    { label: "Continue Course", icon: "▶️" },
+    { label: "Continue Course", icon: "" },
     { label: "Take Quiz", icon: "🧠" },
     { label: "Practice", icon: "💻" },
   ],
