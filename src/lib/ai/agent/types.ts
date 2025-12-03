@@ -156,6 +156,8 @@ export interface DocumentState {
 
   // Cloning
   clone(): DocumentState;
+
+    setCurrentLessonBySlug(slug: string): boolean;
 }
 
 /**

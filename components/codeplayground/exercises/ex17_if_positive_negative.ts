@@ -3,8 +3,8 @@ import type { Exercise } from './types';
 /**
  * Use an if/else chain to check if a number is positive, negative, or zero.
  */
-export const ex4_if_positive_negative: Exercise = {
-    id: 'ex4-if-positive-negative',
+export const ex17_if_positive_negative: Exercise = {
+    id: 'ex17-if-positive-negative',
     title: 'If statement: check sign of a number',
     prompt:
         `Write a program that checks whether a number is positive, negative, or zero.

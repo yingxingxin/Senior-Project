@@ -3,7 +3,7 @@
 This folder hosts the unauthenticated routes: the login and signup experiences that sit outside the main application shell.
 
 - Layout (`layout.tsx`): wraps the group with the two-panel hero treatment and ensures both pages share the same look and feel.
-- Pages (`login/page.tsx`, `signup/page.tsx`): server components responsible for structure, copy, and metadata.
+- Pages (`login/page_old.tsx`, `signup/page_old.tsx`): server components responsible for structure, copy, and metadata.
 - Forms (`components/auth/LoginForm.tsx`, `components/auth/SignupForm.tsx`): client components that handle interactivity, validation, and talking to the auth API routes.
 
 Authentication flow notes:

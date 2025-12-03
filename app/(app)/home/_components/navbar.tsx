@@ -12,19 +12,19 @@ import {
 import { useRouter } from "next/navigation";
 import { authClient } from "@/src/lib/auth-client";
 import {
-  Home,
-  BookOpen,
-  Trophy,
-  Flame,
-  Settings,
-  User,
-  LogOut,
-  Bell,
-  Bot,
-  MessageSquare,
-  Swords,
-  Music,
-  GraduationCap,
+    Home,
+    BookOpen,
+    Trophy,
+    Flame,
+    Settings,
+    User,
+    LogOut,
+    Bell,
+    Bot,
+    MessageSquare,
+    Swords,
+    Music,
+    GraduationCap, ClipboardList,
 } from "lucide-react";
 
 import { NavbarData } from "@/app/(app)/actions";
@@ -52,10 +52,11 @@ export default function Navbar({ data }: NavbarProps) {
     { href: "/quizzes", label: "Quiz", icon: Bot },
     { href: "/study", label: "Study", icon: GraduationCap },
     { href: "/editor", label: "Practice", icon: Swords },
+    { href: "/leaderboard", label: "Leaderboard", icon: ClipboardList },
     { href: "/ask", label: "Ask AI", icon: MessageSquare },
   ];
 
-  // Use real data from props, with fallbacksnpm
+  // Use real data from props, with fallback
   const userStats = data?.stats || {
     level: 1,
     streak: 0,
