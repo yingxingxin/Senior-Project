@@ -31,3 +31,6 @@ export * from "./timedRuns";
 
 // User Profiles & Portfolio
 export * from './profile';
+
+// Social Features (Friendships & Testimonials)
+export * from './social';

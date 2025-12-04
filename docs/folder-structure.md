@@ -46,12 +46,12 @@ This project uses a **feature-based architecture** following Next.js App Router 
 
 ### Benefits
 
-✅ **Scalability** — Easy to add new features without cluttering root directories
-✅ **Discoverability** — Clear feature boundaries, easier to navigate
-✅ **Maintainability** — Changes isolated to feature folders
-✅ **Reduced Coupling** — Features are self-contained
-✅ **Better DX** — Shorter import paths within features
-✅ **Team Productivity** — Multiple developers can work on different features without conflicts
+[OK] **Scalability** — Easy to add new features without cluttering root directories
+[OK] **Discoverability** — Clear feature boundaries, easier to navigate
+[OK] **Maintainability** — Changes isolated to feature folders
+[OK] **Reduced Coupling** — Features are self-contained
+[OK] **Better DX** — Shorter import paths within features
+[OK] **Team Productivity** — Multiple developers can work on different features without conflicts
 
 ---
 
@@ -140,9 +140,9 @@ app/onboarding/
 ```
 
 **When to use:**
-- ✅ All feature-specific components (shared and page-specific)
-- ✅ Business logic, utilities, or types specific to a feature
-- ✅ Anything that should live with the feature but isn't a route
+- [OK] All feature-specific components (shared and page-specific)
+- [OK] Business logic, utilities, or types specific to a feature
+- [OK] Anything that should live with the feature but isn't a route
 
 #### 2. Route Groups (`(auth)`, `(app)`)
 
@@ -158,9 +158,9 @@ app/
 ```
 
 **When to use:**
-- ✅ Grouping related routes (e.g., all auth pages)
-- ✅ Applying different layouts to route groups
-- ✅ Organizing without changing URLs
+- [OK] Grouping related routes (e.g., all auth pages)
+- [OK] Applying different layouts to route groups
+- [OK] Organizing without changing URLs
 
 #### 3. The `/components/` Directory — Design System Primitives
 
@@ -184,17 +184,17 @@ components/
 ```
 
 **What belongs in `/components/`:**
-- ✅ **Design system primitives** — Button, Input, Card, etc. (from shadcn/ui)
-- ✅ **Typography system** — Display, Heading, Body, Muted, Caption components
-- ✅ **Layout system** — Stack, Grid, Inline spacing components
-- ✅ **Global utilities** — ThemeProvider, global context providers
-- ✅ **Truly reusable UI** — Used across 3+ different features
+- [OK] **Design system primitives** — Button, Input, Card, etc. (from shadcn/ui)
+- [OK] **Typography system** — Display, Heading, Body, Muted, Caption components
+- [OK] **Layout system** — Stack, Grid, Inline spacing components
+- [OK] **Global utilities** — ThemeProvider, global context providers
+- [OK] **Truly reusable UI** — Used across 3+ different features
 
 **What does NOT belong in `/components/`:**
-- ❌ **Feature-specific components** → Move to `app/feature/_components/`
-- ❌ **Page-specific forms** → Move to `app/feature/_components/`
-- ❌ **Business logic** → Move to `app/feature/_lib/` or `src/lib/`
-- ❌ **Auth-specific UI** → Move to `app/(auth)/_components/`
+- [X] **Feature-specific components** → Move to `app/feature/_components/`
+- [X] **Page-specific forms** → Move to `app/feature/_components/`
+- [X] **Business logic** → Move to `app/feature/_lib/` or `src/lib/`
+- [X] **Auth-specific UI** → Move to `app/(auth)/_components/`
 
 **The `components/ui/` standard:**
 
@@ -208,23 +208,23 @@ All components in `components/ui/` follow these principles:
 **Examples:**
 
 ```tsx
-// ✅ CORRECT: Design system primitive in components/ui/
+// [OK] CORRECT: Design system primitive in components/ui/
 // components/ui/button.tsx
 export function Button({ variant, size, children }) {
   return <button className={...}>{children}</button>
 }
 
-// ✅ CORRECT: Global utility in components/
+// [OK] CORRECT: Global utility in components/
 // components/theme-provider.tsx
 export function ThemeProvider({ children }) {
   return <ThemeContext.Provider>{children}</ThemeContext.Provider>
 }
 
-// ❌ WRONG: Feature-specific in components/
+// [X] WRONG: Feature-specific in components/
 // components/login-form.tsx  ← Should be app/(auth)/_components/login-form.tsx
 export function LoginForm() { ... }
 
-// ❌ WRONG: Auth-specific in components/
+// [X] WRONG: Auth-specific in components/
 // components/auth-button.tsx  ← Should be app/(auth)/_components/auth-button.tsx
 export function AuthButton() { ... }
 ```
@@ -260,26 +260,26 @@ Is it a design system primitive (Button, Input, Typography)?
 
 #### Design System Primitive
 ```tsx
-// ✅ components/ui/button.tsx
+// [OK] components/ui/button.tsx
 export function Button({ ... }) { ... }
 ```
 
 #### Global Component
 ```tsx
-// ✅ components/theme-provider.tsx
+// [OK] components/theme-provider.tsx
 export function ThemeProvider({ ... }) { ... }
 ```
 
 #### Feature-Shared Component (Reusable)
 ```tsx
-// ✅ app/(auth)/_components/social-buttons.tsx
+// [OK] app/(auth)/_components/social-buttons.tsx
 // Shared auth-only UI reused by multiple auth pages
 export function SocialButtons({ disabled }) { ... }
 ```
 
 #### Feature Component (Page-Specific)
 ```tsx
-// ✅ app/(auth)/_components/login-form.tsx
+// [OK] app/(auth)/_components/login-form.tsx
 // Specific to login page, but lives in feature _components/
 export function LoginForm() { ... }
 ```
@@ -306,11 +306,11 @@ Is it a global utility (cn, formatDate)?
 All imports use the `@/` alias configured in `tsconfig.json`:
 
 ```tsx
-// ✅ Good
+// [OK] Good
 import { Button } from "@/components/ui/button"
 import { loginSchema } from "@/app/(auth)/_lib/schemas"
 
-// ❌ Bad (relative paths)
+// [X] Bad (relative paths)
 import { Button } from "../../../components/ui/button"
 ```
 
@@ -371,11 +371,11 @@ import { LoginHeader } from "./login-header"
 
 ## Best Practices
 
-### Do's ✅
+### Do's [OK]
 
 1. **Keep features self-contained**
    ```tsx
-   // ✅ Feature owns its logic
+   // [OK] Feature owns its logic
    app/onboarding/
    ├── _lib/
    │   ├── fixtures.ts
@@ -386,7 +386,7 @@ import { LoginHeader } from "./login-header"
 
 2. **Keep feature components in `_components/`**
    ```tsx
-   // ✅ All feature components in _components/
+   // [OK] All feature components in _components/
    app/(auth)/
    ├── _components/
    │   ├── auth-form.tsx
@@ -397,54 +397,54 @@ import { LoginHeader } from "./login-header"
 
 3. **Use private folders for non-routes**
    ```tsx
-   // ✅ Underscore prefix prevents routing
+   // [OK] Underscore prefix prevents routing
    app/feature/_components/
    app/feature/_lib/
    ```
 
 4. **Share common UI via design system**
    ```tsx
-   // ✅ Reusable primitives in components/ui/
+   // [OK] Reusable primitives in components/ui/
    import { Button } from "@/components/ui/button"
    ```
 
-### Don'ts ❌
+### Don'ts [X]
 
 1. **Don't put feature code in root components/**
    ```tsx
-   // ❌ Feature-specific component in wrong place
+   // [X] Feature-specific component in wrong place
    components/login/login-form.tsx
 
-   // ✅ Feature-specific component in right place
+   // [OK] Feature-specific component in right place
    app/(auth)/_components/login-form.tsx
    ```
 
 2. **Don't create deep component hierarchies**
    ```tsx
-   // ❌ Too deep
+   // [X] Too deep
    app/feature/_components/forms/auth/login/login-form.tsx
 
-   // ✅ Flat structure
+   // [OK] Flat structure
    app/(auth)/_components/auth-form.tsx
    app/(auth)/_components/login-form.tsx
    ```
 
 3. **Don't duplicate code across features**
    ```tsx
-   // ❌ Same logic in multiple features
+   // [X] Same logic in multiple features
    app/feature-a/_lib/format-date.ts
    app/feature-b/_lib/format-date.ts
 
-   // ✅ Shared utility
+   // [OK] Shared utility
    src/lib/utils.ts
    ```
 
 4. **Don't mix concerns**
    ```tsx
-   // ❌ Auth logic in onboarding
+   // [X] Auth logic in onboarding
    app/onboarding/_lib/auth.ts
 
-   // ✅ Auth logic in auth feature
+   // [OK] Auth logic in auth feature
    app/(auth)/_lib/schemas.ts
    ```
 
@@ -614,9 +614,9 @@ import { ConfirmationModal } from "../_components/confirmation-modal"
 ```
 
 **Guideline:**
-- ✅ All feature components go in `_components/` (whether shared or page-specific)
-- ✅ Keeps feature code centralized and easy to find
-- ✅ No need to decide "is this shared enough?" — everything in one place
+- [OK] All feature components go in `_components/` (whether shared or page-specific)
+- [OK] Keeps feature code centralized and easy to find
+- [OK] No need to decide "is this shared enough?" — everything in one place
 
 ### Adding Business Logic
 
@@ -662,17 +662,17 @@ components/ui/status-badge.tsx  // Single source of truth
 ```
 
 **When to promote to `/components/`:**
-- ✅ Used by **3 or more different features** (not just pages in same feature)
-- ✅ Contains **zero feature-specific logic** (truly generic)
-- ✅ Follows **design system patterns** (semantic colors, spacing components)
-- ✅ Could be **extracted to npm package** without modification
-- ✅ Provides **reusable UI primitive** used across entire app
+- [OK] Used by **3 or more different features** (not just pages in same feature)
+- [OK] Contains **zero feature-specific logic** (truly generic)
+- [OK] Follows **design system patterns** (semantic colors, spacing components)
+- [OK] Could be **extracted to npm package** without modification
+- [OK] Provides **reusable UI primitive** used across entire app
 
 **When NOT to promote:**
-- ❌ Used by 2 features or less
-- ❌ Contains feature-specific business logic
-- ❌ Might be reused "someday" (avoid premature abstraction)
-- ❌ Specific to one domain (auth, onboarding, etc.)
+- [X] Used by 2 features or less
+- [X] Contains feature-specific business logic
+- [X] Might be reused "someday" (avoid premature abstraction)
+- [X] Specific to one domain (auth, onboarding, etc.)
 
 ---
 

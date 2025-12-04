@@ -708,7 +708,7 @@
   }
 
   .callout-tip::before {
-    content: "💡";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -717,7 +717,7 @@
   }
 
   .callout-warning::before {
-    content: "⚠️";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -726,7 +726,7 @@
   }
 
   .callout-note::before {
-    content: "📝";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -735,7 +735,7 @@
   }
 
   .callout-info::before {
-    content: "ℹ️";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -744,7 +744,7 @@
   }
 
   .callout-success::before {
-    content: "✅";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -753,7 +753,7 @@
   }
 
   .callout-error::before {
-    content: "❌";
+    content: "";
     @apply inline-block mr-2;
   }
 
@@ -972,7 +972,7 @@
   }
 
   .quiz-explanation::before {
-    content: "💡 ";
+    content: "";
     @apply mr-2;
   }
 

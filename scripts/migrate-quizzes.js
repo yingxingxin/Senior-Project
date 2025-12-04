@@ -18,12 +18,12 @@ async function runMigration() {
   const sql = postgres(process.env.DATABASE_URL);
   
   try {
-    console.log('📦 Reading migration file...');
+    console.log('Reading migration file...');
     const migrationPath = join(__dirname, '../src/db/migrations/0011_restructure_quizzes.sql');
     const migrationSQL = readFileSync(migrationPath, 'utf-8');
     
-    console.log('🚀 Running migration...');
-    console.log('⚠️  WARNING: This will drop and recreate quiz-related tables!');
+    console.log('Running migration...');
+    console.log('WARNING: This will drop and recreate quiz-related tables!');
     console.log('   All existing quiz data will be lost.\n');
     
     // Execute the entire migration as one transaction
@@ -74,16 +74,16 @@ async function runMigration() {
             errorMsg.includes('cannot drop') && errorMsg.includes('because other objects depend')) {
           console.log(`⚠ [${i + 1}/${statements.length}] Skipped: ${error.message.split('\n')[0]}`);
         } else {
-          console.error(`❌ [${i + 1}/${statements.length}] Failed:`, error.message);
+          console.error(`[${i + 1}/${statements.length}] Failed:`, error.message);
           throw error;
         }
       }
     }
     
-    console.log('\n✅ Migration completed successfully!');
-    console.log('📝 Note: You may need to set NOT NULL constraints on new columns if you have existing data.');
+    console.log('\nMigration completed successfully!');
+    console.log('Note: You may need to set NOT NULL constraints on new columns if you have existing data.');
   } catch (error) {
-    console.error('\n❌ Migration failed:', error.message);
+    console.error('\nMigration failed:', error.message);
     throw error;
   } finally {
     await sql.end();
@@ -92,11 +92,11 @@ async function runMigration() {
 
 runMigration()
   .then(() => {
-    console.log('🎉 Done!');
+    console.log('Done!');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('💥 Fatal error:', error);
+    console.error('Fatal error:', error);
     process.exit(1);
   });
 

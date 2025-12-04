@@ -170,7 +170,7 @@ STEP 3: Call "finish_with_summary" with:
    - summary: Brief summary of course content
    - Will FAIL if any lesson has 0 sections!
 
-⚠️ SLUG FORMAT REQUIREMENTS:
+SLUG FORMAT REQUIREMENTS:
 - Lowercase letters, numbers, and hyphens ONLY
 - NO spaces, underscores, or special characters
 - Make slugs readable and meaningful
@@ -178,7 +178,7 @@ STEP 3: Call "finish_with_summary" with:
 - Lesson slugs: clear (e.g., "understanding-usestate")
 - Section slugs: concise (e.g., "introduction", "examples")
 
-⚠️ CRITICAL RULES:
+CRITICAL RULES:
 1. create_section REQUIRES lesson_slug - you must specify which lesson each section belongs to
 2. You MUST create a lesson BEFORE creating sections within it
 3. Each lesson needs 3-5 sections for proper navigation

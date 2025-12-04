@@ -10,10 +10,10 @@ import type { TiptapDocument } from '../../tiptap-schema';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
-    console.error(`❌ FAILED: ${message}`);
+    console.error(`FAILED: ${message}`);
     process.exit(1);
   }
-  console.log(`✅ PASSED: ${message}`);
+  console.log(`PASSED: ${message}`);
 }
 
 console.log('=== Chunker Tests ===\n');
@@ -104,4 +104,4 @@ for (const chunk of largeChunks) {
 console.log('  All nodes are intact (no split nodes)');
 console.log('');
 
-console.log('🎉 All chunker tests passed!\n');
+console.log('All chunker tests passed!\n');

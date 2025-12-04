@@ -97,7 +97,7 @@ export function DashboardScene() {
                 <AnimatedStatCard label="Points" targetValue={mockUser.points} icon="⭐" delay={15} />
                 <AnimatedStatCard label="Streak" targetValue={mockUser.streakDays} icon="🔥" suffix=" days" delay={20} />
                 <AnimatedStatCard label="Lessons" targetValue={mockUser.totalLessonsCompleted} icon="📚" delay={25} />
-                <AnimatedStatCard label="Courses" targetValue={mockUser.totalCoursesCompleted} icon="✅" delay={30} />
+                <AnimatedStatCard label="Courses" targetValue={mockUser.totalCoursesCompleted} icon="" delay={30} />
               </div>
             </div>
           </FadeInLeft>

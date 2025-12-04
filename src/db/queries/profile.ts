@@ -11,7 +11,7 @@ import {
   user_experiences,
   user_profile_themes,
 } from '@/src/db/schema';
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq, asc, desc, and, or, ilike, sql } from 'drizzle-orm';
 
 /**
  * Get user profile by user ID
@@ -394,5 +394,88 @@ export async function upsertUserProfileTheme(
     .returning();
 
   return result;
+}
+
+/**
+ * Search public user profiles
+ *
+ * Searches for public profiles by handle or display name.
+ * Returns minimal profile data for user cards.
+ *
+ * @param search - Search string (optional, empty string returns all public profiles)
+ * @param limit - Maximum number of results (default: 20)
+ * @returns Array of public profile summaries
+ *
+ * @example
+ * const results = await searchPublicProfiles('john', 20);
+ */
+export async function searchPublicProfiles(
+  search?: string | null,
+  limit: number = 20
+) {
+  const conditions = [eq(user_profiles.is_public, true)];
+
+  if (search && search.trim()) {
+    const searchPattern = `%${search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(user_profiles.handle, searchPattern),
+        ilike(user_profiles.display_name, searchPattern)
+      )!
+    );
+  }
+
+  const results = await db
+    .select({
+      user_id: user_profiles.user_id,
+      handle: user_profiles.handle,
+      display_name: user_profiles.display_name,
+      tagline: user_profiles.tagline,
+      avatar_url: user_profiles.avatar_url,
+    })
+    .from(user_profiles)
+    .where(and(...conditions))
+    .limit(limit);
+
+  return results;
+}
+
+/**
+ * Get random public profiles for recommendations
+ *
+ * Returns a random set of public profiles to show as recommendations.
+ * Uses PostgreSQL's random() function for randomization.
+ *
+ * @param limit - Number of profiles to return (default: 6)
+ * @param excludeUserId - Optional user ID to exclude from results
+ * @returns Array of public profile summaries
+ *
+ * @example
+ * const recommendations = await getRandomPublicProfiles(6, 123);
+ */
+export async function getRandomPublicProfiles(
+  limit: number = 6,
+  excludeUserId?: number
+) {
+  const conditions = [eq(user_profiles.is_public, true)];
+
+  if (excludeUserId) {
+    conditions.push(sql`${user_profiles.user_id} != ${excludeUserId}`);
+  }
+
+  const results = await db
+    .select({
+      user_id: user_profiles.user_id,
+      handle: user_profiles.handle,
+      display_name: user_profiles.display_name,
+      tagline: user_profiles.tagline,
+      avatar_url: user_profiles.avatar_url,
+    })
+    .from(user_profiles)
+    .where(and(...conditions))
+    .orderBy(sql`RANDOM()`)
+    .limit(limit);
+
+  return results;
 }
 

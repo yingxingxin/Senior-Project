@@ -25,7 +25,7 @@ process.env.ENABLE_WORKERS = 'true';
 console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
-║     🚀 BullMQ Worker Process Starting                         ║
+║     BullMQ Worker Process Starting                            ║
 ║                                                                ║
 ║     Processing: AI Lesson Generation Jobs                     ║
 ║     Redis: ${process.env.REDIS_URL ? 'URL-based' : 'Host-based'}                                      ║
@@ -39,7 +39,7 @@ const requiredEnvVars = ['DATABASE_URL', 'OPENROUTER_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
 
 if (missingEnvVars.length > 0) {
-  console.error('❌ Missing required environment variables:');
+  console.error('Missing required environment variables:');
   missingEnvVars.forEach((key) => {
     console.error(`   - ${key}`);
   });
@@ -49,7 +49,7 @@ if (missingEnvVars.length > 0) {
 
 // Check Redis configuration
 if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
-  console.error('❌ Missing Redis configuration:');
+  console.error('Missing Redis configuration:');
   console.error('   Set either REDIS_URL or REDIS_HOST/REDIS_PORT');
   console.error('\n  Examples:');
   console.error('    REDIS_URL=redis://localhost:6379');
@@ -58,15 +58,15 @@ if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
   process.exit(1);
 }
 
-console.log('✅ Environment configuration validated\n');
+console.log('Environment configuration validated\n');
 
 // Initialize all workers
 try {
   initializeAllWorkers();
-  console.log('\n✅ Workers initialized and ready to process jobs');
+  console.log('\nWorkers initialized and ready to process jobs');
   console.log('   Press Ctrl+C to gracefully shutdown\n');
 } catch (error) {
-  console.error('❌ Failed to initialize workers:', error);
+  console.error('Failed to initialize workers:', error);
   process.exit(1);
 }
 
@@ -78,14 +78,14 @@ process.stdin.resume();
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('💥 Uncaught exception:', error);
+  console.error('Uncaught exception:', error);
   shutdownAllWorkers().finally(() => {
     process.exit(1);
   });
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('💥 Unhandled rejection at:', promise, 'reason:', reason);
+  console.error('Unhandled rejection at:', promise, 'reason:', reason);
   shutdownAllWorkers().finally(() => {
     process.exit(1);
   });

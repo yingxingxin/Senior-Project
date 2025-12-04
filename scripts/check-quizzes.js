@@ -50,20 +50,20 @@ async function checkQuizzes() {
       // Check for quizzes without slugs
       const quizzesWithoutSlugs = allQuizzes.filter(q => !q.slug || q.slug.trim() === '');
       if (quizzesWithoutSlugs.length > 0) {
-        console.log(`\n⚠️  Warning: ${quizzesWithoutSlugs.length} quiz(es) without valid slugs:`);
+        console.log(`\nWarning: ${quizzesWithoutSlugs.length} quiz(es) without valid slugs:`);
         quizzesWithoutSlugs.forEach(q => {
           console.log(`   - ID ${q.id}: "${q.title}"`);
         });
       }
     } else {
-      console.log('\n💡 No quizzes found in the database.');
+      console.log('\nNo quizzes found in the database.');
       console.log('   You can create quizzes using the seed script or manually insert them.');
     }
 
     await sql.end();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error checking quizzes:', error);
+    console.error('Error checking quizzes:', error);
     if (sql) await sql.end();
     process.exit(1);
   }

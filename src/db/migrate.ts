@@ -15,13 +15,13 @@ const client = postgres(connectionString, { max: 1 });
 const db = drizzle(client);
 
 async function runMigrations() {
-  console.log('🔄 Running database migrations...');
+  console.log('Running database migrations...');
   
   try {
     await migrate(db, { migrationsFolder: './src/db/migrations' });
-    console.log('✅ Migrations completed successfully!');
+    console.log('Migrations completed successfully!');
   } catch (error) {
-    console.error('❌ Migration failed:', error);
+    console.error('Migration failed:', error);
     throw error;
   } finally {
     await client.end();
@@ -35,7 +35,7 @@ if (require.main === module) {
       process.exit(0);
     })
     .catch((error) => {
-      console.error('💥 Migration script failed:', error);
+      console.error('Migration script failed:', error);
       process.exit(1);
     });
 }
