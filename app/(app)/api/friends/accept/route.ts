@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { acceptFriendRequest } from "@/src/db/queries/friends";
+import { getUserProfileByUserId } from "@/src/db/queries/profile";
+import { enqueueNotification } from "@/src/lib/queue";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +26,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await acceptFriendRequest(Number(friendshipId), receiverUserId);
+    const friendship = await acceptFriendRequest(Number(friendshipId), receiverUserId);
+
+    // Send notification to the original requester that their request was accepted
+    const accepterProfile = await getUserProfileByUserId(String(receiverUserId));
+    const accepterName = accepterProfile?.display_name || session.user.name || "Someone";
+    const accepterHandle = accepterProfile?.handle;
+
+    await enqueueNotification({
+      userId: friendship.requester_user_id,
+      type: "friend_accepted",
+      title: "Friend Request Accepted",
+      message: `${accepterName} accepted your friend request`,
+      link: accepterHandle ? `/u/${accepterHandle}` : "/friends",
+      data: {
+        accepterId: receiverUserId,
+        accepterName: accepterName,
+        accepterHandle: accepterHandle,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

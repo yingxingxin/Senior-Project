@@ -34,3 +34,6 @@ export * from './profile';
 
 // Social Features (Friendships & Testimonials)
 export * from './social';
+
+// Notifications
+export * from './notifications';

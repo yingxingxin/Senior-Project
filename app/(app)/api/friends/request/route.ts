@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { createFriendRequest } from "@/src/db/queries/friends";
-import { getUserProfileByHandle } from "@/src/db/queries/profile";
+import { getUserProfileByHandle, getUserProfileByUserId } from "@/src/db/queries/profile";
+import { enqueueNotification } from "@/src/lib/queue";
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,6 +47,25 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Send notification to the receiver
+    // Get requester's profile to include their name in the notification
+    const requesterProfile = await getUserProfileByUserId(String(requesterUserId));
+    const requesterName = requesterProfile?.display_name || session.user.name || "Someone";
+    const requesterHandle = requesterProfile?.handle;
+
+    await enqueueNotification({
+      userId: targetUserId,
+      type: "friend_request",
+      title: "New Friend Request",
+      message: `${requesterName} sent you a friend request`,
+      link: requesterHandle ? `/u/${requesterHandle}` : "/friends",
+      data: {
+        senderId: requesterUserId,
+        senderName: requesterName,
+        senderHandle: requesterHandle,
+      },
+    });
 
     return NextResponse.json({ success: true, friendship: result });
   } catch (error) {

@@ -15,16 +15,21 @@ export {
   getLessonGenerationJobStatus,
   getLessonGenerationQueueMetrics,
   cleanLessonGenerationQueue,
+  notificationQueue,
+  enqueueNotification,
+  getNotificationQueueMetrics,
 } from './queues';
 
 // Worker initialization
 export {
   initializeAllWorkers,
   initializeLessonGenerationWorker,
+  initializeNotificationWorker,
   shutdownAllWorkers,
   registerSignalHandlers,
   isWorkersEnabled,
   lessonGenerationWorker,
+  notificationWorker,
 } from './workers';
 
 // Type exports
@@ -32,6 +37,8 @@ export type {
   GenerateLessonJobData,
   GenerateLessonJobResult,
   LessonGenerationProgress,
+  CreateNotificationJobData,
+  CreateNotificationJobResult,
   JobName,
   QueueName,
 } from './types';
@@ -40,3 +47,4 @@ export { JOB_NAMES, QUEUE_NAMES } from './types';
 
 // Job processors (for testing/manual execution)
 export { processLessonGeneration } from './jobs/lesson-generation';
+export { processNotification } from './jobs/notification';

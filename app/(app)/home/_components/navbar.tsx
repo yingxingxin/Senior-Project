@@ -35,7 +35,6 @@ import {
   Settings,
   User,
   LogOut,
-  Bell,
   Bot,
   Search,
   Users,
@@ -51,6 +50,7 @@ import { cn } from "@/lib/utils";
 import { NavbarData } from "@/app/(app)/actions";
 import { Heading, Muted } from "@/components/ui/typography";
 import { useMusic } from "@/components/music";
+import { NotificationDropdown } from "./notifications";
 
 interface NavbarProps {
   data: NavbarData | null;
@@ -397,17 +397,8 @@ export default function Navbar({ data }: NavbarProps) {
 
             {/* Right: Icons and Profile */}
             <div className="flex items-center gap-2">
-              {/* Notifications Icon */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                    <Bell className="h-5 w-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Notifications</p>
-                </TooltipContent>
-              </Tooltip>
+              {/* Notifications Dropdown */}
+              <NotificationDropdown />
 
               {/* Profile Dropdown */}
               <DropdownMenu>

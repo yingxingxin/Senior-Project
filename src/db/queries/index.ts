@@ -37,3 +37,6 @@ export * from './music';
 
 // Profile queries
 export * from './profile';
+
+// Notification queries
+export * from './notifications';

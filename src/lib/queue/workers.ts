@@ -7,8 +7,15 @@
 
 import { Worker, type WorkerOptions } from 'bullmq';
 import { getRedisConnection } from './connection';
-import { QUEUE_NAMES, type GenerateLessonJobData, type GenerateLessonJobResult } from './types';
+import {
+  QUEUE_NAMES,
+  type GenerateLessonJobData,
+  type GenerateLessonJobResult,
+  type CreateNotificationJobData,
+  type CreateNotificationJobResult,
+} from './types';
 import { processLessonGeneration } from './jobs/lesson-generation';
+import { processNotification } from './jobs/notification';
 
 /**
  * Check if workers should be enabled
@@ -113,6 +120,70 @@ export function initializeLessonGenerationWorker() {
 }
 
 /**
+ * Notification Worker
+ *
+ * Processes jobs from the notifications queue
+ */
+export let notificationWorker: Worker<CreateNotificationJobData, CreateNotificationJobResult> | null = null;
+
+/**
+ * Initialize the notification worker
+ */
+export function initializeNotificationWorker() {
+  if (!isWorkersEnabled()) {
+    console.log('[Workers] Workers disabled - skipping notification worker initialization');
+    return null;
+  }
+
+  if (notificationWorker) {
+    console.log('[Workers] Notification worker already initialized');
+    return notificationWorker;
+  }
+
+  notificationWorker = new Worker<CreateNotificationJobData, CreateNotificationJobResult>(
+    QUEUE_NAMES.NOTIFICATIONS,
+    async (job) => {
+      console.log(`[Worker] Processing notification job: ${job.id}`);
+      return await processNotification(job);
+    },
+    {
+      connection: getRedisConnection(),
+      ...defaultWorkerOptions,
+      // Higher concurrency for notifications (fast DB inserts)
+      concurrency: parseInt(process.env.NOTIFICATION_WORKER_CONCURRENCY || '5', 10),
+    }
+  );
+
+  // Event: Job completed successfully
+  notificationWorker.on('completed', (job, result) => {
+    console.log(`[Worker] Notification job completed: ${job.id}`, {
+      notificationId: result.notificationId,
+    });
+  });
+
+  // Event: Job failed after all retries
+  notificationWorker.on('failed', (job, error) => {
+    console.error(`[Worker] Notification job failed: ${job?.id}`, {
+      error: error.message,
+      attemptsMade: job?.attemptsMade,
+    });
+  });
+
+  // Event: Worker error (connection issues, etc.)
+  notificationWorker.on('error', (error) => {
+    console.error('[Worker] Notification worker error:', error);
+  });
+
+  // Event: Worker ready
+  notificationWorker.on('ready', () => {
+    console.log('[Worker] Notification worker ready');
+  });
+
+  console.log('[Workers] Notification worker initialized');
+  return notificationWorker;
+}
+
+/**
  * Initialize all workers
  *
  * Call this function to start all workers.
@@ -124,10 +195,8 @@ export function initializeAllWorkers() {
   // Initialize lesson generation worker
   initializeLessonGenerationWorker();
 
-  // TODO: Add more workers here as needed
-  // - Image generation worker
-  // - Email notification worker
-  // - etc.
+  // Initialize notification worker
+  initializeNotificationWorker();
 
   console.log('[Workers] All workers initialized');
 }
@@ -146,7 +215,9 @@ export async function shutdownAllWorkers() {
     shutdownPromises.push(lessonGenerationWorker.close());
   }
 
-  // TODO: Add more worker shutdowns here
+  if (notificationWorker) {
+    shutdownPromises.push(notificationWorker.close());
+  }
 
   await Promise.all(shutdownPromises);
 

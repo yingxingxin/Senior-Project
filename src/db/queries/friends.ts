@@ -172,6 +172,7 @@ export async function getPendingRequests(receiverUserId: number) {
  *
  * @param friendshipId - The friendship record ID
  * @param receiverUserId - The user accepting (must be receiver)
+ * @returns The friendship record with requester_user_id for notification
  */
 export async function acceptFriendRequest(
   friendshipId: number,
@@ -201,6 +202,8 @@ export async function acceptFriendRequest(
       updated_at: new Date(),
     })
     .where(eq(user_friendships.id, friendshipId));
+
+  return friendship;
 }
 
 /**
