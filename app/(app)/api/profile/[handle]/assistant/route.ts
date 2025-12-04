@@ -241,7 +241,6 @@ export async function POST(
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
       temperature: 0.7,
-      maxTokens: 200, // Short responses
     });
 
     // Log request (without sensitive data)
