@@ -1,5 +1,8 @@
 import { headers } from "next/headers";
 import { auth } from "@/src/lib/auth";
+import { db } from "@/src/db";
+import { levels } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 import {
   getUserWithAssistant,
   getUserActivityStats,
@@ -85,6 +88,7 @@ export type NavbarData = {
   };
   stats: {
     level: number;
+    levelLabel: string | null;
     streak: number;
     points: number;
   };
@@ -390,6 +394,13 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
   // Get user stats (reuse existing function)
   const stats = await getUserStats(userId);
 
+  // Get level label from levels table
+  const [levelData] = await db
+    .select({ label: levels.label })
+    .from(levels)
+    .where(eq(levels.level, stats.level))
+    .limit(1);
+
   // Generate initials from name or email
   const displayName = userData.name || userData.email?.split("@")[0] || "U";
   const nameParts = displayName.split(" ");
@@ -406,6 +417,7 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
     },
     stats: {
       level: stats.level,
+      levelLabel: levelData?.label || null,
       streak: stats.currentStreak,
       points: stats.totalPoints,
     },
