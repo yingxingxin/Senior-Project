@@ -6,15 +6,43 @@ import { Button } from "@/components/ui/button";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Inline } from "@/components/ui/spacing";
 import { COURSES, SKILL_LEVEL_RECOMMENDATIONS } from "@/src/lib/constants";
+import { getCoursesWithStats } from "@/app/(app)/courses/_lib/actions";
+import { formatDuration } from "@/app/(app)/courses/_lib/utils";
 
 interface RecommendedCourseSectionProps {
   skillLevel: string | null;
 }
 
-export function RecommendedCourseSection({ skillLevel }: RecommendedCourseSectionProps) {
-  // Get recommended course based on skill level
-  const recommendedCourseId = skillLevel ? SKILL_LEVEL_RECOMMENDATIONS[skillLevel] : 'programming-foundations';
-  const recommendedCourse = COURSES.find(course => course.id === recommendedCourseId) || COURSES[0];
+export async function RecommendedCourseSection({ skillLevel }: RecommendedCourseSectionProps) {
+  // Fetch actual courses from database with stats
+  const allCoursesWithStats = await getCoursesWithStats();
+  
+  // Get recommended course slug based on skill level
+  const recommendedCourseSlug = skillLevel ? SKILL_LEVEL_RECOMMENDATIONS[skillLevel] : 'programming-foundations';
+  
+  // Find the actual course in the database
+  let actualCourse = allCoursesWithStats.find(course => course.slug === recommendedCourseSlug);
+  
+  // If recommended course doesn't exist, fall back to first available curated course (non-AI)
+  if (!actualCourse && allCoursesWithStats.length > 0) {
+    actualCourse = allCoursesWithStats.find(course => !course.isAiGenerated) || allCoursesWithStats[0];
+  }
+  
+  // If still no course found, use the constant as fallback
+  const recommendedCourseConstant = COURSES.find(course => course.id === (actualCourse?.slug || recommendedCourseSlug)) || COURSES[0];
+  
+  // Use the actual course slug from database, or fall back to constant id
+  const courseSlug = actualCourse?.slug || recommendedCourseSlug;
+  
+  // Use actual course data if available, otherwise use constant
+  const displayCourse = actualCourse ? {
+    title: actualCourse.title,
+    description: actualCourse.description || recommendedCourseConstant.description,
+    difficulty: actualCourse.difficulty || recommendedCourseConstant.difficulty || 'standard',
+    icon: actualCourse.icon || recommendedCourseConstant.icon,
+    lessonsCount: actualCourse.lessonsCount || 0,
+    estimatedDuration: actualCourse.estimatedDurationSec ? formatDuration(actualCourse.estimatedDurationSec) : recommendedCourseConstant.estimatedDuration,
+  } : recommendedCourseConstant;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -42,34 +70,38 @@ export function RecommendedCourseSection({ skillLevel }: RecommendedCourseSectio
             <Stack gap="default">
               <Inline align="start" justify="between">
                 <div className="w-12 h-12 border-2 border-border rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-primary/30 shadow-lg">
-                  {recommendedCourse.icon}
+                  {displayCourse.icon}
                 </div>
                 <Badge
                   variant="outline"
-                  className={getDifficultyColor(recommendedCourse.difficulty)}
+                  className={getDifficultyColor(displayCourse.difficulty)}
                 >
-                  {recommendedCourse.difficulty}
+                  {displayCourse.difficulty}
                 </Badge>
               </Inline>
 
               <Stack gap="tight">
-                <Heading level={6} className="text-foreground">{recommendedCourse.title}</Heading>
+                <Heading level={6} className="text-foreground">{displayCourse.title}</Heading>
                 <Body variant="small" className="text-foreground">
-                  {recommendedCourse.description}
+                  {displayCourse.description}
                 </Body>
               </Stack>
 
               <Inline gap="default" align="center" className="text-sm text-muted-foreground">
-                <span>{recommendedCourse.lessonsCount} lessons</span>
-                <span>•</span>
-                <span>{recommendedCourse.estimatedDuration}</span>
+                {displayCourse.lessonsCount > 0 && (
+                  <>
+                    <span>{displayCourse.lessonsCount} {displayCourse.lessonsCount === 1 ? 'lesson' : 'lessons'}</span>
+                    <span>•</span>
+                  </>
+                )}
+                <span>{displayCourse.estimatedDuration}</span>
               </Inline>
 
               <Button
                 asChild
                 className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-primary/30 shadow-lg"
               >
-                <Link href={`/courses/${recommendedCourse.id}`}>
+                <Link href={`/courses/${courseSlug}`}>
                   Start Course
                   <ArrowRight className="h-4 w-4" />
                 </Link>
