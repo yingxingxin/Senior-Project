@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, BookOpen, CheckCircle } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, CheckCircle, Loader2 } from "lucide-react";
 import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Stack, Grid, Inline } from "@/components/ui/spacing";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { getCourseData } from "../_lib/actions";
 import { formatDuration } from "../_lib/utils";
 import { LessonButton } from "../_components/lesson-button";
+import { GeneratingLessonsIndicator } from "../_components/generating-lessons-indicator";
 
 interface CourseDetailPageProps {
   params: Promise<{ id: string }>;
@@ -24,7 +25,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     notFound();
   }
 
-  const { lessons, completedLessons, totalLessons, progressPercentage, courseTitle, courseIcon, courseDifficulty, courseDescription, courseEstimatedDurationSec } = courseData;
+  const { lessons, completedLessons, totalLessons, progressPercentage, courseTitle, courseIcon, courseDifficulty, courseDescription, courseEstimatedDurationSec, isStillGenerating, expectedLessonCount } = courseData;
   const startedLesson = lessons.find((lesson) => lesson.startedAt && !lesson.isCompleted);
   const nextLesson = lessons.find((lesson) => !lesson.isCompleted);
   const lessonToOpen = startedLesson ?? nextLesson ?? null;
@@ -115,7 +116,25 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
           {/* Lessons List */}
           <Card className="bg-card/50 backdrop-blur border-border shadow-lg p-6">
             <Stack gap="default">
-              <Heading level={3} className="text-foreground">Course Content</Heading>
+              <Inline align="center" justify="between">
+                <Heading level={3} className="text-foreground">Course Content</Heading>
+                {isStillGenerating && expectedLessonCount && (
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    Generating {totalLessons}/{expectedLessonCount} lessons
+                  </Badge>
+                )}
+              </Inline>
+
+              {/* Show generating indicator if content is still being created */}
+              {isStillGenerating && expectedLessonCount && (
+                <GeneratingLessonsIndicator
+                  currentLessons={totalLessons}
+                  expectedLessons={expectedLessonCount}
+                  courseSlug={id}
+                />
+              )}
+
                   <Grid cols={1} gap="tight">
                     {lessons.map((lesson) => (
                       <Card

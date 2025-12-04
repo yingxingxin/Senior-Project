@@ -30,6 +30,12 @@ interface JobStatus {
     message: string;
     stepNumber?: number;
     totalSteps?: number;
+    // Early redirect fields
+    canRedirect?: boolean;
+    courseSlug?: string;
+    firstLessonSlug?: string;
+    lessonsCompleted?: number;
+    totalLessons?: number;
   };
   result?: {
     lessonId: number;
@@ -75,7 +81,16 @@ export function GenerationProgressDialog({
         const data: JobStatus = await response.json();
         setStatus(data);
 
-        // Handle completion
+        // Handle EARLY redirect - redirect as soon as first lesson is saved
+        // This allows users to see content while remaining lessons are still being saved
+        if (data.progress?.canRedirect && data.progress?.courseSlug) {
+          if (intervalIdRef) clearInterval(intervalIdRef);
+          // Redirect immediately to course overview - no delay needed
+          onComplete(data.progress.courseSlug, data.progress.firstLessonSlug || '');
+          return;
+        }
+
+        // Handle full completion (fallback if early redirect didn't trigger)
         if (data.state === 'completed' && data.result) {
           if (intervalIdRef) clearInterval(intervalIdRef);
           setTimeout(() => {

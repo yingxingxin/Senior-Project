@@ -43,11 +43,28 @@ export async function GET(
       );
     }
 
+    // Build progress object with early redirect fields if available
+    // status.progress from BullMQ can be object | number, so we need to handle both
+    const rawProgress = status.progress;
+    const progressData = typeof rawProgress === 'object' && rawProgress !== null
+      ? rawProgress as Record<string, unknown>
+      : {};
+
     // Return status information
     return NextResponse.json({
       jobId: status.jobId,
       state: status.state, // 'waiting', 'active', 'completed', 'failed', 'delayed'
-      progress: status.progress || { percentage: 0, step: 'waiting', message: 'Waiting to start' },
+      progress: {
+        percentage: (progressData.percentage as number) ?? 0,
+        step: (progressData.step as string) ?? 'waiting',
+        message: (progressData.message as string) ?? 'Waiting to start',
+        // Include early redirect fields if present
+        canRedirect: progressData.canRedirect as boolean | undefined,
+        courseSlug: progressData.courseSlug as string | undefined,
+        firstLessonSlug: progressData.firstLessonSlug as string | undefined,
+        lessonsCompleted: progressData.lessonsCompleted as number | undefined,
+        totalLessons: progressData.totalLessons as number | undefined,
+      },
 
       // Include result if completed
       ...(status.state === 'completed' && status.result

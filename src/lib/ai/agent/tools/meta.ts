@@ -20,8 +20,8 @@ export function createPlanTool(context: ToolExecutionContext) {
   return tool({
     description: `Create a structured plan for building the course content. This defines the hierarchy:
 - Course: The overall topic (e.g., "Mastering React Hooks")
-- Lessons: Major topics within the course (2-4 lessons, shown on course overview page)
-- Sections: Content chunks within each lesson (3-5 sections per lesson, what users navigate through with "Next")
+- Lessons: Major topics within the course (4-8 lessons, shown on course overview page)
+- Sections: Content chunks within each lesson (5-8 sections per lesson, what users navigate through with "Next")
 
 Always use this as the FIRST step before creating any content.`,
     inputSchema: z.object({
@@ -34,8 +34,8 @@ Always use this as the FIRST step before creating any content.`,
           slug: z.string().describe('URL-friendly slug for the section'),
           topics: z.array(z.string()).describe('Key topics to cover in this section'),
           interactiveElements: z.array(z.string()).describe('Interactive elements (callouts, code blocks, quizzes)'),
-        })).min(3).max(5).describe('Sections within this lesson (3-5 sections per lesson)'),
-      })).min(2).max(4).describe('Lessons within the course (2-4 lessons)'),
+        })).min(5).max(8).describe('Sections within this lesson (5-8 sections per lesson)'),
+      })).min(4).max(8).describe('Lessons within the course (4-8 lessons)'),
       estimatedDuration: z.number().describe('Estimated total duration in minutes'),
     }),
     execute: async ({ lessons, estimatedDuration }) => {

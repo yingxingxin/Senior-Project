@@ -4,7 +4,7 @@
  * TypeScript type definitions for all job data payloads and results.
  */
 
-import type { SkillLevel, Difficulty } from '@/src/db/schema';
+import type { SkillLevel, Difficulty, NotificationType } from '@/src/db/schema';
 
 /**
  * Job data for generating a new AI lesson
@@ -73,7 +73,7 @@ export interface GenerateLessonJobResult {
  */
 export interface LessonGenerationProgress {
   /** Current step in generation process */
-  step: 'initializing' | 'generating_outline' | 'generating_sections' | 'finalizing';
+  step: 'initializing' | 'generating_outline' | 'generating_sections' | 'finalizing' | 'storing';
 
   /** Progress percentage (0-100) */
   percentage: number;
@@ -87,6 +87,55 @@ export interface LessonGenerationProgress {
     total: number;
     title: string;
   };
+
+  /** Whether content is ready for early redirect (first lesson saved) */
+  canRedirect?: boolean;
+
+  /** Course slug for redirect (available when canRedirect is true) */
+  courseSlug?: string;
+
+  /** First lesson slug for redirect */
+  firstLessonSlug?: string;
+
+  /** Number of lessons saved so far */
+  lessonsCompleted?: number;
+
+  /** Total number of lessons planned */
+  totalLessons?: number;
+}
+
+/**
+ * Job data for creating a notification
+ */
+export interface CreateNotificationJobData {
+  /** User ID to receive the notification */
+  userId: number;
+
+  /** Type of notification */
+  type: NotificationType;
+
+  /** Notification title */
+  title: string;
+
+  /** Notification message body */
+  message: string;
+
+  /** Optional URL to navigate to when clicked */
+  link?: string;
+
+  /** Optional additional data (e.g., { senderId: 123 }) */
+  data?: Record<string, unknown>;
+}
+
+/**
+ * Result data from a successful notification job
+ */
+export interface CreateNotificationJobResult {
+  /** ID of the created notification */
+  notificationId: number;
+
+  /** Whether the notification was created successfully */
+  success: boolean;
 }
 
 /**
@@ -94,6 +143,7 @@ export interface LessonGenerationProgress {
  */
 export const JOB_NAMES = {
   GENERATE_LESSON: 'generate-lesson',
+  CREATE_NOTIFICATION: 'create-notification',
 } as const;
 
 export type JobName = (typeof JOB_NAMES)[keyof typeof JOB_NAMES];
@@ -103,6 +153,7 @@ export type JobName = (typeof JOB_NAMES)[keyof typeof JOB_NAMES];
  */
 export const QUEUE_NAMES = {
   LESSON_GENERATION: 'lesson-generation',
+  NOTIFICATIONS: 'notifications',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

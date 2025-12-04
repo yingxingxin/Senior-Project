@@ -23,10 +23,24 @@ export interface RunAgentParams {
 }
 
 /**
+ * Calculate target lesson count based on course duration
+ * More time = more lessons to fill the content appropriately
+ */
+function getTargetLessonCount(minutes: number): { min: number; target: number; max: number } {
+  if (minutes <= 20) return { min: 4, target: 4, max: 5 };
+  if (minutes <= 35) return { min: 5, target: 6, max: 7 };
+  if (minutes <= 50) return { min: 6, target: 7, max: 8 };
+  return { min: 7, target: 8, max: 8 }; // 50+ minutes
+}
+
+/**
  * Build system prompt for the agent
  */
 function buildSystemPrompt(params: RunAgentParams): string {
   const { topic, difficulty, estimatedDurationMinutes, userContext } = params;
+
+  // Get duration-based lesson targets
+  const lessonTargets = getTargetLessonCount(estimatedDurationMinutes);
 
   const personaInstruction = buildPersonaInstruction(
     userContext.assistantPersona,
@@ -50,24 +64,30 @@ COURSE REQUIREMENTS:
 - Target Duration: ${estimatedDurationMinutes} minutes
 - Approach: ${difficultyGuidance}
 - Target Word Count: ${estimatedDurationMinutes * 150}-${estimatedDurationMinutes * 200} words
+- **TARGET LESSON COUNT: ${lessonTargets.target} lessons** (minimum ${lessonTargets.min}, maximum ${lessonTargets.max})
+
+IMPORTANT: For a ${estimatedDurationMinutes}-minute course, you SHOULD create ${lessonTargets.target} lessons.
+Only create fewer if the topic genuinely doesn't have enough subtopics to warrant ${lessonTargets.target} lessons.
 
 3-LEVEL HIERARCHY (CRITICAL TO UNDERSTAND):
 ┌─────────────────────────────────────────────────────────────┐
 │ Level 1: COURSE (the main topic you're creating)            │
-│   └── Level 2: LESSONS (2-4 major subtopics)               │
-│         └── Level 3: SECTIONS (3-5 content chunks/lesson)  │
+│   └── Level 2: LESSONS (TARGET: ${lessonTargets.target} for ${estimatedDurationMinutes}min)    │
+│         └── Level 3: SECTIONS (5-8 content chunks/lesson)  │
 └─────────────────────────────────────────────────────────────┘
 
 - COURSE: The overall topic (e.g., "${topic}")
   - Shows as the course overview page
   - Defined by finish_with_summary (title, slug, description)
 
-- LESSONS: Major topics within the course (2-4 lessons)
+- LESSONS: Major topics within the course
+  - For ${estimatedDurationMinutes} minutes: CREATE ${lessonTargets.target} LESSONS (range: ${lessonTargets.min}-${lessonTargets.max})
   - Shown as clickable cards on the course overview page
   - Created using create_lesson tool
-  - Example: For "React Hooks" course, lessons might be "useState", "useEffect", "Custom Hooks"
+  - Break the topic into ${lessonTargets.target} distinct, meaningful subtopics
+  - Example: For "React Hooks" course, lessons might be "useState Basics", "useState Advanced Patterns", "useEffect Fundamentals", "useEffect Cleanup", "useRef", "Custom Hooks", "Performance Optimization", "Real-World Patterns"
 
-- SECTIONS: Content chunks within each lesson (3-5 per lesson)
+- SECTIONS: Content chunks within each lesson (5-8 per lesson)
   - What users navigate through with "Next" and "Previous" buttons
   - Created using create_section tool
   - Users see "Section 1 of 5" etc. when viewing a lesson
@@ -137,9 +157,11 @@ Mark the correct answer with * after the option text.
 CRITICAL WORKFLOW - 3-Level Generation (MUST complete ALL steps):
 
 STEP 1: Call "plan" to create course structure
-   - Define 2-4 lessons, each with 3-5 sections
+   - For ${estimatedDurationMinutes} minutes, create ${lessonTargets.target} lessons (min: ${lessonTargets.min}, max: ${lessonTargets.max})
+   - Each lesson should have 5-8 sections
    - Each lesson should cover a distinct subtopic
    - Each section should be a digestible chunk (300-500 words)
+   - More time = more lessons. Don't default to the minimum!
    - Tool response shows current state and next steps
 
 STEP 2: FOR EACH LESSON in your plan:
@@ -181,7 +203,7 @@ SLUG FORMAT REQUIREMENTS:
 CRITICAL RULES:
 1. create_section REQUIRES lesson_slug - you must specify which lesson each section belongs to
 2. You MUST create a lesson BEFORE creating sections within it
-3. Each lesson needs 3-5 sections for proper navigation
+3. Each lesson needs 5-8 sections for proper navigation
 4. Users will see "Section X of Y" - make sure Y > 1 per lesson!
 5. finish_with_summary will FAIL if ANY lesson has 0 sections - check tool responses for progress
 `;
@@ -267,11 +289,11 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
 
     // Single call to generateText - SDK handles ALL tool roundtrips automatically with stopWhen
     const response = await generateText({
-      model: openrouter(process.env.OPENROUTER_MODEL || 'openai/gpt-4o'),
+      model: openrouter('x-ai/grok-4.1-fast'),
       messages,
       tools,
       temperature: 0.7,
-      stopWhen: stepCountIs(30), // SDK will loop internally up to 30 times to allow full lesson generation
+      stopWhen: stepCountIs(80), // SDK will loop internally up to 80 times to allow full course generation (4-8 lessons × 5-8 sections = up to 64 sections + planning steps)
     });
 
     // Log what happened

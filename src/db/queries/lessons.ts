@@ -106,6 +106,7 @@ export const getAllCourses = db
     orderIndex: lessons.order_index,
     isAiGenerated: lessons.is_ai_generated,
     ownerUserId: lessons.owner_user_id,
+    aiMetadata: lessons.ai_metadata,
   })
   .from(lessons)
   .where(sql`${lessons.parent_lesson_id} IS NULL`)

@@ -27,6 +27,12 @@ export interface GenerateLessonParams {
     step: string;
     percentage: number;
     message: string;
+    // Early redirect fields
+    canRedirect?: boolean;
+    courseSlug?: string;
+    firstLessonSlug?: string;
+    lessonsCompleted?: number;
+    totalLessons?: number;
   }) => Promise<void>;
 }
 
@@ -98,9 +104,20 @@ export async function generateAILessonWithFullAgent(
 
   const startTime = Date.now();
 
-  const updateProgress = async (step: string, percentage: number, message: string) => {
+  const updateProgress = async (
+    step: string,
+    percentage: number,
+    message: string,
+    extra?: {
+      canRedirect?: boolean;
+      courseSlug?: string;
+      firstLessonSlug?: string;
+      lessonsCompleted?: number;
+      totalLessons?: number;
+    }
+  ) => {
     if (onProgress) {
-      await onProgress({ step, percentage, message });
+      await onProgress({ step, percentage, message, ...extra });
     }
   };
 
@@ -190,7 +207,7 @@ export async function generateAILessonWithFullAgent(
         topic,
         difficulty,
         context: context || null,
-        model_used: process.env.OPENROUTER_MODEL || 'openai/gpt-4o',
+        model_used: 'x-ai/grok-4.1-fast',
         persona_snapshot: userContext.assistantPersona,
         generation_timestamp: new Date().toISOString(),
         estimated_duration_minutes: estimatedDurationMinutes,
@@ -206,39 +223,39 @@ export async function generateAILessonWithFullAgent(
 
   console.log(`[AI Agent] Created course: ${courseRecord.id} (${courseSlug})`);
 
-  // Level 2: Create LESSONS (child lessons with parent_lesson_id = course.id)
-  const lessonRecords = await db
-    .insert(lessons)
-    .values(
-      agentLessons.map((lesson, index) => ({
-        slug: lesson.slug,
-        title: lesson.title,
-        description: lesson.description || '',
+  // Level 2 & 3: Create LESSONS and SECTIONS one at a time
+  // This allows early redirect after first lesson is saved
+  const lessonRecords: typeof lessons.$inferSelect[] = [];
+  let sectionCount = 0;
+
+  for (let lessonIndex = 0; lessonIndex < agentLessons.length; lessonIndex++) {
+    const agentLesson = agentLessons[lessonIndex];
+
+    // Create the lesson record
+    const [lessonRecord] = await db
+      .insert(lessons)
+      .values({
+        slug: agentLesson.slug,
+        title: agentLesson.title,
+        description: agentLesson.description || '',
         difficulty,
         estimated_duration_sec: Math.floor(estimatedDurationMinutes * 60 / agentLessons.length),
         scope: 'user' as const,
         owner_user_id: userId,
         parent_lesson_id: courseRecord.id, // Links to course
-        order_index: index,
+        order_index: lessonIndex,
         is_ai_generated: true,
         ai_metadata: {
-          lesson_index: index,
+          lesson_index: lessonIndex,
           parent_course_slug: courseSlug,
-          section_count: lesson.sections.length,
+          section_count: agentLesson.sections.length,
         },
-      }))
-    )
-    .returning();
+      })
+      .returning();
 
-  console.log(`[AI Agent] Created ${lessonRecords.length} lessons`);
+    lessonRecords.push(lessonRecord);
 
-  // Level 3: Create SECTIONS (lesson_sections for each lesson)
-  let sectionCount = 0;
-  for (let lessonIndex = 0; lessonIndex < lessonRecords.length; lessonIndex++) {
-    const lessonRecord = lessonRecords[lessonIndex];
-    const agentLesson = agentLessons[lessonIndex];
-
-    // Create multiple sections per lesson - this is what makes "Section X of Y" work!
+    // Create all sections for this lesson
     for (let sectionIndex = 0; sectionIndex < agentLesson.sections.length; sectionIndex++) {
       const section = agentLesson.sections[sectionIndex];
       await db.insert(lesson_sections).values({
@@ -252,7 +269,25 @@ export async function generateAILessonWithFullAgent(
       sectionCount++;
     }
 
-    console.log(`[AI Agent] Created ${agentLesson.sections.length} sections for lesson "${lessonRecord.title}"`);
+    console.log(`[AI Agent] Created lesson "${lessonRecord.title}" with ${agentLesson.sections.length} sections (${lessonIndex + 1}/${agentLessons.length})`);
+
+    // After FIRST lesson is saved, emit early redirect signal
+    // This allows frontend to redirect immediately while remaining lessons are saved
+    if (lessonIndex === 0) {
+      await updateProgress('storing', 96, `Saving lessons... (1/${agentLessons.length})`, {
+        canRedirect: true,
+        courseSlug: courseSlug,
+        firstLessonSlug: lessonRecord.slug,
+        lessonsCompleted: 1,
+        totalLessons: agentLessons.length,
+      });
+    } else {
+      // Update progress for subsequent lessons (no canRedirect, already redirected)
+      await updateProgress('storing', 96 + Math.floor((lessonIndex / agentLessons.length) * 3), `Saving lessons... (${lessonIndex + 1}/${agentLessons.length})`, {
+        lessonsCompleted: lessonIndex + 1,
+        totalLessons: agentLessons.length,
+      });
+    }
   }
 
   console.log(`[AI Agent] Created ${sectionCount} total lesson_sections across ${lessonRecords.length} lessons`);
@@ -278,7 +313,7 @@ export async function generateAILessonWithFullAgent(
     firstSectionSlug: lessonRecords[0].slug, // First lesson's slug (for redirect to first lesson)
     generationTimeMs,
     tokenUsage: undefined, // Not tracked in agent mode yet
-    modelUsed: process.env.OPENROUTER_MODEL || 'openai/gpt-4o',
+    modelUsed: 'x-ai/grok-4.1-fast',
     wordCount,
   };
 }

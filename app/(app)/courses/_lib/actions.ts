@@ -48,6 +48,9 @@ export interface CourseProgress {
   completedLessons: number;
   totalLessons: number;
   progressPercentage: number;
+  // For AI-generated courses that may still be generating
+  isStillGenerating?: boolean;
+  expectedLessonCount?: number;
 }
 
 /**
@@ -104,6 +107,18 @@ export async function getCourseData(courseSlug: string): Promise<CourseProgress 
     // Calculate total estimated duration from lessons
     const courseEstimatedDurationSec = lessonsWithProgress.reduce((sum, lesson) => sum + lesson.estimatedDurationSec, 0);
 
+    // Check if AI-generated course is still generating (has fewer lessons than expected)
+    let isStillGenerating = false;
+    let expectedLessonCount: number | undefined;
+
+    if (course.isAiGenerated && course.aiMetadata) {
+      const metadata = course.aiMetadata as { lesson_count?: number };
+      expectedLessonCount = metadata.lesson_count;
+      if (expectedLessonCount && totalLessons < expectedLessonCount) {
+        isStillGenerating = true;
+      }
+    }
+
     return {
       courseId: course.id.toString(),
       courseTitle: course.title,
@@ -115,6 +130,8 @@ export async function getCourseData(courseSlug: string): Promise<CourseProgress 
       completedLessons,
       totalLessons,
       progressPercentage,
+      isStillGenerating,
+      expectedLessonCount,
     };
   } catch (error) {
     console.error('Error fetching course data:', error);
