@@ -6,7 +6,6 @@ import { Heading, Muted } from "@/components/ui/typography"
 import { Button } from "@/components/ui/button"
 import { RoomEditor } from "./room-editor"
 import { SfxPanel } from "./sfx-panel"
-import { AskAssistant } from "./ask-assistant"
 import {Bot, Brush, Waves, Timer as TimerIcon, LucideIcon} from "lucide-react"
 
 
@@ -30,7 +29,7 @@ export default function SideDock({
                                      persona,
                                      gender,
                                  }: Props) {
-    const [tab, setTab] = useState<"room" | "sfx" | "ask" | "timer">("room")
+    const [tab, setTab] = useState<"room" | "sfx" | "timer">("room")
 
     return (
         <div
@@ -72,7 +71,6 @@ export default function SideDock({
                 <div className="flex items-center gap-1 p-2 border-b border-border">
                     <DockTab icon={Brush}     label="Room"      active={tab==="room"}  onClick={()=>setTab("room")} />
                     <DockTab icon={Waves}     label="SFX"       active={tab==="sfx"}   onClick={()=>setTab("sfx")} />
-                    <DockTab icon={Bot}       label="Assistant" active={tab==="ask"}   onClick={()=>setTab("ask")} />
                     <DockTab icon={TimerIcon} label="Timer"     active={tab==="timer"} onClick={()=>setTab("timer")} />
                 </div>
 
@@ -87,14 +85,6 @@ export default function SideDock({
                     )}
 
                     {tab === "sfx" && <SfxPanel />}
-
-                    {tab === "ask" && (
-                        <Stack gap="tight">
-                            <Heading level={4}>Ask Assistant</Heading>
-                            <Muted variant="small">Type a question — your mentor will answer and speak it aloud.</Muted>
-                            <AskAssistant mode="panel" persona={persona} gender={gender} />
-                        </Stack>
-                    )}
 
                     {tab === "timer" && <TimerControls />}
                 </div>
