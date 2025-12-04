@@ -694,12 +694,20 @@
 
   /* Callout Boxes */
   .callout {
-    @apply rounded-lg border p-4 my-4;
+    @apply rounded-lg border px-4 py-3 my-4;
     position: relative;
   }
 
   .callout-content {
-    @apply space-y-2;
+    /* Compact spacing - no extra space around single paragraph */
+  }
+
+  .callout .callout-content > p {
+    @apply m-0;
+  }
+
+  .callout .callout-content > p + p {
+    @apply mt-2;
   }
 
   /* Callout Types - Using design system semantic colors */
