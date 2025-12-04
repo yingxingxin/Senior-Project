@@ -142,8 +142,8 @@ export default function Navbar({ data }: NavbarProps) {
 
               {/* Desktop Navigation with NavigationMenu */}
               <div className="hidden md:flex items-center">
-                <NavigationMenu>
-                  <NavigationMenuList className="gap-3">
+                <NavigationMenu className="justify-start">
+                  <NavigationMenuList className="gap-3 justify-start">
                     {/* Home */}
                     <NavigationMenuItem>
                       <Link
