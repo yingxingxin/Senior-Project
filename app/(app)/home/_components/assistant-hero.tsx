@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Play, BookOpen, Sparkles, MessageSquare, Bot, Swords } from "lucide-react";
+import { BookOpen, Sparkles, Bot, Swords } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AudioPlayer } from "@/components/ui/audio-player";
@@ -34,8 +34,7 @@ interface AssistantHeroProps {
 export function AssistantHero({ persona, assistant, primaryAction, speech }: AssistantHeroProps) {
   const quickActions = [
     { label: "Courses", href: "/courses", icon: BookOpen },
-    { label: "Quiz", href: "/quiz", icon: Sparkles },
-    { label: "Ask", href: "/ask", icon: MessageSquare },
+    { label: "Quiz", href: "/quizzes", icon: Sparkles },
     { label: "Practice", href: "/editor", icon: Swords },
   ];
 
@@ -95,14 +94,6 @@ export function AssistantHero({ persona, assistant, primaryAction, speech }: Ass
 
             {/* Actions */}
             <Inline gap="default" align="center">
-              <Button asChild className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-primary/30 shadow-lg">
-                <Link href={primaryAction.href}>
-                  <Play className="h-4 w-4" />
-                  {primaryAction.cta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-
               <Inline gap="tight">
                 {quickActions.map((action) => {
                   const Icon = action.icon;

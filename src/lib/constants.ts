@@ -103,7 +103,7 @@ export const COURSES: ReadonlyArray<Course> = [
   {
     id: 'programming-foundations',
     title: 'Programming Foundations',
-    description: 'Learn the fundamentals of programming with hands-on exercises and real-world examples.',
+    description: 'Learn the fundamentals of programming from scratch. Perfect for beginners!',
     difficulty: 'easy',
     estimatedDuration: '8-12 weeks',
     lessonsCount: 24,
@@ -111,20 +111,20 @@ export const COURSES: ReadonlyArray<Course> = [
     color: 'bg-blue-500',
   },
   {
-    id: 'data-structures-algorithms-python',
-    title: 'Data Structures & Algorithms in Python',
-    description: 'Master essential data structures and algorithms using Python with practical implementations.',
+    id: 'data-structures-algorithms',
+    title: 'Data Structures & Algorithms',
+    description: 'Master the core data structures and algorithmic thinking.',
     difficulty: 'standard',
     estimatedDuration: '10-14 weeks',
     lessonsCount: 32,
-    icon: '🐍',
+    icon: '🔗',
     color: 'bg-green-500',
   },
   {
-    id: 'oop-java',
-    title: 'Object-Oriented Programming in Java',
-    description: 'Deep dive into OOP principles, design patterns, and advanced Java concepts.',
-    difficulty: 'hard',
+    id: 'oop-principles',
+    title: 'Object-Oriented Programming',
+    description: 'Learn OOP principles and best practices.',
+    difficulty: 'standard',
     estimatedDuration: '12-16 weeks',
     lessonsCount: 28,
     icon: '☕',
@@ -133,8 +133,9 @@ export const COURSES: ReadonlyArray<Course> = [
 ] as const;
 
 // Skill level to recommended course mapping
+// These slugs must match the actual course slugs in the database
 export const SKILL_LEVEL_RECOMMENDATIONS: Record<string, string> = {
   'beginner': 'programming-foundations',
-  'intermediate': 'data-structures-algorithms-python',
-  'advanced': 'oop-java',
+  'intermediate': 'data-structures-algorithms',
+  'advanced': 'oop-principles',
 } as const;
