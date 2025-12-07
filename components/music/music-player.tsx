@@ -25,7 +25,7 @@ interface MusicPlayerProps {
     userId?: number;
 }
 
-// Format duration helper function
+// Format duration helper function.
 // Note: Music UI needs mm:ss timestamps, so we keep a local formatter instead of the course helper.
 const formatDuration = (seconds: number | null | undefined): string => {
     if (!seconds || typeof seconds !== 'number' || isNaN(seconds)) {
@@ -69,10 +69,10 @@ export function MusicPlayer({ className = '', userId }: MusicPlayerProps) {
 
     // Auto-expand when playing
     useEffect(() => {
-        if (state.isPlaying && !isExpanded) {
+        if (state.isPlaying) {
             setIsExpanded(true);
         }
-    }, [state.isPlaying, isExpanded]);
+    }, [state.isPlaying]);
 
     if (!state.showPlayer) {
         return (
