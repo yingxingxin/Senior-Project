@@ -69,10 +69,10 @@ export function MusicPlayer({ className = '', userId }: MusicPlayerProps) {
 
     // Auto-expand when playing
     useEffect(() => {
-        if (state.isPlaying && !isExpanded) {
+        if (state.isPlaying) {
             setIsExpanded(true);
         }
-    }, [state.isPlaying, isExpanded]);
+    }, [state.isPlaying]);
 
     if (!state.showPlayer) {
         return (
