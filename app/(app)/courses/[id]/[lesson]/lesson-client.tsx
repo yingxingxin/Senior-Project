@@ -12,6 +12,9 @@ import { SectionRenderer, type Section } from "../../_components/section-rendere
 import { SectionNavigator } from "../../_components/section-navigator";
 import { LessonSkeleton } from "../../_components/lesson-skeleton";
 import { completeSectionAction, checkSectionCompletion } from "../../_lib/actions";
+import { useAIContext } from "@/components/ai-context-provider";
+import { TextSelectionProvider } from "@/components/text-selection-popup";
+import { prepareSectionContent } from "@/src/lib/ai/utils";
 
 interface LessonClientProps {
   courseId: string;
@@ -37,6 +40,7 @@ export function LessonClient({
 }: LessonClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setLesson } = useAIContext();
 
   // Get current section index from URL (default: 0)
   const currentIndexFromUrl = parseInt(searchParams.get("section") ?? "0", 10);
@@ -74,6 +78,23 @@ export function LessonClient({
   }, [lessonSlug, sections]);
 
   const currentSection = sections[currentIndex];
+
+  // Set lesson context for AI assistant when section changes
+  // Includes section content so AI can reference specific material being studied
+  useEffect(() => {
+    const sectionContent = currentSection
+      ? prepareSectionContent(currentSection.bodyJson, currentSection.body, 2500)
+      : undefined;
+
+    setLesson({
+      id: lessonMeta.id,
+      title: lessonMeta.title,
+      topic: lessonMeta.slug,
+      currentSection: currentSection?.title,
+      sectionContent,
+    });
+    return () => setLesson(null); // Clear on unmount
+  }, [lessonMeta, currentSection, setLesson]);
 
   const handleNext = async () => {
     setIsLoading(true);
@@ -155,20 +176,22 @@ export function LessonClient({
             </Stack>
           </Card>
 
-          {/* Current section */}
-          <Card className="bg-card/50 backdrop-blur border-border p-6">
-            <Stack gap="default">
-              <SectionRenderer
-                section={{
-                  ...currentSection,
-                  isCompleted: completedSections.includes(
-                    currentSection.slug
-                  ),
-                }}
-                onReadyStateChange={handleReadyStateChange}
-              />
-            </Stack>
-          </Card>
+          {/* Current section - wrapped with TextSelectionProvider for AI context */}
+          <TextSelectionProvider source={`${lessonMeta.title} lesson`}>
+            <Card className="bg-card/50 backdrop-blur border-border p-6">
+              <Stack gap="default">
+                <SectionRenderer
+                  section={{
+                    ...currentSection,
+                    isCompleted: completedSections.includes(
+                      currentSection.slug
+                    ),
+                  }}
+                  onReadyStateChange={handleReadyStateChange}
+                />
+              </Stack>
+            </Card>
+          </TextSelectionProvider>
 
           {/* Section navigator */}
           <SectionNavigator

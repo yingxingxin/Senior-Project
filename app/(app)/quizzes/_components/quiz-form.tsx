@@ -9,6 +9,8 @@ import { Stack, Inline } from '@/components/ui/spacing';
 import { Heading, Body, Muted } from '@/components/ui/typography';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Lightbulb, RotateCcw, ArrowLeft } from 'lucide-react';
+import { useAIContext } from '@/components/ai-context-provider';
+import { TextSelectionProvider } from '@/components/text-selection-popup';
 
 type Question = {
   id: number;
@@ -20,13 +22,15 @@ type Question = {
 
 type QuizFormProps = {
   quizId: number;
+  quizTitle: string;
   questions: Question[];
   assistantName: string;
   assistantAvatar?: string | null;
 };
 
-export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: QuizFormProps) {
+export function QuizForm({ quizId, quizTitle, questions, assistantName, assistantAvatar }: QuizFormProps) {
   const router = useRouter();
+  const { setQuiz } = useAIContext();
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +52,28 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
       explanation?: string | null;
     }>;
   } | null>(null);
+  const [lastAnsweredQuestionId, setLastAnsweredQuestionId] = useState<number | null>(null);
+
+  // Set quiz context for AI assistant
+  useEffect(() => {
+    const currentQuestion = lastAnsweredQuestionId
+      ? questions.find((q) => q.id === lastAnsweredQuestionId)
+      : questions[0];
+
+    setQuiz({
+      id: quizId,
+      title: quizTitle,
+      question: currentQuestion
+        ? {
+            id: currentQuestion.id,
+            prompt: currentQuestion.prompt,
+            options: currentQuestion.options,
+            selectedIndex: answers[currentQuestion.id],
+          }
+        : undefined,
+    });
+    return () => setQuiz(null); // Clear on unmount
+  }, [quizId, quizTitle, questions, answers, lastAnsweredQuestionId, setQuiz]);
 
   // Load saved progress on mount
   useEffect(() => {
@@ -91,6 +117,7 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
 
   const handleAnswerChange = (questionId: number, optionIndex: number) => {
     setAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+    setLastAnsweredQuestionId(questionId);
   };
 
   const handleRequestHint = async (questionId: number) => {
@@ -239,6 +266,7 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
 
   if (results) {
     return (
+      <TextSelectionProvider source={`${quizTitle} quiz`}>
       <Stack gap="loose">
         {error && (
           <Alert variant="destructive">
@@ -397,10 +425,12 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
           </Stack>
         </Card>
       </Stack>
+      </TextSelectionProvider>
     );
   }
 
   return (
+    <TextSelectionProvider source={`${quizTitle} quiz`}>
     <Stack gap="loose">
       {error && (
         <Alert variant="destructive">
@@ -486,6 +516,7 @@ export function QuizForm({ quizId, questions, assistantName, assistantAvatar }: 
         </Button>
       </div>
     </Stack>
+    </TextSelectionProvider>
   );
 }
 

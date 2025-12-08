@@ -68,6 +68,7 @@ export default async function QuizPage({ params }: Props) {
 
         <QuizForm
           quizId={quiz.id}
+          quizTitle={quiz.title}
           questions={questions.map((q) => ({
             id: q.id,
             prompt: q.prompt,

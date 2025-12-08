@@ -11,6 +11,7 @@ import type { OnboardingStep, AssistantPersona } from "@/src/db/schema";
 import { MusicProvider } from "@/components/music";
 import { MusicPlayer } from "@/components/music";
 import { FloatingAIChat } from "@/components/floating-ai-chat";
+import { AIContextProvider } from "@/components/ai-context-provider";
 
 export default async function AppLayout({
   children,
@@ -74,16 +75,18 @@ export default async function AppLayout({
   const assistantData = await getUserAssistantData();
 
   return (
-    <MusicProvider>
-      <Navbar data={navbarData} />
-      <main>{children}</main>
-      <MusicPlayer userId={userId} />
-      {assistantData && (
-        <FloatingAIChat
-          assistantAvatarUrl={assistantData.avatarUrl}
-          assistantName={assistantData.name}
-        />
-      )}
-    </MusicProvider>
+    <AIContextProvider>
+      <MusicProvider>
+        <Navbar data={navbarData} />
+        <main>{children}</main>
+        <MusicPlayer userId={userId} />
+        {assistantData && (
+          <FloatingAIChat
+            assistantAvatarUrl={assistantData.avatarUrl}
+            assistantName={assistantData.name}
+          />
+        )}
+      </MusicProvider>
+    </AIContextProvider>
   );
 }

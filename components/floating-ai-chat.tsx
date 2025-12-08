@@ -1,11 +1,17 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { AIChatWindow } from '@/components/ai-chat-window';
-import { X, Minimize2 } from 'lucide-react';
-import { Bot } from 'lucide-react';
+import { AIChatWindow, type AIChatWindowHandle } from '@/components/ai-chat-window';
+import { X, Minimize2, Bot } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useAIContext } from './ai-context-provider';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface FloatingAIChatProps {
   assistantAvatarUrl: string | null;
@@ -13,7 +19,8 @@ interface FloatingAIChatProps {
 }
 
 export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAIChatProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isChatOpen, setChatOpen, consumePendingMessage } = useAIContext();
+  const chatRef = useRef<AIChatWindowHandle>(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -29,7 +36,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
       try {
         const { x, y } = JSON.parse(savedPosition);
         setPosition({ x, y });
-      } catch (e) {
+      } catch {
         // Invalid saved position, use default
       }
     }
@@ -43,7 +50,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
   }, [position]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isOpen) return; // Don't drag when chat is open
+    if (isChatOpen) return; // Don't drag when chat is open
     
     e.preventDefault();
     setIsDragging(true);
@@ -58,7 +65,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || isOpen) return;
+    if (!isDragging || isChatOpen) return;
 
     setHasMoved(true);
     const newX = e.clientX - dragOffset.x - (buttonRef.current?.offsetWidth || 0) / 2;
@@ -108,7 +115,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
   };
 
   const handleWindowMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !isOpen) return;
+    if (!isDragging || !isChatOpen) return;
 
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
@@ -124,7 +131,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
   };
 
   useEffect(() => {
-    if (isDragging && isOpen) {
+    if (isDragging && isChatOpen) {
       document.addEventListener('mousemove', handleWindowMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -132,55 +139,85 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isOpen, dragOffset]);
+  }, [isDragging, isChatOpen, dragOffset]);
+
+  // Handle pending messages when chat opens
+  useEffect(() => {
+    if (isChatOpen && chatRef.current) {
+      const pending = consumePendingMessage();
+      if (pending) {
+        // Small delay to ensure chat is fully rendered
+        setTimeout(() => {
+          chatRef.current?.sendMessage(pending);
+        }, 100);
+      }
+    }
+  }, [isChatOpen, consumePendingMessage]);
 
   return (
     <>
-      {/* Floating Chat Button */}
-      {!isOpen && (
-        <button
-          ref={buttonRef}
-          onClick={(e) => {
-            if (hasMoved) {
-              e.preventDefault();
-              return;
-            }
-            setIsOpen(true);
-          }}
-          onMouseDown={handleMouseDown}
-          className={cn(
-            "fixed z-50 w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center hover:scale-110 active:scale-95 group cursor-move",
-            isDragging && "scale-110 cursor-grabbing"
-          )}
-          style={{
-            left: position.x || undefined,
-            right: position.x === 0 ? 24 : undefined,
-            bottom: position.y === 0 ? 24 : undefined,
-            top: position.y || undefined,
-            transform: isDragging ? 'scale(1.1)' : undefined,
-          }}
-          aria-label="Open AI Chat (drag to move)"
-        >
-          {assistantAvatarUrl ? (
-            <div className="relative w-full h-full rounded-full overflow-hidden">
-              <Image
-                src={assistantAvatarUrl}
-                alt={`${assistantName} avatar`}
-                fill
-                className="object-cover"
-                sizes="64px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
-          ) : (
-            <Bot className="h-8 w-8" />
-          )}
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
-        </button>
+      {/* Floating Chat Button with Tooltip */}
+      {!isChatOpen && (
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                ref={buttonRef}
+                onClick={(e) => {
+                  if (hasMoved) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setChatOpen(true);
+                }}
+                onMouseDown={handleMouseDown}
+                className={cn(
+                  'fixed z-50 w-14 h-14 rounded-full text-white shadow-xl transition-all duration-300 flex items-center justify-center',
+                  'bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600',
+                  'hover:shadow-2xl hover:scale-105',
+                  'active:scale-95',
+                  'ring-2 ring-white/20 ring-offset-2 ring-offset-transparent',
+                  isDragging ? 'scale-110 cursor-grabbing shadow-2xl' : 'cursor-move'
+                )}
+                style={{
+                  left: position.x || undefined,
+                  right: position.x === 0 ? 24 : undefined,
+                  bottom: position.y === 0 ? 24 : undefined,
+                  top: position.y || undefined,
+                }}
+                aria-label={`Chat with ${assistantName}`}
+              >
+                {assistantAvatarUrl ? (
+                  <div className="relative w-full h-full rounded-full overflow-hidden">
+                    <Image
+                      src={assistantAvatarUrl}
+                      alt={`${assistantName} avatar`}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                  </div>
+                ) : (
+                  <Bot className="h-7 w-7" />
+                )}
+                {/* Online indicator - more subtle pulse */}
+                <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-white" />
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" sideOffset={8}>
+              <p className="font-medium">Chat with {assistantName}</p>
+              <p className="text-xs text-muted-foreground">Drag to move</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
 
       {/* Chat Window */}
-      {isOpen && (
+      {isChatOpen && (
         <div
           ref={windowRef}
           onMouseDown={handleWindowMouseDown}
@@ -243,7 +280,7 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsOpen(false);
+                  setChatOpen(false);
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
                 className="p-1.5 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors"
@@ -257,7 +294,11 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
           {/* Chat Content */}
           {!isMinimized && (
             <div className="flex-1 overflow-hidden min-h-0">
-              <AIChatWindow assistantAvatarUrl={assistantAvatarUrl} assistantName={assistantName} />
+              <AIChatWindow
+                ref={chatRef}
+                assistantAvatarUrl={assistantAvatarUrl}
+                assistantName={assistantName}
+              />
             </div>
           )}
         </div>
