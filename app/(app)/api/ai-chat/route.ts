@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { auth } from '@/src/lib/auth';
-import { getUserWithAssistant } from '@/src/db/queries/users';
 import { buildPersonaInstruction } from '@/src/lib/ai/prompts/persona';
-import type { AssistantPersona } from '@/src/db/schema';
 
 // OpenRouter API Configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -12,15 +10,24 @@ if (!OPENROUTER_API_KEY) {
   console.warn('OpenRouter API key not configured. Chat will not work.');
 }
 
-// Supported models - OpenRouter supports many models, mapping to OpenRouter model IDs
-const SUPPORTED_MODELS: Record<string, string> = {
-  'nova': 'openai/gpt-4o-mini', // Using mini as free alternative to nova
-  'gpt-4o': 'openai/gpt-4o',
-  'gpt-4o-mini': 'openai/gpt-4o-mini',
-  'gpt-3.5-turbo': 'openai/gpt-3.5-turbo',
+// Use one default engine for all models
+const DEFAULT_ENGINE = 'openai/gpt-4o';
+
+// Model to persona mapping
+const MODEL_PERSONA_MAP: Record<string, 'calm' | 'kind' | 'direct'> = {
+  'nova': 'kind',
+  'atlas': 'direct',
+  'sage': 'calm',
 };
 
-export type SupportedModel = 'nova' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-3.5-turbo';
+// Model name mapping for display
+const MODEL_NAMES: Record<string, string> = {
+  'nova': 'Nova',
+  'atlas': 'Atlas',
+  'sage': 'Sage',
+};
+
+export type SupportedModel = 'nova' | 'atlas' | 'sage';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -37,17 +44,17 @@ interface ChatRequest {
 /**
  * Build system prompt for AI chat assistant
  * Enforces strict programming/learning focus and uses persona-based tone
+ * Model name determines the persona, not the user's assistant settings
  */
 function buildChatSystemPrompt(
-  assistantName: string,
-  assistantGender: string | null,
-  persona: AssistantPersona | null
+  modelName: string,
+  modelPersona: 'calm' | 'kind' | 'direct'
 ): string {
-  const defaultPersona: AssistantPersona = persona || 'calm';
-  const gender = assistantGender || 'androgynous';
+  const assistantName = MODEL_NAMES[modelName] || modelName;
+  const gender = modelName === 'nova' ? 'feminine' : modelName === 'atlas' ? 'masculine' : 'androgynous';
   
   // Get persona-specific instructions
-  const personaInstruction = buildPersonaInstruction(defaultPersona, assistantName, gender);
+  const personaInstruction = buildPersonaInstruction(modelPersona, assistantName, gender);
   
   // Build rejection messages based on persona
   const rejectionMessages = {
@@ -56,7 +63,7 @@ function buildChatSystemPrompt(
     direct: "I only help with programming and software development questions. What do you need help with in your code?",
   };
   
-  const rejectionMessage = rejectionMessages[defaultPersona];
+  const rejectionMessage = rejectionMessages[modelPersona];
 
   return `${personaInstruction}
 
@@ -89,7 +96,7 @@ You MUST NOT respond to questions about:
 
    "${rejectionMessage}"
 
-2. **Stay in Character**: Maintain your persona's tone (${defaultPersona}) in all responses, including rejections.
+2. **Stay in Character**: Maintain your persona's tone (${modelPersona}) in all responses, including rejections. You are ${assistantName}, and your personality should match your model's characteristics.
 
 3. **Be Helpful**: When answering programming questions, provide clear, educational responses that match your teaching style.
 
@@ -119,22 +126,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userId = Number(session.user.id);
-    
-    // Fetch user's assistant data
-    const [userData] = await getUserWithAssistant.execute({ userId });
-    
-    if (!userData) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    const assistantName = userData.assistantName || 'Assistant';
-    const assistantGender = userData.assistantGender || 'androgynous';
-    const persona = (userData.assistant_persona as AssistantPersona | null) || 'calm';
-
     const body = (await request.json()) as ChatRequest;
     const { messages, model = 'nova', temperature = 0.7, max_tokens = 1000 } = body;
 
@@ -145,11 +136,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build system prompt with persona and strict restrictions
-    const systemPrompt = buildChatSystemPrompt(assistantName, assistantGender, persona);
+    // Get persona based on model selection
+    const modelPersona = MODEL_PERSONA_MAP[model] || 'kind';
 
-    // Map user's model selection to OpenRouter model ID
-    const openrouterModel = SUPPORTED_MODELS[model] || SUPPORTED_MODELS['nova'];
+    // Build system prompt with model-based persona
+    const systemPrompt = buildChatSystemPrompt(model, modelPersona);
+
+    // Use default engine for all models
+    const openrouterModel = DEFAULT_ENGINE;
 
     // Prepare messages with system prompt
     const apiMessages: ChatMessage[] = [
