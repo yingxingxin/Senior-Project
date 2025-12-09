@@ -3,12 +3,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Bot, User, Sparkles, MoreVertical, RefreshCw } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-type SupportedModel = 'atlas' | 'sage' | 'nova';
+type SupportedModel = 'nova' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-3.5-turbo';
 
 interface ChatMessage {
   id: string;
@@ -23,56 +23,17 @@ interface AIChatWindowProps {
 }
 
 export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindowProps) {
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [reExplainingMessageId, setReExplainingMessageId] = useState<string | null>(null);
-
-  // Map assistant name to model type
-  const getModelFromName = (name: string | undefined): SupportedModel => {
-    if (!name) return 'nova';
-    const normalizedName = name.toLowerCase();
-    if (normalizedName.includes('atlas')) return 'atlas';
-    if (normalizedName.includes('sage')) return 'sage';
-    return 'nova'; // default to nova
-  };
-
-  const selectedModel = getModelFromName(assistantName);
-  const displayName = assistantName || 'Nova';
-
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm ${displayName}, and I'm here to help you learn programming. What would you like to know? ✨`,
+      content: 'Hello! I\'m here to help you. What would you like to know? ✨',
       timestamp: new Date(),
     },
   ]);
-
-  // Update welcome message when assistant name changes
-  useEffect(() => {
-    setMessages((prev) => {
-      // If we only have the welcome message, update it
-      if (prev.length === 1 && prev[0].id === '1') {
-        return [
-          {
-            ...prev[0],
-            content: `Hello! I'm ${displayName}, and I'm here to help you learn programming. What would you like to know? ✨`,
-          },
-        ];
-      }
-      // If we have more messages, just update the welcome message
-      if (prev.length > 0 && prev[0].id === '1') {
-        return [
-          {
-            ...prev[0],
-            content: `Hello! I'm ${displayName}, and I'm here to help you learn programming. What would you like to know? ✨`,
-          },
-          ...prev.slice(1),
-        ];
-      }
-      return prev;
-    });
-  }, [displayName]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<SupportedModel>('nova');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -175,85 +136,21 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
     }
   };
 
-  const handleReExplain = async (messageId: string, originalContent: string) => {
-    if (isLoading || reExplainingMessageId) return;
-    
-    setReExplainingMessageId(messageId);
-    setIsLoading(true);
-
-    try {
-      // Find the user's question that led to this response
-      const messageIndex = messages.findIndex(m => m.id === messageId);
-      if (messageIndex === -1) return;
-      
-      // Find the previous user message
-      let userQuestion = '';
-      for (let i = messageIndex - 1; i >= 0; i--) {
-        if (messages[i].role === 'user') {
-          userQuestion = messages[i].content;
-          break;
-        }
-      }
-
-      if (!userQuestion) {
-        userQuestion = 'the previous question';
-      }
-
-      // Prepare messages for API
-      const apiMessages = [
-        ...messages.slice(1, messageIndex).map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        {
-          role: 'user' as const,
-          content: `Please re-explain your previous answer about "${userQuestion}" in simpler, easier-to-understand terms. Make it more accessible and break down any complex concepts.`,
-        },
-      ];
-
-      const response = await fetch('/api/ai-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: apiMessages,
-          model: selectedModel,
-          temperature: 0.7,
-          max_tokens: 1000,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get re-explanation');
-      }
-
-      const data = await response.json();
-
-      // Update the message with the re-explanation
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === messageId
-            ? { ...msg, content: data.message }
-            : msg
-        )
-      );
-    } catch (error) {
-      console.error('Error re-explaining:', error);
-    } finally {
-      setIsLoading(false);
-      setReExplainingMessageId(null);
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: '#E6EDf5' }}>
-      {/* Model Display - Show current model name */}
-      <div className="px-4 py-2 border-b border-gray-300/50 bg-white/80">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-gray-600" />
-          <span className="text-sm font-semibold text-gray-800">{displayName}</span>
-        </div>
+    <div className="flex flex-col h-full bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-indigo-950/20">
+      {/* Model Selector - Compact */}
+      <div className="px-4 py-2 border-b border-pink-200/50 dark:border-pink-800/30 bg-white/30 dark:bg-gray-900/30">
+        <Select value={selectedModel} onValueChange={(value) => setSelectedModel(value as SupportedModel)}>
+          <SelectTrigger className="w-full h-8 text-xs border-pink-300 dark:border-pink-700 bg-white/80 dark:bg-gray-800/80">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="nova">Nova</SelectItem>
+            <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+            <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Messages Container */}
@@ -283,8 +180,8 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
                   className={cn(
                     'w-8 h-8 rounded-full flex items-center justify-center shadow-md',
                     message.role === 'user'
-                      ? 'bg-blue-500'
-                      : 'bg-blue-500'
+                      ? 'bg-gradient-to-br from-pink-500 to-rose-500'
+                      : 'bg-gradient-to-br from-purple-500 to-indigo-500'
                   )}
                 >
                   {message.role === 'user' ? (
@@ -303,8 +200,8 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
                   'relative px-3 py-2 rounded-xl shadow-sm break-words text-sm',
                   'backdrop-blur-sm',
                   message.role === 'user'
-                    ? 'bg-blue-500 text-white rounded-tr-none'
-                    : 'bg-white text-gray-900 rounded-tl-none border border-gray-200'
+                    ? 'bg-gradient-to-br from-pink-400 to-rose-400 text-white rounded-tr-none'
+                    : 'bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/30 text-gray-900 dark:text-gray-100 rounded-tl-none border border-purple-200/50 dark:border-purple-700/50'
                 )}
               >
                 {/* Mystic Messenger-style tail */}
@@ -312,43 +209,18 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
                   className={cn(
                     'absolute w-0 h-0',
                     message.role === 'user'
-                      ? 'right-0 top-0 translate-x-full border-l-[8px] border-l-blue-500 border-t-[8px] border-t-transparent'
-                      : 'left-0 top-0 -translate-x-full border-r-[8px] border-r-white border-t-[8px] border-t-transparent'
+                      ? 'right-0 top-0 translate-x-full border-l-[8px] border-l-pink-400 border-t-[8px] border-t-transparent'
+                      : 'left-0 top-0 -translate-x-full border-r-[8px] border-r-white dark:border-r-gray-800 border-t-[8px] border-t-transparent'
                   )}
                 />
                 
                 <p className="text-xs leading-relaxed whitespace-pre-wrap">{message.content}</p>
               </div>
               
-              {/* Timestamp and Actions */}
-              <div className="flex items-center gap-2 px-1 mt-1">
-                <span className="text-[10px] text-gray-500 px-1">
-                  {formatTime(message.timestamp)}
-                </span>
-                {message.role === 'assistant' && message.id !== '1' && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors flex items-center gap-1"
-                        disabled={isLoading || reExplainingMessageId === message.id}
-                        title="Re-explain"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem
-                        onClick={() => handleReExplain(message.id, message.content)}
-                        disabled={isLoading || reExplainingMessageId === message.id}
-                        className="cursor-pointer"
-                      >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Re-explain in simpler terms
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+              {/* Timestamp */}
+              <span className="text-[10px] text-gray-500 dark:text-gray-400 px-1">
+                {formatTime(message.timestamp)}
+              </span>
             </div>
           </div>
         ))}
@@ -356,7 +228,7 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
         {/* Loading indicator */}
         {isLoading && (
           <div className="flex items-start gap-2 animate-fade-in-up">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-blue-500">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-md bg-gradient-to-br from-purple-500 to-indigo-500">
               {assistantAvatarUrl ? (
                 <div className="relative w-full h-full rounded-full overflow-hidden">
                   <Image
@@ -372,11 +244,11 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <div className="relative px-3 py-2 rounded-xl rounded-tl-none shadow-sm bg-white border border-gray-200">
+              <div className="relative px-3 py-2 rounded-xl rounded-tl-none shadow-sm bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-purple-900/30 border border-purple-200/50 dark:border-purple-700/50">
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             </div>
@@ -387,7 +259,7 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
       </div>
 
       {/* Input Area */}
-      <div className="px-4 pb-4 pt-3 border-t border-gray-300/50 bg-white/80 backdrop-blur-sm">
+      <div className="px-4 pb-4 pt-3 border-t border-pink-200/50 dark:border-pink-800/30 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
         <div className="flex gap-2 items-end">
           <Textarea
             ref={textareaRef}
@@ -395,13 +267,13 @@ export function AIChatWindow({ assistantAvatarUrl, assistantName }: AIChatWindow
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="min-h-[50px] max-h-[100px] resize-none border-gray-300 bg-white focus:ring-2 focus:ring-blue-400 rounded-xl text-sm"
+            className="min-h-[50px] max-h-[100px] resize-none border-pink-300 dark:border-pink-700 bg-white/90 dark:bg-gray-800/90 focus:ring-2 focus:ring-pink-400 dark:focus:ring-pink-600 rounded-xl text-sm"
             disabled={isLoading}
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
-            className="h-[50px] px-4 bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl"
+            className="h-[50px] px-4 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl"
           >
             <Send className="h-4 w-4" />
           </Button>
