@@ -109,7 +109,6 @@ export function SignupForm() {
         title="Email Verified!"
         message="Your email has been verified successfully. Let's set up your assistant."
         primaryAction={{ label: "Continue to Setup", onClick: () => router.push("/onboarding") }}
-        secondaryAction={{ label: "Skip for Now", onClick: () => router.push("/home") }}
       />
     )
   }
