@@ -185,13 +185,13 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
           ref={windowRef}
           onMouseDown={handleWindowMouseDown}
           className={cn(
-            'fixed z-50 w-96 rounded-2xl shadow-2xl border-2 border-gray-300',
+            'fixed z-50 w-96 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800/50',
+            'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-indigo-950/20',
             'backdrop-blur-sm flex flex-col overflow-hidden',
             'animate-scale-in',
             isMinimized ? 'h-16' : 'h-[600px]',
             isDragging && 'cursor-grabbing'
           )}
-          style={{ backgroundColor: '#E6EDf5' }}
           style={{
             left: position.x || undefined,
             right: position.x === 0 ? 24 : undefined,
@@ -203,8 +203,8 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
           <div 
             data-drag-handle
             className={cn(
-              "flex items-center justify-between px-4 py-3 border-b border-gray-300/50 bg-white/80 backdrop-blur-sm flex-shrink-0",
-              "cursor-move hover:bg-white/90 transition-colors"
+              "flex items-center justify-between px-4 py-3 border-b border-pink-200/50 dark:border-pink-800/30 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm flex-shrink-0",
+              "cursor-move hover:bg-white/70 dark:hover:bg-gray-900/70 transition-colors"
             )}
           >
             <div className="flex items-center gap-3">
