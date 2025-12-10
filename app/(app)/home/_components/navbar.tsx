@@ -44,6 +44,7 @@ import {
   Swords,
   UserPlus,
   UserCheck,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

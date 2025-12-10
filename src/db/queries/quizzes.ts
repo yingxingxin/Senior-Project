@@ -27,6 +27,8 @@ export const getAllQuizzes = db
     topicSlug: quizzes.topic_slug,
     skillLevel: quizzes.skill_level,
     defaultLength: quizzes.default_length,
+    isAiGenerated: quizzes.is_ai_generated,
+    ownerUserId: quizzes.owner_user_id,
   })
   .from(quizzes)
   .orderBy(asc(quizzes.topic_slug), asc(quizzes.skill_level), asc(quizzes.title))

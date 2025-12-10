@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Stack, Inline } from '@/components/ui/spacing';
-import { Heading, Body, Muted } from '@/components/ui/typography';
+import { Heading, Body } from '@/components/ui/typography';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Lightbulb, RotateCcw, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Loader2, RotateCcw, ArrowLeft } from 'lucide-react';
 import { useAIContext } from '@/src/components/ai/context';
 import { TextSelectionProvider } from '@/components/text-selection-popup';
+import { QuizQuestionCard, QuizProgressBar, QuizResultSummary } from '@/components/ui/quiz';
 
 type Question = {
   id: number;
@@ -203,6 +203,84 @@ export function QuizForm({ quizId, quizTitle, questions, assistantName, assistan
   if (results) {
     return (
       <TextSelectionProvider source={`${quizTitle} quiz`}>
+        <Stack gap="loose">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <QuizResultSummary
+            score={results.score}
+            total={results.total}
+            percentage={results.percentage}
+            quizTitle={quizTitle}
+            assistantName={assistantName}
+            onRequestSummary={handleRequestSummary}
+          />
+
+          <Stack gap="default">
+            {questions.map((question, index) => {
+              const questionResult = results.questionResults.find(
+                (r) => r.questionId === question.id
+              );
+              if (!questionResult) return null;
+
+              return (
+                <QuizQuestionCard
+                  key={question.id}
+                  questionNumber={index + 1}
+                  questionId={question.id}
+                  prompt={question.prompt}
+                  options={question.options}
+                  reviewMode={true}
+                  isCorrect={questionResult.isCorrect}
+                  correctIndex={questionResult.correctIndex}
+                  userIndex={questionResult.userIndex}
+                  explanation={questionResult.explanation}
+                  onRequestExplanation={handleRequestExplanation}
+                  assistantName={assistantName}
+                />
+              );
+            })}
+          </Stack>
+
+          <Card className="p-6">
+            <Stack gap="default">
+              <Heading level={3}>What&apos;s Next?</Heading>
+              <Body>
+                Review your answers above, or try the quiz again to improve your score.
+              </Body>
+              <Inline gap="default" className="flex-wrap">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleResetQuiz}
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset Quiz
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBackToQuizzes}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Quizzes
+                </Button>
+              </Inline>
+            </Stack>
+          </Card>
+        </Stack>
+      </TextSelectionProvider>
+    );
+  }
+
+  const answeredCount = Object.keys(answers).length;
+  const currentQuestionIndex = Math.max(0, answeredCount - 1);
+
+  return (
+    <TextSelectionProvider source={`${quizTitle} quiz`}>
       <Stack gap="loose">
         {error && (
           <Alert variant="destructive">
@@ -210,196 +288,50 @@ export function QuizForm({ quizId, quizTitle, questions, assistantName, assistan
           </Alert>
         )}
 
-        <Card className="p-6">
-          <Stack gap="default">
-            <Heading level={2}>Quiz Results</Heading>
-            <Body className="text-lg">
-              You got {results.score} out of {results.total} correct ({results.percentage}%)
-            </Body>
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleRequestSummary}
-              className="mt-4"
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Get overall summary from {assistantName}
-            </Button>
-          </Stack>
+        {/* Progress Bar */}
+        <Card className="p-4">
+          <QuizProgressBar
+            current={answeredCount}
+            total={questions.length}
+          />
         </Card>
 
+        {/* Questions */}
         <Stack gap="default">
-          {questions.map((question, index) => {
-            const questionResult = results.questionResults.find(
-              (r) => r.questionId === question.id
-            );
-            if (!questionResult) return null;
-
-            const isCorrect = questionResult.isCorrect;
-            const userAnswer = question.options[questionResult.userIndex];
-            const correctAnswer = question.options[questionResult.correctIndex];
-
-            return (
-              <Card key={question.id} className="p-6">
-                <Stack gap="default">
-                  <div className="flex items-start justify-between">
-                    <Heading level={4}>Question {index + 1}</Heading>
-                    {isCorrect ? (
-                      <Muted className="text-green-500">✓ Correct</Muted>
-                    ) : (
-                      <Muted className="text-red-500">✗ Incorrect</Muted>
-                    )}
-                  </div>
-
-                  <Body>{question.prompt}</Body>
-
-                  <Stack gap="tight">
-                    <div>
-                      <Muted variant="small" className="font-medium">
-                        Your answer:
-                      </Muted>
-                      <Body
-                        className={isCorrect ? 'text-green-500' : 'text-red-500'}
-                      >
-                        {userAnswer}
-                      </Body>
-                    </div>
-
-                    {!isCorrect && (
-                      <div>
-                        <Muted variant="small" className="font-medium">
-                          Correct answer:
-                        </Muted>
-                        <Body className="text-green-500">{correctAnswer}</Body>
-                      </div>
-                    )}
-
-                    {questionResult.explanation && (
-                      <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                        <Muted variant="small" className="font-medium mb-1 block">
-                          Static Explanation:
-                        </Muted>
-                        <Body variant="small" className="text-muted-foreground">
-                          {questionResult.explanation}
-                        </Body>
-                      </div>
-                    )}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRequestExplanation(question.id)}
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Explain this with {assistantName}
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Card>
-            );
-          })}
+          {questions.map((question, index) => (
+            <QuizQuestionCard
+              key={question.id}
+              questionNumber={index + 1}
+              questionId={question.id}
+              prompt={question.prompt}
+              options={question.options}
+              selectedIndex={answers[question.id]}
+              onAnswerChange={handleAnswerChange}
+              onRequestHint={handleRequestHint}
+              assistantName={assistantName}
+              disabled={isSubmitting}
+            />
+          ))}
         </Stack>
 
-        <Card className="p-6">
-          <Stack gap="default">
-            <Heading level={3}>What&apos;s Next?</Heading>
-            <Body>
-              Review your answers above, or try the quiz again to improve your score.
-            </Body>
-            <Inline gap="default" className="flex-wrap">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleResetQuiz}
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Reset Quiz
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleBackToQuizzes}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Quizzes
-              </Button>
-            </Inline>
-          </Stack>
-        </Card>
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || answeredCount !== questions.length}
+            size="lg"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Quiz'
+            )}
+          </Button>
+        </div>
       </Stack>
-      </TextSelectionProvider>
-    );
-  }
-
-  return (
-    <TextSelectionProvider source={`${quizTitle} quiz`}>
-    <Stack gap="loose">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <Stack gap="default">
-        {questions.map((question, index) => (
-          <Card key={question.id} className="p-6">
-            <Stack gap="default">
-              <Heading level={4}>Question {index + 1}</Heading>
-              <Body>{question.prompt}</Body>
-
-              <RadioGroup
-                value={answers[question.id] !== undefined ? String(answers[question.id]) : ''}
-                onValueChange={(value) => handleAnswerChange(question.id, Number(value))}
-                disabled={isSubmitting}
-              >
-                <Stack gap="tight">
-                  {question.options.map((option, optionIndex) => (
-                    <label
-                      key={optionIndex}
-                      htmlFor={`q${question.id}-o${optionIndex}`}
-                      className="flex items-center gap-3 py-3 px-4 cursor-pointer rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-colors"
-                    >
-                      <RadioGroupItem value={String(optionIndex)} id={`q${question.id}-o${optionIndex}`} />
-                      <Body variant="small" as="span">{option}</Body>
-                    </label>
-                  ))}
-                </Stack>
-              </RadioGroup>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handleRequestHint(question.id)}
-                disabled={isSubmitting}
-              >
-                <Lightbulb className="mr-2 h-4 w-4" />
-                Ask {assistantName} for a hint
-              </Button>
-            </Stack>
-          </Card>
-        ))}
-      </Stack>
-
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || Object.keys(answers).length !== questions.length}
-          size="lg"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            'Submit Quiz'
-          )}
-        </Button>
-      </div>
-    </Stack>
     </TextSelectionProvider>
   );
 }

@@ -7,7 +7,7 @@
 import {
   pgTable, serial, integer, text,
   timestamp, uniqueIndex, index, check,
-  varchar, jsonb
+  varchar, jsonb, boolean
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { skillLevelEnum } from './enums';
@@ -36,12 +36,16 @@ export const quizzes = pgTable('quizzes', {
   topic_slug: varchar('topic_slug', { length: 100 }).notNull(),
   skill_level: skillLevelEnum('skill_level').notNull(),
   default_length: integer('default_length').notNull().default(5),
+  // AI-generated quiz fields
+  is_ai_generated: boolean('is_ai_generated').notNull().default(false),
+  owner_user_id: integer('owner_user_id').references(() => users.id, { onDelete: 'cascade' }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => [
   uniqueIndex('uq_quizzes__slug').on(t.slug),
   index('ix_quizzes__topic_slug').on(t.topic_slug),
   index('ix_quizzes__skill_level').on(t.skill_level),
+  index('ix_quizzes__owner_ai').on(t.owner_user_id).where(sql`${t.is_ai_generated} = true`),
   check('ck_quizzes__default_length', sql`${t.default_length} > 0`),
 ]);
 
