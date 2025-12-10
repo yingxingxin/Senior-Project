@@ -10,8 +10,8 @@ import { getOnboardingStepHref } from "@/app/onboarding/_lib/steps";
 import type { OnboardingStep, AssistantPersona } from "@/src/db/schema";
 import { MusicProvider } from "@/components/music";
 import { MusicPlayer } from "@/components/music";
-import { FloatingAIChat } from "@/components/floating-ai-chat";
-import { AIContextProvider } from "@/components/ai-context-provider";
+import { FloatingAIChat } from "@/src/components/ai/chat";
+import { AIContextProvider } from "@/src/components/ai/context";
 
 export default async function AppLayout({
   children,

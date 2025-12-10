@@ -18,7 +18,7 @@
  */
 
 import { BookOpen, HelpCircle, Quote, X, Sparkles } from 'lucide-react';
-import { useAIContext, useHasAIContext } from './ai-context-provider';
+import { useAIContext, useHasAIContext } from './provider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/src/lib/utils';
@@ -31,7 +31,7 @@ import {
   PromptInputCommandGroup,
   PromptInputCommandItem,
   PromptInputButton,
-} from '@/src/components/ai-elements/prompt-input';
+} from '../elements/prompt-input';
 
 type AIContextButtonProps = {
   className?: string;

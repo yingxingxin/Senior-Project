@@ -9,7 +9,7 @@
 
 import { generateText } from 'ai';
 import { openrouter } from '@/src/lib/openrouter';
-import { PERSONA_STYLES } from './prompts/persona';
+import { PERSONA_STYLES } from '../prompts/persona';
 import type { AIContext, AIChatMessage, AIResponse } from './types';
 import type { AssistantPersona } from '@/src/db/schema';
 
@@ -17,7 +17,7 @@ import type { AssistantPersona } from '@/src/db/schema';
  * Build the system prompt from AI context
  */
 function buildSystemPrompt(context: AIContext): string {
-  const { user, assistant, lesson, quiz, quotes } = context;
+  const { user, assistant, course, lesson, quiz, quotes } = context;
   const persona = PERSONA_STYLES[assistant.persona];
 
   // Pronoun helper
@@ -43,6 +43,19 @@ ${persona.tone.map((t) => `- ${t}`).join('\n')}
 - You should adapt your explanations to their ${user.skillLevel} level.
 `;
 
+  // Add course context if available (course hierarchy)
+  if (course) {
+    prompt += `
+## Course Context
+- **Course**: ${course.title}
+- **Progress**: Lesson ${course.lessonIndex + 1} of ${course.totalLessons}
+${course.previousLesson ? `- **Previously covered**: ${course.previousLesson}` : ''}
+${course.nextLesson ? `- **Up next**: ${course.nextLesson}` : ''}
+
+You can reference what they learned in previous lessons or preview what's coming.
+`;
+  }
+
   // Add lesson context if available
   if (lesson) {
     prompt += `
@@ -64,6 +77,7 @@ Prioritize helping them understand the current topic.
 ## Current Quiz Context
 The user is working on a quiz question:
 - **Quiz**: ${quiz.title}
+${quiz.questionIndex !== undefined && quiz.totalQuestions ? `- **Question ${quiz.questionIndex + 1} of ${quiz.totalQuestions}**` : ''}
 - **Question**: ${quiz.question.prompt}
 - **Options**:
 ${quiz.question.options.map((o, i) => `  ${i + 1}. ${o}`).join('\n')}

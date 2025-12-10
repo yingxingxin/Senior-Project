@@ -29,6 +29,19 @@ export type AIAssistantContext = {
 };
 
 /**
+ * Course context - set by lesson pages for course hierarchy awareness
+ */
+export type AICourseContext = {
+  id: number;
+  title: string;
+  slug: string;
+  lessonIndex: number; // Current lesson position (0-based)
+  totalLessons: number;
+  previousLesson?: string; // Title of previous lesson
+  nextLesson?: string; // Title of next lesson
+};
+
+/**
  * Lesson context - set by lesson pages
  */
 export type AILessonContext = {
@@ -45,6 +58,9 @@ export type AILessonContext = {
 export type AIQuizContext = {
   id: number;
   title: string;
+  description?: string;
+  questionIndex?: number; // Current question position (0-based)
+  totalQuestions?: number;
   question?: {
     id: number;
     prompt: string;
@@ -72,6 +88,7 @@ export type AIContext = {
   assistant: AIAssistantContext;
 
   // Page-specific (set by pages via context provider)
+  course?: AICourseContext;
   lesson?: AILessonContext;
   quiz?: AIQuizContext;
 
@@ -112,6 +129,7 @@ export type AIResponse = {
  * Client-side context state (managed by AIContextProvider)
  */
 export type AIContextState = {
+  course: AICourseContext | null;
   lesson: AILessonContext | null;
   quiz: AIQuizContext | null;
   quotes: AIQuote[];
@@ -123,6 +141,7 @@ export type AIContextState = {
  * Actions available from the AIContextProvider
  */
 export type AIContextActions = {
+  setCourse: (course: AICourseContext | null) => void;
   setLesson: (lesson: AILessonContext | null) => void;
   setQuiz: (quiz: AIQuizContext | null) => void;
   addQuote: (text: string, source: string) => void;

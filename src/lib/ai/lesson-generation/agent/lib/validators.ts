@@ -4,7 +4,7 @@
  * Validates Tiptap document structure.
  */
 
-import type { TiptapDocument } from '../../tiptap';
+import type { TiptapDocument } from '../../../tiptap';
 
 /**
  * Validate that a Tiptap document is well-formed

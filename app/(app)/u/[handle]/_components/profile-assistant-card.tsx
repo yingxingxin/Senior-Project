@@ -8,7 +8,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import {
   QUESTION_LABELS,
   type ProfileQuestionType,
-} from "@/src/lib/ai/profileAssistant";
+} from "@/src/lib/ai/profiles";
 import { cn } from "@/lib/utils";
 
 interface ProfileAssistantCardProps {

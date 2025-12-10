@@ -9,7 +9,7 @@ import { openrouter } from '@/lib/openrouter';
 import type { AgentRunResult, ProgressCallback, ToolExecutionContext } from './types';
 import { DocumentState, ConversationState } from './state';
 import { getAllTools, getToolsDescription } from './tools';
-import { buildPersonaInstruction } from '../prompts';
+import { buildPersonaInstruction } from '../../prompts';
 import type { UserPersonalizationContext } from '../personalization';
 
 export interface RunAgentParams {

@@ -5,7 +5,7 @@
  */
 
 import type { z } from 'zod';
-import type { TiptapDocument } from '../tiptap';
+import type { TiptapDocument } from '../../tiptap';
 
 /**
  * Agent status states

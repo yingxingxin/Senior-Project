@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { AIChatWindow, type AIChatWindowHandle } from '@/components/ai-chat-window';
+import { AIChatWindow, type AIChatWindowHandle } from './chat-window';
 import { X, Minimize2, Bot } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { useAIContext } from './ai-context-provider';
+import { useAIContext } from '../context/provider';
 import {
   Tooltip,
   TooltipContent,

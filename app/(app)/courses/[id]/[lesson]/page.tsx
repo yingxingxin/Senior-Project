@@ -3,6 +3,7 @@ import { Heading, Body } from "@/components/ui/typography";
 import { Stack } from "@/components/ui/spacing";
 import { getLessonWithSections } from "@/src/db/queries/lessons";
 import { LessonClient } from "./lesson-client";
+import { getCourseData } from "../../_lib/actions";
 import type { JSONContent } from '@tiptap/core';
 
 interface LessonPageProps {
@@ -21,6 +22,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
   if (!rows || rows.length === 0) {
     notFound();
   }
+
+  // Fetch course data for AI context (course hierarchy)
+  const courseData = await getCourseData(id);
 
   // Parse lesson metadata
   const lessonMeta = {
@@ -57,12 +61,25 @@ export default async function LessonPage({ params }: LessonPageProps) {
     );
   }
 
+  // Build course context for AI (lesson position in course hierarchy)
+  const currentLessonIndex = courseData?.lessons.findIndex(l => l.slug === lesson) ?? -1;
+  const courseContext = courseData ? {
+    id: parseInt(courseData.courseId),
+    title: courseData.courseTitle,
+    slug: id,
+    lessonIndex: currentLessonIndex,
+    totalLessons: courseData.totalLessons,
+    previousLesson: currentLessonIndex > 0 ? courseData.lessons[currentLessonIndex - 1]?.title : undefined,
+    nextLesson: currentLessonIndex < courseData.totalLessons - 1 ? courseData.lessons[currentLessonIndex + 1]?.title : undefined,
+  } : undefined;
+
   return (
     <LessonClient
       courseId={id}
       lessonSlug={lesson}
       lessonMeta={lessonMeta}
       sections={sections}
+      courseContext={courseContext}
     />
   );
 }

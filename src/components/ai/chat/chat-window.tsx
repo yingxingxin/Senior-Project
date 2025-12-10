@@ -3,15 +3,15 @@
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle, Fragment } from 'react';
 import { RefreshCcwIcon, CopyIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAIContext } from './ai-context-provider';
-import { AIContextButton } from './ai-context-button';
+import { useAIContext } from '../context/provider';
+import { AIContextButton } from '../context/context-button';
 import {
   Message,
   MessageContent,
   MessageResponse,
   MessageActions,
   MessageAction,
-} from '@/src/components/ai-elements/message';
+} from '../elements/message';
 import {
   PromptInput,
   PromptInputTextarea,
@@ -26,7 +26,7 @@ import {
   PromptInputActionMenuContent,
   PromptInputActionAddAttachments,
   type PromptInputMessage,
-} from '@/src/components/ai-elements/prompt-input';
+} from '../elements/prompt-input';
 
 export interface AIChatWindowHandle {
   sendMessage: (message: string) => void;

@@ -12,7 +12,7 @@ import { lessons, lesson_sections } from '@/src/db/schema';
 import type { Difficulty } from '@/src/db/schema';
 import { loadUserPersonalizationContext } from './personalization';
 import { runAgent } from './agent';
-import { countWordsInTiptap } from './tiptap';
+import { countWordsInTiptap } from '../tiptap';
 import { eq } from 'drizzle-orm';
 
 export interface GenerateLessonParams {

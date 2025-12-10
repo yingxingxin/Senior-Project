@@ -20,7 +20,7 @@
 import { useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageSquare, Lightbulb, Plus } from 'lucide-react';
-import { useAIContext } from './ai-context-provider';
+import { useAIContext } from '@/src/components/ai/context';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/src/lib/utils';
 
@@ -28,6 +28,7 @@ type SelectionState = {
   text: string;
   x: number;
   y: number;
+  useMargin: boolean; // true = right margin (LessWrong style), false = above text
 } | null;
 
 type TextSelectionProviderProps = {
@@ -82,11 +83,29 @@ export function TextSelectionProvider({
       const rect = range?.getBoundingClientRect();
 
       if (rect) {
-        setSelection({
-          text,
-          x: rect.left + rect.width / 2 + window.scrollX,
-          y: rect.top + window.scrollY - 8,
-        });
+        // Check if we have margin space on the right (LessWrong style)
+        // Need ~120px for buttons in the right margin
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        const contentRightEdge = containerRect ? containerRect.right : rect.right;
+        const hasMarginSpace = window.innerWidth - contentRightEdge > 120;
+
+        if (hasMarginSpace) {
+          // Position in right margin, vertically centered on selection
+          setSelection({
+            text,
+            x: contentRightEdge + 16, // 16px gap from content edge
+            y: rect.top + window.scrollY + rect.height / 2,
+            useMargin: true,
+          });
+        } else {
+          // Fall back to above-text positioning (mobile/narrow screens)
+          setSelection({
+            text,
+            x: rect.left + rect.width / 2 + window.scrollX,
+            y: rect.top + window.scrollY - 8,
+            useMargin: false,
+          });
+        }
       }
     }, 10);
   }, [disabled]);
@@ -147,20 +166,28 @@ export function TextSelectionProvider({
           <div
             data-text-selection-popup
             className={cn(
-              'fixed z-50 flex items-center gap-1 p-1 bg-popover border border-border rounded-lg shadow-lg',
-              'animate-in fade-in-0 zoom-in-95 duration-150'
+              'fixed z-50 p-1 bg-popover border border-border rounded-lg shadow-lg',
+              'animate-in fade-in-0 zoom-in-95 duration-150',
+              // Margin mode: stack vertically, Above mode: horizontal row
+              selection.useMargin ? 'flex flex-col gap-1' : 'flex items-center gap-1'
             )}
             style={{
               left: selection.x,
               top: selection.y,
-              transform: 'translate(-50%, -100%)',
+              // Margin mode: just vertically center. Above mode: center above selection
+              transform: selection.useMargin
+                ? 'translateY(-50%)'
+                : 'translate(-50%, -100%)',
             }}
           >
             {/* Primary: Add to chat */}
             <Button
               size="sm"
               variant="default"
-              className="h-8 gap-1.5"
+              className={cn(
+                'gap-1.5',
+                selection.useMargin ? 'h-8 w-full justify-start' : 'h-8'
+              )}
               onClick={handleAddToChat}
             >
               <MessageSquare className="h-3.5 w-3.5" />
@@ -171,7 +198,10 @@ export function TextSelectionProvider({
             <Button
               size="sm"
               variant="secondary"
-              className="h-8 gap-1.5"
+              className={cn(
+                'gap-1.5',
+                selection.useMargin ? 'h-8 w-full justify-start' : 'h-8'
+              )}
               onClick={handleExplainThis}
             >
               <Lightbulb className="h-3.5 w-3.5" />
@@ -182,35 +212,42 @@ export function TextSelectionProvider({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0"
+              className={cn(
+                selection.useMargin ? 'h-8 w-full justify-start gap-1.5' : 'h-8 w-8 p-0'
+              )}
               onClick={handleJustAdd}
               title="Add to context"
             >
               <Plus className="h-4 w-4" />
+              {selection.useMargin && <span>Add to context</span>}
             </Button>
 
-            {/* Arrow pointer */}
-            <div
-              className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full"
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid hsl(var(--border))',
-              }}
-            />
-            <div
-              className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full"
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: '5px solid transparent',
-                borderRight: '5px solid transparent',
-                borderTop: '5px solid hsl(var(--popover))',
-                marginTop: '-1px',
-              }}
-            />
+            {/* Arrow pointer - only show in above-text mode */}
+            {!selection.useMargin && (
+              <>
+                <div
+                  className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full"
+                  style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderTop: '6px solid hsl(var(--border))',
+                  }}
+                />
+                <div
+                  className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full"
+                  style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: '5px solid transparent',
+                    borderRight: '5px solid transparent',
+                    borderTop: '5px solid hsl(var(--popover))',
+                    marginTop: '-1px',
+                  }}
+                />
+              </>
+            )}
           </div>,
           document.body
         )}

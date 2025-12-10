@@ -11,7 +11,7 @@ import {
   buildProfileAssistantPrompt,
   ALLOWED_QUESTION_TYPES,
   type ProfileQuestionType,
-} from "@/src/lib/ai/profileAssistant";
+} from "@/src/lib/ai/profiles";
 import { openrouter } from "@/src/lib/openrouter";
 import { generateText } from "ai";
 

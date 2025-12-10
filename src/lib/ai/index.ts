@@ -1,32 +1,27 @@
 /**
- * AI Lesson Generation Module
+ * AI Module
  *
- * Central export point for all AI-powered lesson generation functionality.
+ * Central export point for all AI functionality:
+ * - Chat service (general AI chat)
+ * - Lesson generation (AI agent-based)
+ * - Profile assistant
+ * - Prompts and personas
+ * - Content processing (Tiptap)
  */
 
-// Main lesson generator
-export {
-  generateAILessonWithFullAgent as generateAILesson,
-  generateAILessonWithFullAgent, // Also export with original name for compatibility
-  type GenerateLessonParams,
-  type GenerateLessonResult,
-} from './lesson-generator';
+// Chat functionality (general AI)
+export * from './chat';
 
-// AI Agent System (for advanced usage)
-export * from './agent';
+// Lesson generation (agent-based)
+export * from './lesson-generation';
 
-// Personalization
-export {
-  loadUserPersonalizationContext,
-  createUserMetadataSnapshot,
-  estimateLessonDuration,
-  type UserPersonalizationContext,
-} from './personalization';
+// Profile assistant
+export * from './profiles';
 
-// Persona prompt builders (used by agent)
+// Persona prompt builders (shared)
 export { buildPersonaInstruction, PERSONA_STYLES, PERSONA_EXAMPLE_OPENINGS, PERSONA_CALLOUT_USAGE } from './prompts';
 
-// Tiptap utilities (content processing)
+// Tiptap utilities (content processing - shared)
 export {
   validateTiptapJSON,
   sanitizeTiptapJSON,

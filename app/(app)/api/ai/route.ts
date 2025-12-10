@@ -11,8 +11,8 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import { auth } from '@/src/lib/auth';
 import { getUserWithAssistant } from '@/src/db/queries/users';
-import { generateAIResponse } from '@/src/lib/ai/service';
-import type { AIContext, AIChatMessage } from '@/src/lib/ai/types';
+import { generateAIResponse } from '@/src/lib/ai/chat';
+import type { AIContext, AIChatMessage } from '@/src/lib/ai/chat';
 import type { AssistantPersona, SkillLevel } from '@/src/db/schema';
 
 // Request validation schema

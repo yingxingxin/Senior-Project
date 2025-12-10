@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AIChatPopup } from '@/components/ai-chat-popup';
+import { AIChatPopup } from './chat-popup';
 import { MessageCircle, Sparkles } from 'lucide-react';
 
 /**

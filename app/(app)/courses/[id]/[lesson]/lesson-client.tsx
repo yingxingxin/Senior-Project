@@ -12,9 +12,10 @@ import { SectionRenderer, type Section } from "../../_components/section-rendere
 import { SectionNavigator } from "../../_components/section-navigator";
 import { LessonSkeleton } from "../../_components/lesson-skeleton";
 import { completeSectionAction, checkSectionCompletion } from "../../_lib/actions";
-import { useAIContext } from "@/components/ai-context-provider";
+import { useAIContext } from "@/src/components/ai/context";
 import { TextSelectionProvider } from "@/components/text-selection-popup";
-import { prepareSectionContent } from "@/src/lib/ai/utils";
+import { prepareSectionContent } from "@/src/lib/ai/chat";
+import type { AICourseContext } from "@/src/lib/ai/chat";
 
 interface LessonClientProps {
   courseId: string;
@@ -26,6 +27,7 @@ interface LessonClientProps {
     description: string;
   };
   sections: Section[];
+  courseContext?: AICourseContext;
 }
 
 /**
@@ -37,10 +39,11 @@ export function LessonClient({
   lessonSlug,
   lessonMeta,
   sections,
+  courseContext,
 }: LessonClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setLesson } = useAIContext();
+  const { setLesson, setCourse } = useAIContext();
 
   // Get current section index from URL (default: 0)
   const currentIndexFromUrl = parseInt(searchParams.get("section") ?? "0", 10);
@@ -78,6 +81,14 @@ export function LessonClient({
   }, [lessonSlug, sections]);
 
   const currentSection = sections[currentIndex];
+
+  // Set course context for AI assistant (course hierarchy awareness)
+  useEffect(() => {
+    if (courseContext) {
+      setCourse(courseContext);
+    }
+    return () => setCourse(null); // Clear on unmount
+  }, [courseContext, setCourse]);
 
   // Set lesson context for AI assistant when section changes
   // Includes section content so AI can reference specific material being studied

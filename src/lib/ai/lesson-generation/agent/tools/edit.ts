@@ -8,8 +8,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolExecutionContext } from '../types';
 import { validateDocument } from '../lib';
-import { parseMarkdownToTiptap } from '../../tiptap';
-import type { TiptapDocument } from '../../tiptap';
+import { parseMarkdownToTiptap } from '../../../tiptap';
+import type { TiptapDocument } from '../../../tiptap';
 
 /**
  * Plan tracking type for state feedback

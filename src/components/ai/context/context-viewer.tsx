@@ -13,8 +13,8 @@
  */
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, X, BookOpen, HelpCircle, Quote } from 'lucide-react';
-import { useAIContext, useHasAIContext } from './ai-context-provider';
+import { ChevronDown, ChevronUp, X, BookOpen, HelpCircle, Quote, GraduationCap } from 'lucide-react';
+import { useAIContext, useHasAIContext } from './provider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/src/lib/utils';
@@ -25,7 +25,7 @@ type AIContextViewerProps = {
 
 export function AIContextViewer({ className }: AIContextViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { lesson, quiz, quotes, removeQuote, clearQuotes } = useAIContext();
+  const { course, lesson, quiz, quotes, removeQuote, clearQuotes } = useAIContext();
   const hasContext = useHasAIContext();
 
   // Don't render anything if no context and not expanded
@@ -35,6 +35,7 @@ export function AIContextViewer({ className }: AIContextViewerProps) {
 
   // Build context summary for collapsed state
   const contextParts: string[] = [];
+  if (course) contextParts.push('Course');
   if (lesson) contextParts.push('Lesson');
   if (quiz) contextParts.push('Quiz');
   if (quotes.length > 0) contextParts.push(`${quotes.length} quote${quotes.length > 1 ? 's' : ''}`);
@@ -65,6 +66,19 @@ export function AIContextViewer({ className }: AIContextViewerProps) {
       {/* Expanded content */}
       {isExpanded && (
         <div className="px-3 pb-3 space-y-2">
+          {/* Course context */}
+          {course && (
+            <div className="flex items-start gap-2 text-sm">
+              <GraduationCap className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="font-medium">{course.title}</span>
+                <span className="text-muted-foreground">
+                  {' '}&middot; Lesson {course.lessonIndex + 1} of {course.totalLessons}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Lesson context */}
           {lesson && (
             <div className="flex items-start gap-2 text-sm">
@@ -84,6 +98,11 @@ export function AIContextViewer({ className }: AIContextViewerProps) {
               <HelpCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="font-medium">{quiz.title}</span>
+                {quiz.questionIndex !== undefined && quiz.totalQuestions && (
+                  <span className="text-muted-foreground">
+                    {' '}&middot; Q{quiz.questionIndex + 1}/{quiz.totalQuestions}
+                  </span>
+                )}
                 {quiz.question && (
                   <p className="text-muted-foreground truncate">{quiz.question.prompt}</p>
                 )}

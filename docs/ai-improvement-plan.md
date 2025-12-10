@@ -407,3 +407,65 @@ type AIConversationContext = {
 - **Helpfulness**: Do students report better understanding?
 - **Engagement**: Do students use the AI chat more?
 - **Accuracy**: Does AI stay on-topic better?
+
+---
+
+## API Route Consolidation (Completed)
+
+### Overview
+
+Consolidated 7 AI API routes down to 3 by removing duplicates and consolidating quiz AI features into the main chat popup.
+
+### Routes Changed
+
+| Route | Action | Reason |
+|-------|--------|--------|
+| `/api/ai` | ✅ KEPT | Unified AI chat endpoint |
+| `/api/ai-chat` | ❌ DELETED | Duplicate of `/api/ai` |
+| `/api/chat` | ✅ KEPT | Theme design (different purpose) |
+| `/api/quizzes/[id]/hint` | ❌ DELETED | Use AI chat popup instead |
+| `/api/quizzes/[id]/explain` | ❌ DELETED | Use AI chat popup instead |
+| `/api/quizzes/[id]/summary` | ❌ DELETED | Use AI chat popup instead |
+| `/api/ai-lessons/generate` | ✅ KEPT | Async job queue (different pattern) |
+
+### Implementation Details
+
+**Files Deleted:**
+- `app/(app)/api/ai-chat/route.ts`
+- `app/(app)/api/quizzes/[quizId]/hint/route.ts`
+- `app/(app)/api/quizzes/[quizId]/explain/route.ts`
+- `app/(app)/api/quizzes/[quizId]/summary/route.ts`
+
+**Files Modified:**
+- `app/(app)/quizzes/_components/quiz-form.tsx` - Updated to use `sendMessageToChat()` from AIContext
+
+### How Quiz AI Features Now Work
+
+Instead of calling separate API endpoints, quiz-related AI features now open the chat popup with pre-filled messages:
+
+```tsx
+// Request a hint - opens chat with context
+const handleRequestHint = (questionId: number) => {
+  const question = questions.find(q => q.id === questionId);
+  sendMessageToChat(`Can you give me a hint for this question: "${question?.prompt}"`);
+};
+
+// Request explanation - opens chat with context
+const handleRequestExplanation = (questionId: number) => {
+  const question = questions.find(q => q.id === questionId);
+  sendMessageToChat(`Can you explain the answer to: "${question?.prompt}"`);
+};
+
+// Request summary - opens chat with results context
+const handleRequestSummary = () => {
+  sendMessageToChat(`Can you summarize my quiz results and suggest what I should review? I got ${results.score} out of ${results.total} correct.`);
+};
+```
+
+### Benefits
+
+1. **4 fewer API routes** to maintain
+2. **Unified UX**: All AI interactions through chat popup
+3. **Better context**: Chat has full quiz context, not just one question
+4. **Conversation flow**: User can ask follow-up questions naturally
+5. **Consistent styling**: Uses the ai-elements Message components

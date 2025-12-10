@@ -4,7 +4,7 @@
  * Manages the 3-level hierarchy: Course → Lessons → Sections
  */
 
-import type { TiptapDocument, TiptapBlockNode } from '../../tiptap';
+import type { TiptapDocument, TiptapBlockNode } from '../../../tiptap';
 import type { DocumentState as IDocumentState, Lesson, LessonSection } from '../types';
 
 export class DocumentState implements IDocumentState {

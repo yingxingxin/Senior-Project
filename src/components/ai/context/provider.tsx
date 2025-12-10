@@ -22,15 +22,17 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react';
 import type {
+  AICourseContext,
   AILessonContext,
   AIQuizContext,
   AIQuote,
   AIContextState,
   AIContextActions,
-} from '@/src/lib/ai/types';
+} from '@/src/lib/ai/chat';
 
 type AIContextValue = AIContextState & AIContextActions;
 
@@ -41,11 +43,22 @@ type AIContextProviderProps = {
 };
 
 export function AIContextProvider({ children }: AIContextProviderProps) {
+  const [course, setCourseState] = useState<AICourseContext | null>(null);
   const [lesson, setLessonState] = useState<AILessonContext | null>(null);
   const [quiz, setQuizState] = useState<AIQuizContext | null>(null);
   const [quotes, setQuotes] = useState<AIQuote[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
+  // Ref to store pending message for stable consumePendingMessage callback
+  // Fixes race condition where callback dependency on pendingMessage caused
+  // multiple effect runs with inconsistent state
+  const pendingMessageRef = useRef<string | null>(null);
+
+  // Course context management
+  const setCourse = useCallback((newCourse: AICourseContext | null) => {
+    setCourseState(newCourse);
+  }, []);
 
   // Lesson context management
   const setLesson = useCallback((newLesson: AILessonContext | null) => {
@@ -82,11 +95,12 @@ export function AIContextProvider({ children }: AIContextProviderProps) {
   // Get context formatted for API call
   const getContextForAPI = useCallback(() => {
     return {
+      course: course || undefined,
       lesson: lesson || undefined,
       quiz: quiz || undefined,
       quotes,
     };
-  }, [lesson, quiz, quotes]);
+  }, [course, lesson, quiz, quotes]);
 
   // Chat control
   const openChat = useCallback(() => {
@@ -102,25 +116,29 @@ export function AIContextProvider({ children }: AIContextProviderProps) {
   }, []);
 
   const sendMessageToChat = useCallback((message: string) => {
+    pendingMessageRef.current = message;
     setPendingMessage(message);
     setIsChatOpen(true);
   }, []);
 
   const consumePendingMessage = useCallback(() => {
-    const message = pendingMessage;
+    const message = pendingMessageRef.current;
+    pendingMessageRef.current = null;
     setPendingMessage(null);
     return message;
-  }, [pendingMessage]);
+  }, []);
 
   const value = useMemo<AIContextValue>(
     () => ({
       // State
+      course,
       lesson,
       quiz,
       quotes,
       isChatOpen,
       pendingMessage,
       // Actions
+      setCourse,
       setLesson,
       setQuiz,
       addQuote,
@@ -134,11 +152,13 @@ export function AIContextProvider({ children }: AIContextProviderProps) {
       consumePendingMessage,
     }),
     [
+      course,
       lesson,
       quiz,
       quotes,
       isChatOpen,
       pendingMessage,
+      setCourse,
       setLesson,
       setQuiz,
       addQuote,
@@ -173,6 +193,6 @@ export function useAIContext(): AIContextValue {
  * Useful for showing/hiding context indicators
  */
 export function useHasAIContext(): boolean {
-  const { lesson, quiz, quotes } = useAIContext();
-  return Boolean(lesson || quiz || quotes.length > 0);
+  const { course, lesson, quiz, quotes } = useAIContext();
+  return Boolean(course || lesson || quiz || quotes.length > 0);
 }
