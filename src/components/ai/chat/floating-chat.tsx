@@ -222,14 +222,14 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
           ref={windowRef}
           onMouseDown={handleWindowMouseDown}
           className={cn(
-            'fixed z-50 w-96 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800/50',
-            'bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-indigo-950/20',
+            'fixed z-50 w-96 rounded-2xl shadow-2xl border-2 border-gray-300',
             'backdrop-blur-sm flex flex-col overflow-hidden',
             'animate-scale-in',
             isMinimized ? 'h-16' : 'h-[600px]',
             isDragging && 'cursor-grabbing'
           )}
           style={{
+            backgroundColor: '#E6EDf5',
             left: position.x || undefined,
             right: position.x === 0 ? 24 : undefined,
             bottom: position.y === 0 ? 24 : undefined,
@@ -240,13 +240,13 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
           <div 
             data-drag-handle
             className={cn(
-              "flex items-center justify-between px-4 py-3 border-b border-pink-200/50 dark:border-pink-800/30 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm flex-shrink-0",
-              "cursor-move hover:bg-white/70 dark:hover:bg-gray-900/70 transition-colors"
+              "flex items-center justify-between px-4 py-3 border-b border-gray-300/50 bg-white/80 backdrop-blur-sm flex-shrink-0",
+              "cursor-move hover:bg-white/90 transition-colors"
             )}
           >
             <div className="flex items-center gap-3">
               {assistantAvatarUrl ? (
-                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-pink-300 dark:border-pink-700">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300">
                   <Image
                     src={assistantAvatarUrl}
                     alt={`${assistantName} avatar`}
@@ -256,13 +256,13 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
                   />
                 </div>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center border-2 border-pink-300 dark:border-pink-700">
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center border-2 border-gray-300">
                   <Bot className="h-5 w-5 text-white" />
                 </div>
               )}
               <div>
-                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{assistantName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">AI Assistant</p>
+                <p className="font-semibold text-sm text-gray-900">{assistantName}</p>
+                <p className="text-xs text-gray-500">AI Assistant</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -272,10 +272,10 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
                   setIsMinimized(!isMinimized);
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="p-1.5 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label={isMinimized ? 'Expand' : 'Minimize'}
               >
-                <Minimize2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <Minimize2 className="h-4 w-4 text-gray-600" />
               </button>
               <button
                 onClick={(e) => {
@@ -283,10 +283,10 @@ export function FloatingAIChat({ assistantAvatarUrl, assistantName }: FloatingAI
                   setChatOpen(false);
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="p-1.5 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label="Close"
               >
-                <X className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <X className="h-4 w-4 text-gray-600" />
               </button>
             </div>
           </div>
