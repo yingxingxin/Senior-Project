@@ -2,14 +2,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import { getAllQuizzes, getUserWithAssistant, getUserQuizStatus } from "@/src/db/queries";
-import { Grid } from "@/components/ui/spacing";
 import { Card } from "@/components/ui/card";
-import { Heading, Body, Muted, Caption } from "@/components/ui/typography";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Heading, Body, Muted } from "@/components/ui/typography";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import Link from "next/link";
 import { Stack, Inline } from "@/components/ui/spacing";
+import { QuizTopicTabs } from "./_components/quiz-topic-tabs";
+import { getUserAICourses } from "@/app/(app)/courses/_lib/actions";
 
 export default async function QuizzesPage() {
   const session = await auth.api.getSession({
@@ -24,6 +22,9 @@ export default async function QuizzesPage() {
 
   // Get user's assistant info
   const [userData] = await getUserWithAssistant.execute({ userId });
+
+  // Get user's AI courses for quiz generation
+  const aiCourses = await getUserAICourses();
 
   // Get all quizzes
   const allQuizzes = await getAllQuizzes.execute({});
@@ -48,10 +49,25 @@ export default async function QuizzesPage() {
 
   const statusMap = new Map(quizStatuses.map((s) => [s.quizId, s]));
 
-  // Group quizzes by topic and skill level
+  // Separate AI-generated quizzes from regular quizzes
+  // AI-generated quizzes should only be visible to the user who created them
+  // Filter AI-generated quizzes owned by the current user
+  const aiQuizzes = validQuizzes.filter(quiz => {
+    const isAI = quiz.isAiGenerated === true;
+    const isOwner = quiz.ownerUserId === userId;
+    return isAI && isOwner; // Only show AI quizzes owned by the current user
+  });
+  const regularQuizzes = validQuizzes.filter(quiz => {
+    const isAI = quiz.isAiGenerated === true;
+    return !isAI; // Regular quizzes are visible to everyone
+  });
+
+  // Group all quizzes by topic and skill level
+  // AI quizzes go under "A.I. Generated Quiz" topic
   const quizzesByTopic = new Map<string, Map<string, typeof validQuizzes>>();
 
-  for (const quiz of validQuizzes) {
+  // First, add regular quizzes grouped by their topic
+  for (const quiz of regularQuizzes) {
     // Handle null/undefined topic slugs
     const topicKey = quiz.topicSlug || "uncategorized";
     const skillKey = quiz.skillLevel || "beginner";
@@ -66,20 +82,22 @@ export default async function QuizzesPage() {
     topicMap.get(skillKey)!.push(quiz);
   }
 
-  // Format topic slugs for display
-  const formatTopicName = (slug: string | null | undefined): string => {
-    if (!slug) return "Uncategorized";
-    return slug
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const skillLevelColors = {
-    beginner: "bg-success/20 text-success border-success/30",
-    intermediate: "bg-warning/20 text-warning border-warning/30",
-    advanced: "bg-destructive/20 text-destructive border-destructive/30",
-  };
+  // Then, add AI quizzes under "A.I. Generated Quiz" topic
+  if (aiQuizzes.length > 0) {
+    const aiTopicKey = "ai_generated_quiz";
+    if (!quizzesByTopic.has(aiTopicKey)) {
+      quizzesByTopic.set(aiTopicKey, new Map());
+    }
+    const aiTopicMap = quizzesByTopic.get(aiTopicKey)!;
+    
+    for (const quiz of aiQuizzes) {
+      const skillKey = quiz.skillLevel || "beginner";
+      if (!aiTopicMap.has(skillKey)) {
+        aiTopicMap.set(skillKey, []);
+      }
+      aiTopicMap.get(skillKey)!.push(quiz);
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-background container mx-auto px-4 py-8 max-w-7xl">
@@ -114,89 +132,13 @@ export default async function QuizzesPage() {
           </Card>
         )}
 
-        {/* Quizzes by Topic */}
-        {Array.from(quizzesByTopic.entries()).map(([topicSlug, quizzesByLevel]) => (
-          <Stack key={topicSlug} gap="default">
-            <Heading level={2}>{formatTopicName(topicSlug)}</Heading>
-
-            {/* Quizzes by Skill Level */}
-            {Array.from(quizzesByLevel.entries()).map(([skillLevel, quizzes]) => (
-              <Stack key={skillLevel} gap="default">
-                <div className="flex items-center gap-3">
-                  <Heading level={3} className="capitalize">
-                    {skillLevel}
-                  </Heading>
-                  <Badge
-                    className={skillLevelColors[skillLevel as keyof typeof skillLevelColors]}
-                  >
-                    {quizzes.length} {quizzes.length === 1 ? "quiz" : "quizzes"}
-                  </Badge>
-                </div>
-
-                <Grid cols={3} gap="default">
-                  {quizzes.map((quiz) => {
-                    const status = statusMap.get(quiz.id);
-                    const hasCompleted = status?.hasCompleted ?? false;
-                    const bestPercentage = status?.bestPercentage ?? null;
-
-                    return (
-                      <Card key={quiz.id} className="p-6 hover:shadow-lg transition-shadow">
-                        <Stack gap="default">
-                          <Stack gap="tight">
-                            <div className="flex items-start justify-between gap-2">
-                              <Heading level={4}>{quiz.title}</Heading>
-                              {hasCompleted && (
-                                <Badge className="bg-success/20 text-success border-success/30">
-                                  ✓ Completed
-                                </Badge>
-                              )}
-                            </div>
-                            {quiz.description && (
-                              <Muted variant="small" className="line-clamp-2">
-                                {quiz.description}
-                              </Muted>
-                            )}
-                            {hasCompleted && bestPercentage !== null && (
-                              <Body variant="small" className="text-muted-foreground">
-                                Best score: {bestPercentage}%
-                              </Body>
-                            )}
-                          </Stack>
-
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="text-xs">
-                              {quiz.defaultLength} {quiz.defaultLength === 1 ? "question" : "questions"}
-                            </Badge>
-                            <Badge
-                              className={skillLevelColors[skillLevel as keyof typeof skillLevelColors]}
-                            >
-                              {skillLevel}
-                            </Badge>
-                          </div>
-
-                          <Button asChild className="w-full mt-auto">
-                            <Link href={`/quizzes/${quiz.slug}`}>
-                              {hasCompleted ? "Retake Quiz" : "Start Quiz"}
-                            </Link>
-                          </Button>
-                        </Stack>
-                      </Card>
-                    );
-                  })}
-                </Grid>
-              </Stack>
-            ))}
-          </Stack>
-        ))}
-
-        {validQuizzes.length === 0 && (
-          <Card className="p-12 text-center">
-            <Stack gap="tight">
-              <Heading level={3}>No quizzes available</Heading>
-              <Muted>Check back later for new quizzes!</Muted>
-            </Stack>
-          </Card>
-        )}
+        {/* Topic Navigation Tabs (includes both regular and AI-generated quizzes) */}
+        {/* Always show tabs, even if no quizzes exist (so users can generate quizzes) */}
+        <QuizTopicTabs
+          quizzesByTopic={quizzesByTopic}
+          statusMap={statusMap}
+          aiCourses={aiCourses}
+        />
       </Stack>
     </div>
   );

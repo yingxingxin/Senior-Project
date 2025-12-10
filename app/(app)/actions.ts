@@ -12,6 +12,7 @@ import {
   getFeaturedLessons,
   getUserNavbarData as getUserNavbarDataQuery,
 } from "@/src/db/queries";
+import { getUserAICourses } from "./courses/_lib/actions";
 
 type Persona = "kind" | "direct" | "calm";
 type Gender = "feminine" | "masculine" | "androgynous";
@@ -92,6 +93,7 @@ export type NavbarData = {
     streak: number;
     points: number;
   };
+  hasAICourses?: boolean;
 };
 
 // Database query functions for dashboard
@@ -408,6 +410,10 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
     ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
     : displayName.substring(0, 2).toUpperCase();
 
+  // Check if user has AI courses
+  const aiCourses = await getUserAICourses();
+  const hasAICourses = aiCourses.length > 0;
+
   return {
     user: {
       name: userData.name || userData.email?.split("@")[0] || "User",
@@ -421,6 +427,7 @@ export async function getUserNavbarData(): Promise<NavbarData | null> {
       streak: stats.currentStreak,
       points: stats.totalPoints,
     },
+    hasAICourses,
   };
 }
 
