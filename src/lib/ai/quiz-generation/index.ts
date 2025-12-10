@@ -132,7 +132,7 @@ Return ONLY the JSON array, no other text.`;
     model: openrouter('x-ai/grok-4.1-fast'),
     prompt,
     temperature: 0.7,
-    maxTokens: 4000,
+    maxOutputTokens: 4000,
   });
 
   // Parse the JSON response
