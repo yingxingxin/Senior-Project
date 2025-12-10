@@ -2,7 +2,8 @@
 
 import {ChangeEvent, JSX, useCallback, useEffect, useMemo, useState} from 'react';
 import Editor, { type OnChange } from '@monaco-editor/react';
-
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 import type {Exercise, Expected, Lang} from './exercises/types';
 import { listForLang, getById } from './exercises';
@@ -14,13 +15,11 @@ declare global { interface Window { ts?: TsModule } }
 
 type GeneratedExercise = {
     prompt: string;
-    expected: Expected; // <–– this is your existing Expected type
+    expected: Expected;
     params: Record<string, number | string>;
 };
 
-type Theme = 'vs-dark' | 'light';
 type Mode = 'free' | 'exercise';
-
 
 const LANG_LABEL: Record<Lang, string> = {
     javascript: 'JavaScript',
@@ -51,10 +50,13 @@ SELECT * FROM t;`,
 const EXECUTE_URL = '/api/execute';
 
 export default function CodePlayground(): JSX.Element {
+    // Theme integration with app
+    const { resolvedTheme } = useTheme();
+    const monacoTheme = resolvedTheme === 'dark' ? 'vs-dark' : 'vs-light';
+
     // UI state
     const [mode, setMode] = useState<Mode>('free');
     const [lang, setLang] = useState<Lang>('javascript');
-    const [theme, setTheme] = useState<Theme>('vs-dark');
     const [exerciseId, setExerciseId] = useState<string>(EXERCISES[0].id);
 
     // Code + results
@@ -73,84 +75,12 @@ export default function CodePlayground(): JSX.Element {
 
     const [nowMs, setNowMs] = useState(Date.now());
 
-
-    // appendOut helper removed (unused)
-    const isDark = theme === 'vs-dark';
-
-    const sidebarStyles: React.CSSProperties = {
-        backgroundColor: isDark ? '#111' : '#f5f5f5',
-        color: isDark ? '#eee' : '#111',
-        borderRight: isDark ? '1px solid #333' : '1px solid #ddd',
-    };
-
-    const runButtonStyles: React.CSSProperties = {
-        width: '100%',
-        marginTop: 16,
-        padding: '8px 12px',
-        borderRadius: 4,
-        border: 'none',
-        cursor: 'pointer',
-        backgroundColor: isDark ? '#1e90ff' : '#1976d2',
-        color: '#fff',
-        fontWeight: 600,
-    };
-
-    const secondaryButtonStyles: React.CSSProperties = {
-        width: '100%',
-        marginTop: 8,
-        padding: '6px 10px',
-        borderRadius: 4,
-        border: isDark ? '1px solid #555' : '1px solid #ccc',
-        backgroundColor: isDark ? '#222' : '#fff',
-        color: isDark ? '#eee' : '#222',
-        cursor: 'pointer',
-    };
-
-    const consoleStyles: React.CSSProperties = {
-        marginTop: 4,
-        padding: 8,
-        borderRadius: 4,
-        backgroundColor: isDark ? '#111' : '#f5f5f5',
-        color: isDark ? '#eee' : '#111',
-        whiteSpace: 'pre-wrap',
-    };
-
-    const selectStyles: React.CSSProperties = {
-        width: '100%',
-        padding: '4px 6px',
-        borderRadius: 4,
-        border: isDark ? '1px solid #555' : '1px solid #ccc',
-        backgroundColor: isDark ? '#222' : '#fff',
-        color: isDark ? '#f5f5f5' : '#111',
-        // optional: smooth out native look a bit
-        outline: 'none',
-    };
-
-    const consoleContainerStyles: React.CSSProperties = {
-        padding: 8,
-        borderTop: isDark ? '1px solid #555' : '1px solid #ccc',
-        backgroundColor: isDark ? '#111' : '#fff',
-        color: isDark ? '#f5f5f5' : '#111',
-    };
-
-    const consolePreStyles: React.CSSProperties = {
-        margin: 0,
-        whiteSpace: 'pre-wrap',
-        fontFamily: 'monospace',
-        fontSize: 14,
-        backgroundColor: isDark ? '#000' : '#fafafa',
-        color: isDark ? '#eee' : '#111',
-        padding: 8,
-        borderRadius: 4,
-    };
-
     // When exercise/lang changes in exercise mode, seed the editor with the exercise starter
     useEffect((): void => {
         if (mode !== 'exercise') return;
 
         const ex: Exercise | undefined = getById(exerciseId);
         if (!ex) return;
-
 
         if (ex.generate) {
             setGeneratedEx(ex.generate());
@@ -315,7 +245,6 @@ export default function CodePlayground(): JSX.Element {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({
-                    // 🔧 FIXED: the API expects "language", not "lang"
                     language,
                     code: src,
                     // optional runtime hints (Piston accepts these versions)
@@ -393,7 +322,7 @@ export default function CodePlayground(): JSX.Element {
                     .map((s: string) => s.trim())
                     .filter(Boolean);
 
-                let ok: boolean;  // <-- we will set this below
+                let ok: boolean;
 
                 if (ex_expected.matchAny) {
                     // Pass if ANY expected line appears anywhere in the output
@@ -463,40 +392,36 @@ export default function CodePlayground(): JSX.Element {
 
     // ===================== UI =====================
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', height: '100vh' }}>
+        <div className="grid grid-cols-[260px_1fr] h-screen">
             {/* Sidebar */}
-            <aside style={{ padding: 12, ...sidebarStyles }}>
-                <h3 style={{ marginTop: 0 }}>Playground</h3>
+            <aside className="p-3 bg-background text-foreground border-r border-border">
+                <h3 className="mt-0 font-semibold text-lg">Playground</h3>
 
-                <label style={{ display: 'block', marginTop: 10, fontWeight: 600 }}>Mode</label>
-                <select value={mode} onChange={e => setMode(e.target.value as Mode)} style={selectStyles}>
+                <label className="block mt-2.5 font-semibold text-sm">Mode</label>
+                <select
+                    value={mode}
+                    onChange={e => setMode(e.target.value as Mode)}
+                    className="w-full px-2 py-1 rounded border border-border bg-card text-foreground outline-none"
+                >
                     <option value="exercise">Exercises</option>
                     <option value="free">Free Code</option>
                 </select>
 
-                <label style={{ display: 'block', marginTop: 12, fontWeight: 600 }}>Language</label>
-                <select value={lang} onChange={e => setLang(e.target.value as Lang)} style={selectStyles}>
+                <label className="block mt-3 font-semibold text-sm">Language</label>
+                <select
+                    value={lang}
+                    onChange={e => setLang(e.target.value as Lang)}
+                    className="w-full px-2 py-1 rounded border border-border bg-card text-foreground outline-none"
+                >
                     {Object.keys(LANG_LABEL).map(k => (
                         <option key={k} value={k}>{LANG_LABEL[k as Lang]}</option>
                     ))}
                 </select>
 
-                <label style={{ display: 'block', marginTop: 12, fontWeight: 600 }}>Theme</label>
-                <select value={theme} onChange={e => setTheme(e.target.value as Theme)} style={selectStyles}>
-                    <option value="vs-dark">Dark</option>
-                    <option value="vs-light">Light</option>
-                </select>
-
                 {mode === 'exercise' && (
                     <>
                         {/* Exercise selector */}
-                        <label
-                            style={{
-                                display: 'block',
-                                marginTop: 12,
-                                fontWeight: 600,
-                            }}
-                        >
+                        <label className="block mt-3 font-semibold text-sm">
                             Exercise
                         </label>
                         <select
@@ -504,7 +429,7 @@ export default function CodePlayground(): JSX.Element {
                             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                                 setExerciseId(e.target.value)
                             }
-                            style={selectStyles}
+                            className="w-full px-2 py-1 rounded border border-border bg-card text-foreground outline-none"
                         >
                             {exerciseList.map((ex: Exercise) => (
                                 <option key={ex.id} value={ex.id}>
@@ -514,42 +439,28 @@ export default function CodePlayground(): JSX.Element {
                         </select>
 
                         {/* Exercise prompt */}
-                        <div
-                            style={{
-                                fontSize: 12,
-                                opacity: 0.9,
-                                marginTop: 10,
-                                whiteSpace: 'pre-wrap',
-                            }}
-                        >
+                        <div className="text-xs opacity-90 mt-2.5 whitespace-pre-wrap">
                             {generatedEx?.prompt ?? getById(exerciseId)?.prompt}
                         </div>
 
                         {/* ===== Timed run UI ===== */}
-                        <hr
-                            style={{
-                                marginTop: 16,
-                                marginBottom: 12,
-                                border: 'none',
-                                borderTop: isDark ? '1px solid #333' : '1px solid #ddd',
-                            }}
-                        />
+                        <hr className="mt-4 mb-3 border-0 border-t border-border" />
 
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>Timed run</div>
+                        <div className="font-semibold mb-1">Timed run</div>
 
-                        <div style={{ fontSize: 12, marginBottom: 8 }}>
+                        <div className="text-xs mb-2">
                             {timedRunActive
                                 ? 'Timer running… solve the exercise!'
-                                : 'Click “Start timed run” to attempt this exercise for time.'}
+                                : 'Click "Start timed run" to attempt this exercise for time.'}
                         </div>
 
-                        <div style={{ fontSize: 14, marginBottom: 4 }}>
+                        <div className="text-sm mb-1">
                             Current:{' '}
                             <strong>{formatMs(currentElapsedMs)}</strong>
                         </div>
 
                         {bestTimeMs != null && (
-                            <div style={{ fontSize: 14, marginBottom: 8 }}>
+                            <div className="text-sm mb-2">
                                 Best:{' '}
                                 <strong>{formatMs(bestTimeMs)}</strong>
                             </div>
@@ -557,7 +468,11 @@ export default function CodePlayground(): JSX.Element {
 
                         <button
                             onClick={handleStartTimedRun}
-                            style={secondaryButtonStyles}
+                            className={cn(
+                                "w-full mt-2 px-2.5 py-1.5 rounded border border-border bg-card text-foreground cursor-pointer",
+                                "hover:bg-muted transition-colors",
+                                timedRunActive && "opacity-50 cursor-not-allowed"
+                            )}
                             disabled={timedRunActive}
                         >
                             {timedRunActive ? 'Timed run in progress…' : 'Start timed run'}
@@ -565,7 +480,10 @@ export default function CodePlayground(): JSX.Element {
                     </>
                 )}
 
-                <button onClick={run} style={runButtonStyles}>
+                <button
+                    onClick={run}
+                    className="w-full mt-4 px-3 py-2 rounded border-0 cursor-pointer bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+                >
                     Run
                 </button>
 
@@ -576,68 +494,53 @@ export default function CodePlayground(): JSX.Element {
                         setHtmlPreview('');
                         setValidMsg('');
                     }}
-                    style={secondaryButtonStyles}
+                    className="w-full mt-2 px-2.5 py-1.5 rounded border border-border bg-card text-foreground cursor-pointer hover:bg-muted transition-colors"
                 >
                     Clear Output
                 </button>
             </aside>
 
             {/* Editor + Output */}
-            <main style={{ display: 'grid', gridTemplateRows: '1fr 220px', gap: 8 }}>
+            <main className="grid grid-rows-[1fr_220px] gap-2">
                 <div>
                     <Editor
                         height="100%"
                         language={lang === 'cpp' ? 'cpp' : lang}
-                        theme={theme}
+                        theme={monacoTheme}
                         value={code}
                         onChange={handleChange}
                         options={{ fontSize: 14, minimap: { enabled: false } }}
                     />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <section style={consoleContainerStyles}>
-                        <div style={{ fontWeight: 700, marginBottom: 6, color: isDark ? '#fff' : '#111' }}>
+                <div className="grid grid-cols-2 gap-2">
+                    <section className="p-2 border-t border-border bg-background text-foreground">
+                        <div className="font-bold mb-1.5 text-foreground">
                             Console
                         </div>
 
                         {stdout && (
-                            <pre style={consolePreStyles}>
-            {stdout}
-        </pre>
+                            <pre className="m-0 whitespace-pre-wrap font-mono text-sm bg-muted text-foreground p-2 rounded">
+                                {stdout}
+                            </pre>
                         )}
 
                         {stderr && (
-                            <pre
-                                style={{
-                                    ...consolePreStyles,
-                                    color: isDark ? '#ff8080' : '#c00',
-                                }}
-                            >
-            {stderr}
-        </pre>
+                            <pre className="m-0 whitespace-pre-wrap font-mono text-sm bg-muted text-destructive p-2 rounded">
+                                {stderr}
+                            </pre>
                         )}
 
                         {validMsg && (
-                            <div style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{validMsg}</div>
+                            <div className="mt-2 whitespace-pre-wrap text-sm">{validMsg}</div>
                         )}
                     </section>
 
-                    <section
-                        style={{
-                            padding: 8,
-                            borderTop: isDark ? '1px solid #333' : '1px solid #ddd',
-                        }}
-                    >
-                        <div style={{ fontWeight: 700, marginBottom: 6 }}>HTML Preview</div>
+                    <section className="p-2 border-t border-border">
+                        <div className="font-bold mb-1.5">HTML Preview</div>
                         <iframe
                             title="preview"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                border: isDark ? '1px solid #444' : '1px solid #ccc',
-                                background: isDark ? '#111' : '#fff',
-                            }}
+                            className="w-full h-full border border-border bg-background rounded"
                             srcDoc={htmlPreview}
                         />
                     </section>

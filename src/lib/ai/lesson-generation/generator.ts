@@ -232,10 +232,13 @@ export async function generateAILessonWithFullAgent(
     const agentLesson = agentLessons[lessonIndex];
 
     // Create the lesson record
+    // Make lesson slug unique by prefixing with course slug to avoid collisions
+    const uniqueLessonSlug = `${courseSlug}-${agentLesson.slug}`;
+
     const [lessonRecord] = await db
       .insert(lessons)
       .values({
-        slug: agentLesson.slug,
+        slug: uniqueLessonSlug,
         title: agentLesson.title,
         description: agentLesson.description || '',
         difficulty,

@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 
 export default function EditorPage(): JSX.Element {
     return (
-        <main className="min-h-dvh flex-1">
+        <main className="min-h-dvh flex-1 bg-background">
             <EditorClient />
         </main>
     );

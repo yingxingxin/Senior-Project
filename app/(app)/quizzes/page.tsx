@@ -76,13 +76,13 @@ export default async function QuizzesPage() {
   };
 
   const skillLevelColors = {
-    beginner: "bg-green-500/20 text-green-400 border-green-500/30",
-    intermediate: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    advanced: "bg-red-500/20 text-red-400 border-red-500/30",
+    beginner: "bg-success/20 text-success border-success/30",
+    intermediate: "bg-warning/20 text-warning border-warning/30",
+    advanced: "bg-destructive/20 text-destructive border-destructive/30",
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-dvh bg-background container mx-auto px-4 py-8 max-w-7xl">
       <Stack gap="loose">
         {/* Header */}
         <Stack gap="tight">
@@ -146,7 +146,7 @@ export default async function QuizzesPage() {
                             <div className="flex items-start justify-between gap-2">
                               <Heading level={4}>{quiz.title}</Heading>
                               {hasCompleted && (
-                                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                <Badge className="bg-success/20 text-success border-success/30">
                                   ✓ Completed
                                 </Badge>
                               )}

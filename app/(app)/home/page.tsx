@@ -8,7 +8,7 @@ export default async function HomePage() {
   const data = await getExploreData();
 
   return (
-    <div className="min-h-dvh relative text-foreground animate-gradient">
+    <div className="min-h-dvh relative text-foreground bg-background">
       <main className="mx-auto max-w-6xl px-4 pt-6 pb-16 relative z-10">
         <Stack gap="loose">
           <div>

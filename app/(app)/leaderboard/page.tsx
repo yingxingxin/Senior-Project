@@ -1,10 +1,13 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
-// Adjust these imports to match where you keep exercise + lang data:
 import { EXERCISES } from '@/components/codeplayground/exercises';
 import { formatMs } from "@/lib/utils"
+import { Stack, Inline } from "@/components/ui/spacing";
+import { Heading, Muted } from "@/components/ui/typography";
+import { Card } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 type LeaderboardEntry = {
     userId: number;
@@ -62,101 +65,104 @@ export default function LeaderboardPage() {
     }, [exerciseId, lang]);
 
     return (
-        <main className="max-w-4xl mx-auto py-10 px-4 space-y-8">
-            <header className="space-y-2">
-                <h1 className="text-2xl font-bold">Timed Run Leaderboard</h1>
-                <p className="text-sm text-slate-600">
+        <Stack gap="loose" as="main" className="min-h-dvh bg-background max-w-4xl mx-auto py-10 px-4">
+            {/* Header */}
+            <Stack gap="tight" as="header">
+                <Heading level={1}>Timed Run Leaderboard</Heading>
+                <Muted variant="small">
                     Fastest times per user. Filter by exercise and language.
-                </p>
-            </header>
+                </Muted>
+            </Stack>
 
             {/* Filters */}
-            <section className="flex flex-wrap gap-4">
-                <label className="flex flex-col text-sm gap-1">
-                    Exercise
-                    <select
-                        className="border rounded px-2 py-1"
-                        value={exerciseId}
-                        onChange={(e) => setExerciseId(e.target.value)}
-                    >
-                        {EXERCISES.map((ex) => (
-                            <option key={ex.id} value={ex.id}>
-                                {ex.title}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+            <Inline gap="default">
+                <Stack gap="tight" className="w-48">
+                    <Muted variant="small">Exercise</Muted>
+                    <Select value={exerciseId} onValueChange={setExerciseId}>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {EXERCISES.map((ex) => (
+                                <SelectItem key={ex.id} value={ex.id}>
+                                    {ex.title}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </Stack>
 
-                <label className="flex flex-col text-sm gap-1">
-                    Language
-                    <select
-                        className="border rounded px-2 py-1"
-                        value={lang}
-                        onChange={(e) => setLang(e.target.value)}
-                    >
-                        {LANG_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-            </section>
+                <Stack gap="tight" className="w-48">
+                    <Muted variant="small">Language</Muted>
+                    <Select value={lang} onValueChange={setLang}>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {LANG_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </Stack>
+            </Inline>
 
             {/* Table */}
-            <section className="border rounded-md overflow-hidden">
-                <table className="w-full text-sm">
-                    <thead className="bg-slate-100">
-                    <tr>
-                        <th className="px-3 py-2 text-left">Rank</th>
-                        <th className="px-3 py-2 text-left">User</th>
-                        <th className="px-3 py-2 text-left">Email</th>
-                        <th className="px-3 py-2 text-left">Language</th>
-                        <th className="px-3 py-2 text-right">Best time (mm:ss.ms)</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {loading && (
-                        <tr>
-                            <td colSpan={5} className="px-3 py-4 text-center">
-                                Loading…
-                            </td>
-                        </tr>
-                    )}
+            <Card className="overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-muted">
+                            <TableHead>Rank</TableHead>
+                            <TableHead>User</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Language</TableHead>
+                            <TableHead className="text-right">Best time (mm:ss.ms)</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4">
+                                    <Muted>Loading…</Muted>
+                                </TableCell>
+                            </TableRow>
+                        )}
 
-                    {!loading && error && (
-                        <tr>
-                            <td colSpan={5} className="px-3 py-4 text-center text-red-600">
-                                {error}
-                            </td>
-                        </tr>
-                    )}
+                        {!loading && error && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4 text-destructive">
+                                    {error}
+                                </TableCell>
+                            </TableRow>
+                        )}
 
-                    {!loading && !error && entries.length === 0 && (
-                        <tr>
-                            <td colSpan={5} className="px-3 py-4 text-center">
-                                No runs yet for this filter.
-                            </td>
-                        </tr>
-                    )}
+                        {!loading && !error && entries.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4">
+                                    <Muted>No runs yet for this filter.</Muted>
+                                </TableCell>
+                            </TableRow>
+                        )}
 
-                    {!loading &&
-                        !error &&
-                        entries.map((entry, idx) => (
-                            <tr
-                                key={`${entry.userId}-${entry.exerciseId}-${entry.lang}`}
-                                className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
-                            >
-                                <td className="px-3 py-2">{idx + 1}</td>
-                                <td className="px-3 py-2">{entry.name ?? '(no name)'}</td>
-                                <td className="px-3 py-2">{entry.email}</td>
-                                <td className="px-3 py-2">{entry.lang}</td>
-                                <td className="px-3 py-2 text-right">{formatMs(entry.bestMs)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </section>
-        </main>
+                        {!loading &&
+                            !error &&
+                            entries.map((entry, idx) => (
+                                <TableRow
+                                    key={`${entry.userId}-${entry.exerciseId}-${entry.lang}`}
+                                    className={idx % 2 === 0 ? 'bg-background' : 'bg-muted/50'}
+                                >
+                                    <TableCell>{idx + 1}</TableCell>
+                                    <TableCell>{entry.name ?? '(no name)'}</TableCell>
+                                    <TableCell>{entry.email}</TableCell>
+                                    <TableCell>{entry.lang}</TableCell>
+                                    <TableCell className="text-right">{formatMs(entry.bestMs)}</TableCell>
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+            </Card>
+        </Stack>
     );
 }
