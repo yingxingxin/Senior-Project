@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle, Fragment } from 'react';
-import { RefreshCcwIcon, CopyIcon, Loader2 } from 'lucide-react';
+import { RefreshCcwIcon, CopyIcon, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAIContext } from '../context/provider';
 import { AIContextButton } from '../context/context-button';
@@ -48,17 +48,35 @@ export const AIChatWindow = forwardRef<AIChatWindowHandle, AIChatWindowProps>(fu
   { assistantAvatarUrl, assistantName },
   ref
 ) {
+  const displayName = assistantName || 'Nova';
+  
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       role: 'assistant',
-      content: `Hello! I'm ${assistantName || 'here'} to help you learn. What would you like to know?`,
+      content: `Hello! I'm ${displayName}, and I'm here to help you learn programming. What would you like to know? ✨`,
       timestamp: new Date(),
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { getContextForAPI } = useAIContext();
+
+  // Update welcome message when assistant name changes
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length > 0 && prev[0].id === '1') {
+        return [
+          {
+            ...prev[0],
+            content: `Hello! I'm ${displayName}, and I'm here to help you learn programming. What would you like to know? ✨`,
+          },
+          ...prev.slice(1),
+        ];
+      }
+      return prev;
+    });
+  }, [displayName]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -181,7 +199,14 @@ export const AIChatWindow = forwardRef<AIChatWindowHandle, AIChatWindowProps>(fu
   const chatStatus = isLoading ? 'streaming' : 'ready';
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full" style={{ backgroundColor: '#E6EDf5' }}>
+      {/* Model Display - Show current assistant name */}
+      <div className="px-4 py-2 border-b border-gray-300/50 bg-white/80">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-gray-600" />
+          <span className="text-sm font-semibold text-gray-800">{displayName}</span>
+        </div>
+      </div>
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-hide">

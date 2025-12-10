@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="57708221-bbc7-48fc-a522-0b766c5e3f8e" name="Changes" comment="-trying to fix build errors">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ai/chat/chat-popup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ai/chat/chat-popup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ai/chat/chat-window.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ai/chat/chat-window.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ai/chat/floating-chat.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ai/chat/floating-chat.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +64,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "stephanies-branch-03",
+    "git-widget-placeholder": "change-ai-chat-color",
     "js.debugger.nextJs.config.created.client": "true",
     "js.debugger.nextJs.config.created.server": "true",
     "junie.onboarding.icon.badge.shown": "true",

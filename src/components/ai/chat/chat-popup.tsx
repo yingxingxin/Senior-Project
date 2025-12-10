@@ -144,7 +144,10 @@ export function AIChatPopup({ open, onOpenChange }: AIChatPopupProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-full h-[80vh] p-0 flex flex-col bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-indigo-950/20 border-2 border-pink-200 dark:border-pink-800/50">
+      <DialogContent 
+        className="max-w-2xl w-full h-[80vh] p-0 flex flex-col border-2 border-pink-200 dark:border-pink-800/50"
+        style={{ backgroundColor: '#E6EDf5' }}
+      >
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-pink-200/50 dark:border-pink-800/30">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
@@ -179,8 +182,8 @@ export function AIChatPopup({ open, onOpenChange }: AIChatPopupProps) {
                 className={cn(
                   'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg',
                   message.role === 'user'
-                    ? 'bg-gradient-to-br from-pink-500 to-rose-500'
-                    : 'bg-gradient-to-br from-purple-500 to-indigo-500'
+                    ? 'bg-blue-500'
+                    : 'bg-blue-500'
                 )}
               >
                 {message.role === 'user' ? (
