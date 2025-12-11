@@ -9,6 +9,7 @@ on:
       - 'scripts/worker.ts'
       - 'Dockerfile.worker'
       - 'docker-compose.worker.yml'
+      - '.github/workflows/deploy-worker.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -60,6 +61,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy docker-compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose.worker.yml"
+          target: "~/senior-project/"
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -72,8 +84,12 @@ jobs:
             # Pull latest image (using lowercase image name)
             docker pull ${{ env.REGISTRY }}/${{ needs.build-and-push.outputs.image_name }}:latest
 
-            # Rolling update with new image (use docker-compose for older Docker versions)
-            docker-compose -f docker-compose.worker.yml up -d --no-build
+            # Force recreate container with new image
+            docker-compose -f docker-compose.worker.yml up -d --no-build --force-recreate
+
+            # Verify deployment succeeded
+            sleep 5
+            docker ps | grep worker || echo "WARNING: Worker container not running"
 
             # Cleanup old images
             docker image prune -f
