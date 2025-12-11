@@ -36,6 +36,9 @@ export {
 export type {
   GenerateLessonJobData,
   GenerateLessonJobResult,
+  GenerateSingleLessonJobData,
+  GenerateSingleLessonResult,
+  FinalizeCourseJobData,
   LessonGenerationProgress,
   CreateNotificationJobData,
   CreateNotificationJobResult,
@@ -46,5 +49,10 @@ export type {
 export { JOB_NAMES, QUEUE_NAMES } from './types';
 
 // Job processors (for testing/manual execution)
-export { processLessonGeneration } from './jobs/lesson-generation';
+export {
+  processLessonGeneration,
+  processSingleLessonGeneration,
+  startParallelLessonGenerationFlow,
+} from './jobs/lesson-generation';
+export { processFinalizeCourse } from './jobs/finalize-course';
 export { processNotification } from './jobs/notification';

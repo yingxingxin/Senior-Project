@@ -2,16 +2,23 @@
  * Lesson Generation Job Processor
  *
  * Handles the actual lesson generation logic when a job is picked up by a worker.
- * Uses full AI Agent with iterative tools, document chunking, and diff-based editing.
+ * Supports both sequential (v3 agent) and parallel (v4 flow) generation modes.
  */
 
-import type { Job } from 'bullmq';
+import { FlowProducer, type Job } from 'bullmq';
 import type {
   GenerateLessonJobData,
   GenerateLessonJobResult,
+  GenerateSingleLessonJobData,
+  GenerateSingleLessonResult,
   LessonGenerationProgress,
 } from '../types';
+import { QUEUE_NAMES } from '../types';
+import { getRedisConnection } from '../connection';
 import { generateAILessonWithFullAgent } from '@/src/lib/ai';
+import { planCourse } from '@/src/lib/ai/lesson-generation/planner';
+import { generateSingleLesson } from '@/src/lib/ai/lesson-generation/single-lesson-generator';
+import { loadUserPersonalizationContext } from '@/src/lib/ai/lesson-generation/personalization';
 
 /**
  * Process a lesson generation job
@@ -114,4 +121,135 @@ async function updateProgress(
 ) {
   await job.updateProgress(progress);
   console.log(`[Job ${job.id}] Progress: ${progress.percentage}% - ${progress.message}`);
+}
+
+/**
+ * Process a single lesson generation job (parallel flow child)
+ *
+ * Generates content for one lesson's sections.
+ */
+export async function processSingleLessonGeneration(
+  job: Job<GenerateSingleLessonJobData, GenerateSingleLessonResult>
+): Promise<GenerateSingleLessonResult> {
+  const {
+    userId,
+    topic,
+    difficulty,
+    lessonTitle,
+    lessonSlug,
+    lessonDescription,
+    sections,
+    lessonIndex,
+  } = job.data;
+
+  console.log(`[Job ${job.id}] Generating single lesson: "${lessonTitle}" (${sections.length} sections)`);
+
+  try {
+    // Load user context for personalization
+    const userContext = await loadUserPersonalizationContext(userId);
+
+    // Generate content for this lesson
+    const result = await generateSingleLesson({
+      topic,
+      difficulty,
+      lessonTitle,
+      lessonSlug,
+      lessonDescription,
+      sections,
+      userContext,
+    });
+
+    console.log(`[Job ${job.id}] Single lesson completed: "${lessonTitle}" with ${result.sections.length} sections`);
+
+    return {
+      lessonSlug: result.lessonSlug,
+      lessonTitle: result.lessonTitle,
+      lessonDescription: result.lessonDescription,
+      lessonIndex,
+      sections: result.sections.map((s) => ({
+        slug: s.slug,
+        title: s.title,
+        document: s.document as Record<string, unknown>,
+      })),
+    };
+  } catch (error) {
+    console.error(`[Job ${job.id}] Single lesson generation failed:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Start a parallel lesson generation flow
+ *
+ * Creates a BullMQ Flow with:
+ * - Parent job: finalize-course (waits for all children)
+ * - Child jobs: generate-single-lesson (one per lesson, run in parallel)
+ *
+ * @returns The flow's parent job
+ */
+export async function startParallelLessonGenerationFlow(
+  data: GenerateLessonJobData
+): Promise<{ parentJobId: string; childrenCount: number }> {
+  const {
+    userId,
+    topic,
+    difficulty = 'standard',
+    estimatedDurationMinutes = 30,
+  } = data;
+
+  console.log(`[ParallelFlow] Starting parallel generation for "${topic}"`);
+
+  // Step 1: Load user context
+  const userContext = await loadUserPersonalizationContext(userId);
+
+  // Step 2: Plan the course (single quick AI call)
+  console.log('[ParallelFlow] Planning course structure...');
+  const plan = await planCourse({
+    topic,
+    difficulty,
+    estimatedDurationMinutes,
+    userContext,
+  });
+
+  console.log(`[ParallelFlow] Plan created: ${plan.lessons.length} lessons`);
+
+  // Step 3: Create flow with parallel lesson jobs
+  const flowProducer = new FlowProducer({ connection: getRedisConnection() });
+
+  const flow = await flowProducer.add({
+    name: 'finalize-course',
+    queueName: QUEUE_NAMES.LESSON_GENERATION,
+    data: {
+      userId,
+      courseSlug: plan.courseSlug,
+      courseTitle: plan.courseTitle,
+      courseDescription: plan.description,
+      topic,
+      difficulty,
+      estimatedDurationMinutes,
+      lessonCount: plan.lessons.length,
+    },
+    children: plan.lessons.map((lesson, index) => ({
+      name: 'generate-single-lesson',
+      queueName: QUEUE_NAMES.LESSON_GENERATION,
+      data: {
+        userId,
+        topic,
+        difficulty,
+        lessonTitle: lesson.title,
+        lessonSlug: lesson.slug,
+        lessonDescription: lesson.description,
+        sections: lesson.sections,
+        lessonIndex: index,
+        courseSlug: plan.courseSlug,
+      } satisfies GenerateSingleLessonJobData,
+    })),
+  });
+
+  console.log(`[ParallelFlow] Flow created with parent job ${flow.job.id} and ${plan.lessons.length} children`);
+
+  return {
+    parentJobId: flow.job.id || '',
+    childrenCount: plan.lessons.length,
+  };
 }

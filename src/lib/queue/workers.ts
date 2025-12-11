@@ -5,16 +5,21 @@
  * Workers should run in a separate process from the web server.
  */
 
-import { Worker, type WorkerOptions } from 'bullmq';
+import { Worker, type WorkerOptions, type Job } from 'bullmq';
 import { getRedisConnection } from './connection';
 import {
   QUEUE_NAMES,
+  JOB_NAMES,
   type GenerateLessonJobData,
   type GenerateLessonJobResult,
+  type GenerateSingleLessonJobData,
+  type GenerateSingleLessonResult,
+  type FinalizeCourseJobData,
   type CreateNotificationJobData,
   type CreateNotificationJobResult,
 } from './types';
-import { processLessonGeneration } from './jobs/lesson-generation';
+import { processLessonGeneration, processSingleLessonGeneration } from './jobs/lesson-generation';
+import { processFinalizeCourse } from './jobs/finalize-course';
 import { processNotification } from './jobs/notification';
 
 /**
@@ -51,9 +56,13 @@ const defaultWorkerOptions: Partial<WorkerOptions> = {
 /**
  * Lesson Generation Worker
  *
- * Processes jobs from the lesson-generation queue
+ * Processes jobs from the lesson-generation queue.
+ * Handles multiple job types:
+ * - generate-lesson: Sequential full course generation (v3 agent)
+ * - generate-single-lesson: Single lesson generation (parallel flow child)
+ * - finalize-course: Combine lesson results and save to DB (parallel flow parent)
  */
-export let lessonGenerationWorker: Worker<GenerateLessonJobData, GenerateLessonJobResult> | null = null;
+export let lessonGenerationWorker: Worker | null = null;
 
 /**
  * Initialize the lesson generation worker
@@ -69,27 +78,65 @@ export function initializeLessonGenerationWorker() {
     return lessonGenerationWorker;
   }
 
-  lessonGenerationWorker = new Worker<GenerateLessonJobData, GenerateLessonJobResult>(
+  // Use higher concurrency for parallel flow (4 lessons can generate simultaneously)
+  const concurrency = parseInt(process.env.LESSON_WORKER_CONCURRENCY || '4', 10);
+
+  lessonGenerationWorker = new Worker(
     QUEUE_NAMES.LESSON_GENERATION,
-    async (job) => {
-      console.log(`[Worker] Processing job: ${job.id}`);
-      return await processLessonGeneration(job);
+    async (job: Job) => {
+      console.log(`[Worker] Processing job: ${job.id} (name: ${job.name})`);
+
+      // Route to appropriate processor based on job name
+      switch (job.name) {
+        case JOB_NAMES.GENERATE_LESSON:
+          // Sequential full course generation (v3 agent) - fallback
+          return await processLessonGeneration(
+            job as Job<GenerateLessonJobData, GenerateLessonJobResult>
+          );
+
+        case JOB_NAMES.GENERATE_SINGLE_LESSON:
+          // Parallel flow: Generate one lesson's content
+          return await processSingleLessonGeneration(
+            job as Job<GenerateSingleLessonJobData, GenerateSingleLessonResult>
+          );
+
+        case JOB_NAMES.FINALIZE_COURSE:
+          // Parallel flow: Combine children results and save to DB
+          return await processFinalizeCourse(
+            job as Job<FinalizeCourseJobData, GenerateLessonJobResult>
+          );
+
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
     },
     {
-      connection: getRedisConnection(), // Explicitly set connection (required)
-      ...defaultWorkerOptions,
-      // Specific concurrency for lesson generation (AI calls are expensive)
-      concurrency: parseInt(process.env.LESSON_WORKER_CONCURRENCY || '2', 10),
+      connection: getRedisConnection(),
+      concurrency,
+      // No limiter - allow parallel processing
+      lockDuration: 5 * 60 * 1000,
+      lockRenewTime: 2 * 60 * 1000,
+      autorun: true,
     }
   );
 
   // Event: Job completed successfully
   lessonGenerationWorker.on('completed', (job, result) => {
-    console.log(`[Worker] Job completed: ${job.id}`, {
-      lessonId: result.lessonId,
-      lessonTitle: result.lessonTitle,
-      generationTimeMs: result.generationTimeMs,
-    });
+    // Log based on job type
+    if (job.name === JOB_NAMES.FINALIZE_COURSE || job.name === JOB_NAMES.GENERATE_LESSON) {
+      const lessonResult = result as GenerateLessonJobResult;
+      console.log(`[Worker] Job completed: ${job.id}`, {
+        lessonId: lessonResult.lessonId,
+        lessonTitle: lessonResult.lessonTitle,
+        generationTimeMs: lessonResult.generationTimeMs,
+      });
+    } else if (job.name === JOB_NAMES.GENERATE_SINGLE_LESSON) {
+      const singleResult = result as GenerateSingleLessonResult;
+      console.log(`[Worker] Single lesson completed: ${job.id}`, {
+        lessonSlug: singleResult.lessonSlug,
+        sectionsCount: singleResult.sections.length,
+      });
+    }
   });
 
   // Event: Job failed after all retries
