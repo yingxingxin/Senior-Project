@@ -9,16 +9,56 @@ import { createEditTools } from './edit';
 import { createMetaTools } from './meta';
 
 /**
- * Wrap a tool to log its execution results
+ * Wrap a tool to log its execution results and report progress
  * Uses a generic approach that preserves AI SDK tool compatibility
  */
-function wrapToolWithLogging<T>(toolName: string, tool: T, stepRef: { current: number }): T {
+function wrapToolWithLogging<T>(
+  toolName: string,
+  tool: T,
+  stepRef: { current: number },
+  context: ToolExecutionContext
+): T {
   // Type assertion for the execute property - AI SDK tools have complex union types
   const typedTool = tool as { execute: (...args: unknown[]) => unknown };
   const originalExecute = typedTool.execute;
 
-  // Create a wrapped execute function with logging
+  // Create a wrapped execute function with logging and progress reporting
   typedTool.execute = async (...args: unknown[]) => {
+    // Increment step counter
+    stepRef.current++;
+
+    // Report progress BEFORE tool execution
+    if (context.onProgress) {
+      const plan = context.conversationState.metadata.plan as {
+        lessons: Array<{ plannedSectionCount: number; createdSectionCount: number }>;
+      } | undefined;
+
+      let percentage = 15;
+      let message = `Processing ${toolName}...`;
+
+      if (plan) {
+        const total = plan.lessons.reduce((s, l) => s + l.plannedSectionCount, 0);
+        const done = plan.lessons.reduce((s, l) => s + l.createdSectionCount, 0);
+        // Scale from 15% to 85% based on sections created
+        percentage = 15 + Math.floor((done / Math.max(total, 1)) * 70);
+        message = toolName === 'create_section'
+          ? `Creating section ${done + 1} of ${total}...`
+          : toolName === 'create_lesson'
+          ? `Creating lesson...`
+          : toolName === 'plan'
+          ? `Planning course...`
+          : `Processing...`;
+      }
+
+      await context.onProgress({
+        step: 'agent_running',
+        percentage,
+        message,
+        stepNumber: stepRef.current,
+        totalSteps: 1,
+      });
+    }
+
     const startTime = Date.now();
     try {
       const result = await originalExecute.apply(tool, args);
@@ -57,11 +97,11 @@ export function getAllTools(context: ToolExecutionContext, userId: number, stepR
     ...createMetaTools(context),
   };
 
-  // Wrap all tools with logging, preserving their original types
+  // Wrap all tools with logging and progress reporting, preserving their original types
   const toolEntries = Object.entries(tools);
   const wrappedEntries = toolEntries.map(([name, tool]) => [
     name,
-    wrapToolWithLogging(name, tool, stepRef),
+    wrapToolWithLogging(name, tool, stepRef, context),
   ]);
 
   return Object.fromEntries(wrappedEntries) as typeof tools;

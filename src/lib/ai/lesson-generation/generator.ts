@@ -233,7 +233,8 @@ export async function generateAILessonWithFullAgent(
 
     // Create the lesson record
     // Make lesson slug unique by prefixing with course slug to avoid collisions
-    const uniqueLessonSlug = `${courseSlug}-${agentLesson.slug}`;
+    // Truncate to 64 chars max (varchar limit in DB)
+    const uniqueLessonSlug = `${courseSlug}-${agentLesson.slug}`.substring(0, 64);
 
     const [lessonRecord] = await db
       .insert(lessons)

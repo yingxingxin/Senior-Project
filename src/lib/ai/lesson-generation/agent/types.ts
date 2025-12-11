@@ -112,6 +112,7 @@ export interface AgentTool {
 export interface ToolExecutionContext {
   documentState: DocumentState;
   conversationState: ConversationState;
+  onProgress?: ProgressCallback;
 }
 
 /**

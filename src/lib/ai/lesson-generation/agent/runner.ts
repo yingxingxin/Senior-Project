@@ -251,6 +251,7 @@ export async function runAgent(params: RunAgentParams): Promise<AgentRunResult> 
   const toolContext: ToolExecutionContext = {
     documentState,
     conversationState,
+    onProgress,
   };
 
   // Step counter ref for tool logging
