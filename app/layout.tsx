@@ -19,8 +19,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://trysprite.app"),
   title: "Sprite.exe - Learn to Code with AI",
   description: "Interactive coding education platform with personalized AI assistant",
+  openGraph: {
+    title: "Sprite.exe - Learn to Code with AI",
+    description: "Interactive coding education platform with personalized AI assistant",
+    url: "/",
+    siteName: "Sprite.exe",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sprite.exe - Learn to Code with AI",
+    description: "Interactive coding education platform with personalized AI assistant",
+  },
 };
 
 export default async function RootLayout({

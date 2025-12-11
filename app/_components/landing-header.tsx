@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Inline } from '@/components/ui/spacing'
 import { Heading } from '@/components/ui/typography'
@@ -23,7 +23,9 @@ export function LandingHeader({ isAuthenticated }: LandingHeaderProps) {
       <Inline align="center" justify="between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/favicon.ico" alt="Sprite.exe" width={24} height={24} />
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-primary/80 grid place-items-center shadow-lg shadow-primary/30">
+            <Bot className="h-4 w-4 text-white" />
+          </div>
           <Heading level={4} as="span">Sprite.exe</Heading>
         </Link>
 
