@@ -101,10 +101,52 @@ Return a JSON object with a "sections" array. Each section must have:
 - content: The section content in EXTENDED MARKDOWN format
 
 EXTENDED MARKDOWN FORMAT:
-- Standard Markdown: # headings, **bold**, *italic*, \`code\`, lists, code blocks with \`\`\`language
-- Callouts: Use :::tip, :::warning, :::note, :::info followed by content and ending with :::
-- Flip Cards: Use ???Front text\\nBack text??? (consecutive cards are grouped)
-- Quizzes: Use [quiz: Question | Option A | Option B* | Option C | Option D]\\nExplanation (* marks correct)
+
+Write content using standard Markdown plus these extensions:
+
+## Standard Markdown
+- \`# Heading 1\`, \`## Heading 2\`, etc.
+- \`**bold**\` and \`*italic*\`
+- \`\`\`language for code blocks
+- \`- item\` for bullet lists
+
+## Callouts (tips, warnings, notes)
+\`\`\`
+:::tip
+Pro tip content here.
+:::
+
+:::warning
+Warning content here.
+:::
+
+:::note
+Important note here.
+:::
+
+:::info
+Additional information here.
+:::
+\`\`\`
+
+## Flip Cards (definitions, key concepts)
+\`\`\`
+???Term or Concept
+Definition on the back of the card.
+???
+
+???Another Term
+Its definition here.
+???
+\`\`\`
+Consecutive flip cards are grouped together automatically.
+
+## Quizzes (multiple choice)
+\`\`\`
+[quiz: What is the correct answer? | Option A | Option B* | Option C | Option D]
+Explanation of why Option B is correct. This appears after the user answers.
+\`\`\`
+Mark the correct answer with * after the option text.
 
 CONTENT REQUIREMENTS:
 - Each section should be 300-500 words
