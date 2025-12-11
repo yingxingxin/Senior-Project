@@ -9,7 +9,7 @@ export const ASSISTANT_FIXTURES = [
     name: 'Nova',
     gender: 'feminine' as const,
     avatar_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-feminine-headshot.png',
-    hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-feminine-full-body.png',
+    hero_url: 'https://pub-60d5694a417d4bf6aad60ebfc01b5621.r2.dev/nova-standing.png',
     tagline: 'Brilliant strategist with infectious enthusiasm.',
     description:
       'Breaks down complex problems into achievable wins, celebrating each milestone with genuine excitement.',
